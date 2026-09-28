@@ -1,0 +1,1 @@
+<a class="btn_proyectos_ind"  href="{{url('/proyectos')}}/{{$datos_estados->url_proyecto}}" target="_blank">Ver todas las obras en {{$datos_estados->estado}} </a>

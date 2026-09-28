@@ -1,0 +1,45 @@
+/* Inicialización en español para la extensión 'UI date picker' para jQuery. */
+/* Traducido por Vester (xvester@gmail.com). */
+( function( factory ) {
+	"use strict";
+
+	if ( typeof define === "function" && define.amd ) {
+
+		// AMD. Register as an anonymous module.
+		define( [ "../widgets/datepicker" ], factory );
+	} else {
+
+		// Browser globals
+		factory( jQuery.datepicker );
+	}
+} )( function( datepicker ) {
+"use strict";
+
+datepicker.regional.es = {
+	closeText: "Cerrar",
+	prevText: "Ant",
+	nextText: "Sig",
+	currentText: "Hoy",
+	monthNames: [ "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+	"Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" ],
+	monthNamesShort: [ "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+	"Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" ],
+	dayNames: [ "domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado" ],
+	dayNamesShort: [ "dom", "lun", "mar", "mié", "jue", "vie", "sáb" ],
+	dayNamesMin: [ "D", "L", "M", "X", "J", "V", "S" ],
+	weekHeader: "Sm",
+	firstDay: 1,
+	isRTL: false,
+	dateFormat: "yy-mm-dd",
+	changeYear: true,
+	changeMonth: true,
+	maxDate: 0,
+	showMonthAfterYear: false,
+	yearSuffix: "" };
+datepicker.setDefaults( datepicker.regional.es );
+
+
+
+return datepicker.regional.es;
+
+} );

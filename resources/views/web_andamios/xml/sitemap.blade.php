@@ -1,0 +1,162 @@
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<url>
+	<loc>{{url('/')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-ligeros-galvanizados-tradicionales-estandar')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-ligeros-galvanizados-tradicionales-4-peldanos-STP2')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-ligeros-galvanizados-tradicionales-5-peldanos-STP1')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_stp3')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_banqueteros')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_sbt1')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_sbt2')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_sbt5')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-plegables-multiusos-galvanizados')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+
+<url>
+	<loc>{{route('web_plafoneros')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_spl1')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_spl2')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-ligeros-galvanizados-plafoneros-barandal-SPL-3')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-ligeros-galvanizados-plafoneros-barandal-SPL-4')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_pasilleros')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_sbt3')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_sbt4')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_pasarela')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_dobles')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_altos')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{route('web_longitudinal')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+<url>
+	<loc>{{url('/andamios-ligeros-galvanizados-baqueteros-3-metros-SBT5')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+
+<url>
+	<loc>{{url('/promociones')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+@if(!$Promos->isEmpty())
+	@foreach($Promos as $itemsite)
+		<url>
+			<loc>{{url('/promociones/')}}/{{$itemsite->url_promo}}</loc>
+			<changefreq>weekly</changefreq>
+			<priority>0.65</priority>
+		</url>
+	@endforeach
+@endif
+<url>
+	<loc>{{url('/tienda')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+@if(!$Tienda->isEmpty())
+	@foreach($Tienda as $itemsite)
+		<url>
+			<loc>{{url('/tienda/')}}/{{$itemsite->post_url}}</loc>
+			<changefreq>weekly</changefreq>
+			<priority>0.65</priority>
+		</url>
+	@endforeach
+@endif
+<url>
+	<loc>{{url('/blog')}}</loc>
+	<changefreq>weekly</changefreq>
+	<priority>1</priority>
+</url>
+
+@if(!$Blog->isEmpty())
+	@foreach($Blog as $itemsite)
+		<url>
+			<loc>{{url('/blog/')}}/{{$itemsite->post_url}}</loc>
+			<changefreq>weekly</changefreq>
+			<priority>0.65</priority>
+		</url>
+	@endforeach
+@endif
+</urlset>

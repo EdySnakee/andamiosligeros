@@ -1,0 +1,227 @@
+@font-face {
+  font-family: "CenturyGothic";
+  font-style: normal;
+  font-weight: normal;
+  src: url("fuentes/CenturyGothic.ttf");
+}
+body,h1,h2,h3,h4,h5,h6,p,span,a, table{
+	font-family: CenturyGothic !important;
+}
+.con-bordes {
+    border: 1px #ddd solid !important;
+}
+.fila-informacion p {
+    margin-bottom: 0 !important;
+}
+.contenedor-totales {
+    padding: 0 !important;
+    border: 0 !important;
+}
+.fila-con-bordes {
+    border: 1px #ddd solid;
+}
+.heightvh {
+    height: 100vh;
+    background: #fff;
+}
+body#app-layout {
+    background: #3a3a3a;
+}
+.cont-secciones-cotizaciones {
+    padding: 30px 50px;
+    position: relative;
+    background: white;
+}
+.cont-secciones-cotizaciones::before {
+    content: '';
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones::after {
+    content: '';
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones > div {
+    z-index: 1;
+}
+.tabla-precios {
+    margin-top: 3em;
+}
+p.text-img {
+    margin-top: 1em;
+}
+.mt-20 {
+    margin-top: 20px;
+}
+.footer-info {
+    z-index: 2 !important;
+}
+
+/*FORMATO COTIZACIONES REDES PERIMETRALES*/
+
+.cont-secciones-cotizaciones-perimetrales::before {
+    content: '';
+    background: #ddd;
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones-perimetrales::after {
+    content: '';
+    background: #ddd;
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones-perimetrales {
+    padding: 30px 50px;
+    position: relative;
+    background: white;
+}
+.cont-secciones-cotizaciones-perimetrales::before {
+    content: '';
+    background: #ddd;
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones-perimetrales::after {
+    content: '';
+    background: #ddd;
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones-perimetrales > div {
+    z-index: 1;
+}
+
+/*FORMATO COTIZACIONES ANDAMIOS LIGEROS*/
+
+.cont-secciones-cotizaciones-andamios::before {
+    content: '';
+    background: #7ea7ff;
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones-andamios::after {
+    content: '';
+    background: #7ea7ff;
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones-andamios {
+    padding: 30px 50px;
+    position: relative;
+    background: white;
+}
+.cont-secciones-cotizaciones-andamios::before {
+    content: '';
+    background: #7ea7ff;
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones-andamios::after {
+    content: '';
+    background: #7ea7ff;
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones-andamios > div {
+    z-index: 1;
+}
+
+/*FORMATO COTIZACIONES SG*/
+
+.cont-secciones-cotizaciones-sgol::before {
+    content: '';
+    background: #7ec25c;
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones-sgol::after {
+    content: '';
+    background: #7ec25c;
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones-sgol {
+    padding: 30px 50px;
+    position: relative;
+    background: white;
+}
+.cont-secciones-cotizaciones-sgol::before {
+    content: '';
+    background: #7ec25c;
+    width: 100%;
+    height: 26%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    clip-path: polygon(0 0, 100% 0%, 100% 50%, 0 100%);
+}
+.cont-secciones-cotizaciones-sgol::after {
+    content: '';
+    background: #7ec25c;
+    width: 100%;
+    height: 20%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    clip-path: polygon(0 50%, 100% 0%, 100% 100%, 0 100%);
+    z-index: 0;
+}
+.cont-secciones-cotizaciones-sgol > div {
+    z-index: 1;
+}
