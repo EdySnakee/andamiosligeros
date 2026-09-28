@@ -30,6 +30,15 @@ Siempre que el usuario solicite subir o desplegar a producción:
    git checkout dev
    ```
 
+## Protocolo para "Sube a dev"
+Siempre que el usuario solicite subir a dev:
+1. Asegurar que los cambios en **`dev`** estén commiteados y limpios.
+2. Subir únicamente a la rama remota de desarrollo en GitHub:
+   ```bash
+   git push origin dev
+   ```
+3. Mantenerse en **`dev`** sin tocar **`main`** ni ejecutar el script de despliegue FTP a producción.
+
 ## Seguridad y Credenciales
 - Las credenciales FTP residen únicamente en `.deploy.env` (ignorado en `.gitignore`). Nunca incluir contraseñas reales en `.deploy.env.example`.
 - Evitar credenciales o tokens en código fuente rastreado (usar `env(...)`).
