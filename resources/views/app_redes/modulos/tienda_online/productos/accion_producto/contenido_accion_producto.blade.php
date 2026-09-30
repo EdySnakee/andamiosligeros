@@ -407,9 +407,9 @@
                                                 @if (!$datos_galeria->isEmpty())
                                                 <div class="cont-gal">
                                                     @foreach ($datos_galeria as $item_galeria)
-                                                        <div class="img-cont-gal" data-id-gal="{{$item_galeria->id_file}}">
+                                                        <div class="img-cont-gal" data-id-gal="{{$item_galeria->id_file}}" id="gal_item_{{$item_galeria->id_file}}">
                                                             <img class="img-fluid rounded img-thumbnail" src="{{$item_galeria->file_url}}" alt="">
-                                                            <a href="#" class="delete-item-gal"><i class="fas fa-times-circle"></i></a>
+                                                            <a href="javascript:void(0);" class="delete-item-gal" data-id-gal="{{$item_galeria->id_file}}" title="Eliminar imagen de la galería"><i class="fas fa-times-circle"></i></a>
                                                         </div>
                                                     @endforeach
                                                 </div>

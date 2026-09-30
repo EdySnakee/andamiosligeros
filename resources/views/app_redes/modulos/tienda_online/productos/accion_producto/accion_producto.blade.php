@@ -59,19 +59,68 @@
     .card-info-product {
         padding: 1rem 2rem;
     }
+    div.MultiFile-wrap {
+        margin-top: 5px;
+    }
+    div.MultiFile-label {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 6px;
+        padding: 6px 12px;
+        margin-top: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    div.MultiFile-label > span {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        justify-content: space-between;
+    }
     span.MultiFile-label {
         display: flex;
         align-items: center;
-        justify-content: center;
+        width: 100%;
+        justify-content: space-between;
     }
     span.MultiFile-title {
-        width: 70%;
+        flex: 1;
+        font-size: 13px;
+        color: #4e73df;
+        font-weight: 600;
+        padding-right: 12px;
+        word-break: break-all;
     }
     img.MultiFile-preview {
-        width: 30%;
+        max-width: 60px;
+        max-height: 60px;
+        border-radius: 4px;
+        border: 1px solid #e3e6f0;
+        object-fit: cover;
     }
     a.MultiFile-remove {
-        display: none;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: #e74a3b;
+        color: #ffffff !important;
+        border-radius: 50%;
+        text-decoration: none !important;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+        margin-right: 10px;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    a.MultiFile-remove:hover {
+        background: #be2617;
+        color: #ffffff !important;
+        transform: scale(1.1);
     }
     .pull-right {
         margin-top: 0 !important;
@@ -80,29 +129,51 @@
         display: inline-block;
         position: relative;
         margin-bottom: 0.75em;
-        margin-right: 0.25em;
-        margin-left: 0.25em;
+        margin-right: 0.5em;
+        margin-left: 0.5em;
+        border-radius: 6px;
     }
 
     .img-cont-gal img {
         width: 100px;
         height: 100px;
         object-fit: contain;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 6px;
+        padding: 4px;
     }
     .cont-gal {
-        margin-top: 3em;
+        margin-top: 2em;
         text-align: center;
         margin-bottom: 2em;
     }
     a.delete-item-gal {
         position: absolute;
-        top: 1px;
-        right: 4px;
-        font-size: 1.5em;
+        top: -8px;
+        right: -8px;
+        font-size: 1.3em;
+        color: #e74a3b;
+        background: #fff;
+        border-radius: 50%;
+        line-height: 1;
         display: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+        z-index: 10;
+        cursor: pointer;
+        transition: transform 0.2s ease, color 0.2s ease;
     }
-    .img-cont-gal:hover a {
+    a.delete-item-gal:hover {
+        color: #be2617;
+        transform: scale(1.15);
+    }
+    .img-cont-gal:hover a.delete-item-gal {
         display: block;
+    }
+    @media (max-width: 768px) {
+        a.delete-item-gal {
+            display: block !important;
+        }
     }
     
 </style>
@@ -418,6 +489,59 @@
                     console.log(error);
                 }
             })
+        });
+    });
+
+    $(document).on("click", ".delete-item-gal", function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var id_file = btn.attr("data-id-gal") || btn.closest(".img-cont-gal").attr("data-id-gal");
+        var contImg = btn.closest(".img-cont-gal");
+
+        swal({
+            title: "¿Eliminar imagen?",
+            text: "La imagen se eliminará permanentemente de la galería.",
+            icon: "warning",
+            buttons: ["Cancelar", "Sí, eliminar"],
+            dangerMode: true,
+        }).then((willDelete) => {
+            if (willDelete) {
+                var data_json = {
+                    "accion": "eliminaImagenGaleria",
+                    "datos": {
+                        "id_file": id_file
+                    }
+                };
+                ajaxSetup();
+                $.ajax({
+                    data: data_json,
+                    url: '{{ route("ajax_tienda_path") }}',
+                    type: 'post',
+                    dataType: 'json',
+                    beforeSend: function () {
+                        btn.html('<i class="fas fa-spinner fa-spin"></i>');
+                    },
+                    success: function (result) {
+                        if (result.type_swal === "success") {
+                            contImg.fadeOut(300, function() {
+                                $(this).remove();
+                                if ($(".cont-gal .img-cont-gal").length === 0) {
+                                    $(".cont-gal").remove();
+                                }
+                            });
+                            swal(result.tit_swal, result.msj_swal, "success");
+                        } else {
+                            btn.html('<i class="fas fa-times-circle"></i>');
+                            swal(result.tit_swal || "Error", result.msj_swal || "No se pudo eliminar la imagen.", "error");
+                        }
+                    },
+                    error: function (error) {
+                        btn.html('<i class="fas fa-times-circle"></i>');
+                        console.log(error);
+                        swal("Error", "Ocurrió un error al procesar la solicitud.", "error");
+                    }
+                });
+            }
         });
     });
 </script>

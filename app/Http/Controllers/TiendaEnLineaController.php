@@ -336,13 +336,77 @@ class TiendaEnLineaController extends Controller
                         $objProductosModelTiendaMeta = new ProductosTiendaMeta();
 
                         $pTienda_to_delete = $pTienda->find($data_post->id_producto);
-                        $pTienda_to_delete->delete();
+                        if (!empty($pTienda_to_delete)) {
+                            $pTienda_to_delete->delete();
+                        }
 
                         $pTDetalle_to_delete = $objProductosModelTiendaDetalle->where('id_product',$data_post->id_producto);
                         $pTDetalle_to_delete->delete();
                         
                         $pTMeta_to_delete = $objProductosModelTiendaMeta->where('id_product',$data_post->id_producto);
                         $pTMeta_to_delete->delete();
+
+                        $galeria_to_delete = ItemFiles::where('id_product', $data_post->id_producto)->where('file_tipo', 'galeria')->get();
+                        foreach ($galeria_to_delete as $item_gal) {
+                            if (!empty($item_gal->file_url)) {
+                                $rel = parse_url($item_gal->file_url, PHP_URL_PATH);
+                                if (!empty($rel)) {
+                                    $disk = public_path(ltrim($rel, '/'));
+                                    if (file_exists($disk) && is_file($disk)) {
+                                        @unlink($disk);
+                                    }
+                                }
+                            }
+                            if (!empty($item_gal->file_alt) && !empty($item_gal->file_ext)) {
+                                $alt_path = public_path('storage/files/' . $item_gal->file_alt . $item_gal->file_ext);
+                                if (file_exists($alt_path) && is_file($alt_path)) {
+                                    @unlink($alt_path);
+                                }
+                            }
+                            $item_gal->delete();
+                        }
+                    break;
+                    case 'eliminaImagenGaleria':
+                        $id_file = null;
+                        if (!empty($data_post->id_file)) {
+                            $id_file = $data_post->id_file;
+                        } elseif (!empty($request->id_file)) {
+                            $id_file = $request->id_file;
+                        }
+
+                        if (!empty($id_file)) {
+                            $file_item = ItemFiles::find($id_file);
+                            if (!empty($file_item)) {
+                                if (!empty($file_item->file_url)) {
+                                    $relative_path = parse_url($file_item->file_url, PHP_URL_PATH);
+                                    if (!empty($relative_path)) {
+                                        $file_disk_path = public_path(ltrim($relative_path, '/'));
+                                        if (file_exists($file_disk_path) && is_file($file_disk_path)) {
+                                            @unlink($file_disk_path);
+                                        }
+                                    }
+                                }
+                                if (!empty($file_item->file_alt) && !empty($file_item->file_ext)) {
+                                    $alt_path = public_path('storage/files/' . $file_item->file_alt . $file_item->file_ext);
+                                    if (file_exists($alt_path) && is_file($alt_path)) {
+                                        @unlink($alt_path);
+                                    }
+                                }
+                                $file_item->delete();
+                                return response()->json([
+                                    "tit_swal" => "¡Eliminada!",
+                                    "msj_swal" => "La imagen ha sido eliminada de la galería.",
+                                    "type_swal" => "success",
+                                    "id_file" => $id_file,
+                                ]);
+                            }
+                        }
+
+                        return response()->json([
+                            "tit_swal" => "Ups!",
+                            "msj_swal" => "No se encontró la imagen especificada.",
+                            "type_swal" => "error",
+                        ]);
                     break;
                     case 'confirmDesactiva':
                         $pTienda = new ProductosTienda();
