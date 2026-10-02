@@ -12,6 +12,9 @@ use PHPMailer\PHPMailer;
 use App\Http\Requests;
 use App\Clientes;
 use App\PromocionesModel;
+use App\OrdenesDetalle;
+use App\OpenpayService;
+use App\Http\Controllers\WebhooksController;
 
 
 class PublicWebController extends Controller
@@ -681,26 +684,189 @@ class PublicWebController extends Controller
                     $status_accion = "confirma_pedido";
                     $status_orden = 0;
 
-                    $cantidad = $data_post->cantidad;
-                    $envio = $data_post->envio;
-
+                    $cantidad = (int) $data_post->cantidad;
+                    $envio = (float) $data_post->envio;
+                    $costo_item = (float) $data_post->costo_articulo; // Precio unitario real del producto (sin envío)
                     $nombre_product = $data_post->nombre_product;
-                    $subtotal_orden = $cantidad * $data_post->costo_articulo;
-                    if (!empty($data_post->iva) and $data_post->iva == "si") {
-                        $iva = $data_post->costo_articulo * 0.16;
-                        $total_mas_iva = $data_post->costo_articulo + $iva;
-                        $costo_item = $total_mas_iva;
-                    } else {
-                        $iva = 0;
-                        $costo_item = $data_post->costo_articulo;
-                    }
-                    //dd($costo_item);
 
-                    $datos_orden = OrdenesWeb::postOrden($req_mp, $data_post, $datos_cliente, $subtotal_orden, $costo_item, $status_accion, $status_orden);
-                    //dd($datos_orden);
-                    return view('web_andamios/barra_pago/funcion_mp', compact('costo_item', 'envio', 'cantidad', 'nombre_product', 'datos_factura', 'datos_orden'));
+                    $subtotal_orden = $cantidad * $costo_item; // Subtotal únicamente de productos
+                    $total_envio = $cantidad * $envio;
+                    $subtotal_con_envio = $subtotal_orden + $total_envio;
+
+                    $requiere_iva = (!empty($data_post->iva) && ($data_post->iva === 'si' || $data_post->iva === 'on'));
+
+                    if ($requiere_iva) {
+                        $iva = round($subtotal_con_envio * 0.16, 2);
+                        $total_final = $subtotal_con_envio + $iva;
+                    } else {
+                        $iva = 0.0;
+                        $total_final = $subtotal_con_envio;
+                    }
+
+                    $datos_orden = OrdenesWeb::postOrden(
+                        $req_mp,
+                        $data_post,
+                        $datos_cliente,
+                        $subtotal_orden,
+                        $costo_item,
+                        $status_accion,
+                        $status_orden,
+                        $iva,
+                        $total_final
+                    );
+
+                    // Registrar detalle del producto de la promoción para historial y notificaciones con su precio real
+                    $item_detalle = [
+                        [
+                            'cantidad' => $cantidad,
+                            'titulo' => $nombre_product,
+                            'precio' => $costo_item,
+                        ]
+                    ];
+                    OrdenesDetalle::postDetalleOrden($datos_orden, $item_detalle);
+
+                    return view('web_andamios/barra_pago/funcion_mp', compact('costo_item', 'envio', 'total_envio', 'iva', 'cantidad', 'nombre_product', 'datos_factura', 'datos_orden', 'datos_cliente'));
                     break;
             }
+        }
+    }
+
+    /**
+     * Procesa el cargo directo de Openpay para una orden generada en promociones.
+     */
+    public function pagarPromoOpenpay(Request $request)
+    {
+        $id_orden = (int) $request->input('id_orden');
+        $token_id = $request->input('token_id');
+        $device_session_id = $request->input('device_session_id', '');
+
+        if (!$id_orden || !$token_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Faltan datos obligatorios para procesar la transacción.'
+            ], 400);
+        }
+
+        $orden = OrdenesWeb::find($id_orden);
+        if (!$orden) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró la orden especificada.'
+            ], 404);
+        }
+
+        $cliente = Clientes::find($orden->idcl);
+
+        try {
+            $openpayService = new OpenpayService();
+
+            $resCharge = $openpayService->createCardCharge([
+                'token_id' => $token_id,
+                'device_session_id' => $device_session_id,
+                'monto' => $orden->total,
+                'descripcion' => 'Promoción Andamios Ligeros #' . $orden->id_orden,
+                'order_id' => 'AL-' . $orden->id_orden,
+                'redirect_url' => route('pago_tienda_online', [
+                    'id_orden' => $orden->id_orden,
+                    'gateway' => 'openpay'
+                ]),
+                'cliente_nombre' => $cliente ? $cliente->nombrecl : 'Cliente',
+                'cliente_email' => $cliente ? $cliente->emailcl : 'contacto@andamiosligeros.com',
+                'cliente_telefono' => $cliente ? ($cliente->telefonocl ?: $cliente->celularcl) : '',
+            ]);
+
+            if ($resCharge['success']) {
+                $chargeData = $resCharge['data'];
+                $txStatus = $chargeData['status'] ?? '';
+
+                $orden->mp_payment_id = $chargeData['id'] ?? '';
+                $orden->mp_payment_type = 'openpay_' . ($chargeData['method'] ?? 'card');
+
+                // Si requiere redirección 3D Secure
+                if ($txStatus === 'charge_pending' && !empty($chargeData['payment_method']['url'])) {
+                    $orden->mp_status = 'pending';
+                    $orden->status_orden = 9;
+                    $orden->save();
+
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => $chargeData['payment_method']['url']
+                    ]);
+                }
+
+                // Si fue aprobado directamente
+                if ($txStatus === 'completed') {
+                    $orden->mp_status = 'approved';
+                    $orden->status_orden = 1;
+                    $orden->mp_fecha_post = date('Y-m-d H:i:s');
+                    $orden->save();
+
+                    $webhooksController = new WebhooksController();
+                    $webhooksController->notificarOrdenAprobada($orden);
+
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => route('pago_tienda_online', [
+                            'id_orden' => $orden->id_orden,
+                            'gateway' => 'openpay'
+                        ])
+                    ]);
+                }
+            }
+
+            \Log::error('Fallo al procesar cargo Openpay Promo: ', $resCharge);
+            $errorCode = $resCharge['error_code'] ?? null;
+            $errorDescriptions = [
+                1000 => 'Ocurrió un error interno en el procesador de pagos. Por favor intenta más tarde.',
+                1001 => 'El formato de los datos de la transacción no es válido.',
+                1004 => 'Servicio temporalmente fuera de línea. Por favor intenta más tarde.',
+                1005 => 'Uno o más datos obligatorios no fueron proporcionados.',
+                2004 => 'El número de tarjeta no es válido.',
+                2005 => 'La fecha de expiración de la tarjeta no es válida.',
+                2006 => 'El código de seguridad (CVV) es inválido.',
+                2007 => 'El número de tarjeta es de prueba y solo es válido en modo Sandbox.',
+                3001 => 'La tarjeta fue declinada por el banco emisor. Por favor intenta con otra tarjeta.',
+                3002 => 'La tarjeta ha expirado.',
+                3003 => 'La tarjeta no tiene fondos suficientes. Por favor intenta con otra tarjeta o método de pago.',
+                3004 => 'La tarjeta fue reportada como robada o extraviada.',
+                3005 => 'La transacción fue rechazada por el sistema de seguridad o antifraude del banco.',
+                3006 => 'La operación no está permitida para este tipo de tarjeta.',
+                3008 => 'La tarjeta no es válida para transacciones en línea.',
+                3009 => 'La tarjeta fue reportada como extraviada.',
+                3010 => 'El banco emisor ha restringido el uso de esta tarjeta.',
+                3011 => 'El banco emisor solicita la retención de la tarjeta. Por favor contacta a tu banco.',
+                3012 => 'Se requiere autorización adicional del banco emisor.',
+                15001 => 'La autenticación de seguridad (3D Secure) fue rechazada por el banco emisor. Por favor intenta con otra tarjeta o método de pago.',
+            ];
+
+            if (isset($errorDescriptions[$errorCode])) {
+                $errorMsg = $errorDescriptions[$errorCode];
+            } elseif (!empty($resCharge['description'])) {
+                $desc = $resCharge['description'];
+                if (stripos($desc, 'Authentication/Account Verification Rejected') !== false || stripos($desc, '3D') !== false) {
+                    $errorMsg = 'La autenticación de seguridad (3D Secure) fue rechazada por el banco emisor. Por favor intenta con otra tarjeta.';
+                } elseif (stripos($desc, 'declined') !== false) {
+                    $errorMsg = 'La tarjeta fue declinada por el banco emisor. Por favor intenta con otra tarjeta.';
+                } elseif (stripos($desc, 'funds') !== false) {
+                    $errorMsg = 'La tarjeta no tiene fondos suficientes. Por favor intenta con otra tarjeta o método de pago.';
+                } else {
+                    $errorMsg = 'No fue posible procesar el cargo a tu tarjeta (' . ($errorCode ? "Código $errorCode" : 'declinada') . '). Por favor intenta con otro método.';
+                }
+            } else {
+                $errorMsg = 'No fue posible procesar el cargo a tu tarjeta. Verifica los datos o intenta con otro método.';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $errorMsg
+            ], 400);
+
+        } catch (\Exception $e) {
+            \Log::error('Excepción al procesar pago Openpay en Promo: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error inesperado al procesar el pago. Por favor intenta más tarde.'
+            ], 500);
         }
     }
 }

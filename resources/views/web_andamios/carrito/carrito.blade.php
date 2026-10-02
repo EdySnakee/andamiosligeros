@@ -246,5 +246,218 @@
                 }
             });
         }
+
+        // ==========================================
+        // INTEGRACIÓN OPENPAY.JS (CHECKOUT DIRECTO)
+        // ==========================================
+        $(document).ready(function() {
+            try {
+                // 1. Configuración de credenciales públicas
+                OpenPay.setId("{{ config('services.openpay.merchant_id') }}");
+                OpenPay.setApiKey("{{ config('services.openpay.public_key') }}");
+                OpenPay.setSandboxMode({{ config('services.openpay.sandbox') ? 'true' : 'false' }});
+
+                // 2. Generar identificador de dispositivo para antifraude
+                var deviceSessionId = OpenPay.deviceData.setup("checkout-form", "device_session_id");
+            } catch (err) {
+                console.warn("OpenPay JS Setup Warning:", err);
+            }
+
+            // Sincronizar automáticamente el nombre del cliente con el titular si no ha sido editado
+            $('#nombre_c').on('input', function() {
+                var $holder = $('#openpay_holder_name');
+                if (!$holder.data('edited') || $holder.val() === '') {
+                    $holder.val($(this).val().toUpperCase());
+                }
+            });
+            $('#openpay_holder_name').on('input', function() {
+                $(this).data('edited', true);
+            });
+
+            // Formato de tarjeta y detección dinámica de marca (Visa, Mastercard, AMEX, Carnet)
+            $('#openpay_card_number').on('input', function() {
+                var raw = $(this).val().replace(/\D/g, '');
+                if (raw.length > 16) raw = raw.substring(0, 16);
+                var formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+                $(this).val(formatted);
+
+                try {
+                    var cardType = OpenPay.card.cardType(raw);
+                    if (cardType) {
+                        $('#openpay_card_type').text(cardType.toUpperCase()).fadeIn();
+                    } else {
+                        $('#openpay_card_type').text('').hide();
+                    }
+                } catch(e) {}
+            });
+
+            // Formateo automático de Vigencia (MM / AA)
+            $('#openpay_expiry').on('input', function() {
+                var val = $(this).val().replace(/\D/g, '');
+                if (val.length > 4) val = val.substring(0, 4);
+                if (val.length >= 3) {
+                    $(this).val(val.substring(0, 2) + ' / ' + val.substring(2));
+                } else if (val.length === 2 && !$(this).data('deleting')) {
+                    $(this).val(val + ' / ');
+                } else {
+                    $(this).val(val);
+                }
+
+                var m = val.substring(0, 2);
+                var y = val.substring(2);
+                $('#openpay_exp_month').val(m);
+                $('#openpay_exp_year').val(y);
+            });
+
+            $('#openpay_expiry').on('keydown', function(e) {
+                if (e.key === 'Backspace') {
+                    $(this).data('deleting', true);
+                    var val = $(this).val();
+                    if (val.endsWith(' / ') || val.endsWith('/ ') || val.endsWith('/')) {
+                        e.preventDefault();
+                        var digits = val.replace(/\D/g, '');
+                        digits = digits.substring(0, digits.length - 1);
+                        $(this).val(digits);
+                        $('#openpay_exp_month').val(digits.substring(0, 2));
+                        $('#openpay_exp_year').val(digits.substring(2));
+                    }
+                } else {
+                    $(this).data('deleting', false);
+                }
+            });
+
+            // Restricción numérica para CVV
+            $('#openpay_cvv').on('input', function() {
+                $(this).val($(this).val().replace(/\D/g, ''));
+            });
+
+            // Manejo de cambio visual de método de pago
+            $(document).on('change', 'input[name="metodo_pago"]', function() {
+                if ($(this).val() === 'mercadopago') {
+                    $('#card-mercadopago').css({'border-color': '#009ee3', 'background-color': '#f7fbff'});
+                    $('#card-openpay').css({'border-color': '#dcdcdc', 'border-bottom': '1.5px solid #dcdcdc', 'border-radius': '8px', 'background-color': '#ffffff'});
+                    $('#openpay-card-form').slideUp(200);
+                    $('.cart-confirmar').text('CONFIRMAR PEDIDO');
+                } else {
+                    $('#card-openpay').css({'border-color': '#002f6c', 'border-bottom': 'none', 'border-radius': '8px 8px 0 0', 'background-color': '#f8faff'});
+                    $('#card-mercadopago').css({'border-color': '#dcdcdc', 'background-color': '#ffffff'});
+                    $('#openpay-card-form').slideDown(250);
+
+                    // Si no tiene nombre el titular, heredar del nombre de cliente
+                    if (!$('#openpay_holder_name').val() && $('#nombre_c').val()) {
+                        $('#openpay_holder_name').val($('#nombre_c').val().toUpperCase());
+                    }
+                    $('.cart-confirmar').text('PAGAR CON TARJETA');
+                }
+            });
+
+            // Intercepción del formulario de checkout
+            $('#checkout-form').on('submit', function(e) {
+                var metodo = $('input[name="metodo_pago"]:checked').val();
+
+                // Si seleccionó Openpay y aún no se ha generado el token
+                if (metodo === 'openpay') {
+                    if ($('#token_id').val()) {
+                        return true; // Ya tiene token, permitir envío
+                    }
+
+                    e.preventDefault();
+                    $('#openpay-error-alert').hide().text('');
+
+                    var holderName = $.trim($('#openpay_holder_name').val());
+                    var rawCard = $('#openpay_card_number').val().replace(/\s+/g, '');
+                    
+                    var expVal = $('#openpay_expiry').val() || '';
+                    var expDigits = expVal.replace(/\D/g, '');
+                    var expMonth = expDigits.substring(0, 2);
+                    var expYear = expDigits.substring(2);
+                    var cvv = $.trim($('#openpay_cvv').val());
+
+                    // Validaciones básicas de campos
+                    if (!holderName) {
+                        mostrarErrorOpenpay('Por favor ingresa el nombre del titular de la tarjeta.');
+                        $('#openpay_holder_name').focus();
+                        return false;
+                    }
+
+                    if (!rawCard || !OpenPay.card.validateCardNumber(rawCard)) {
+                        mostrarErrorOpenpay('El número de tarjeta no es válido. Verifica los dígitos.');
+                        $('#openpay_card_number').focus();
+                        return false;
+                    }
+
+                    if (!expMonth || !expYear || expMonth.length < 2 || expYear.length < 2 || !OpenPay.card.validateExpiry(expMonth, expYear)) {
+                        mostrarErrorOpenpay('La fecha de vencimiento es inválida (MM / AA).');
+                        $('#openpay_expiry').focus();
+                        return false;
+                    }
+
+                    if (!cvv || !OpenPay.card.validateCVC(cvv, rawCard)) {
+                        mostrarErrorOpenpay('El código de seguridad (CVV) es inválido.');
+                        $('#openpay_cvv').focus();
+                        return false;
+                    }
+
+                    // Botón en estado de carga
+                    var $btn = $('.cart-confirmar');
+                    var originalText = $btn.text();
+                    $btn.prop('disabled', true).text('PROCESANDO PAGO SEGURO...');
+
+                    // Normalizar año a 2 dígitos
+                    var yearNormal = expYear.length === 4 ? expYear.substring(2) : expYear;
+
+                    // Tokenizar tarjeta con OpenPay
+                    OpenPay.token.create({
+                        "holder_name": holderName,
+                        "card_number": rawCard,
+                        "cvv2": cvv,
+                        "expiration_month": expMonth,
+                        "expiration_year": yearNormal
+                    }, function(response) {
+                        // Éxito: asignar token y enviar formulario
+                        $('#token_id').val(response.data.id);
+                        $('#checkout-form')[0].submit();
+                    }, function(response) {
+                        $btn.prop('disabled', false).text(originalText);
+                        var msg = obtenerMensajeError(response);
+                        mostrarErrorOpenpay(msg);
+                    });
+
+                    return false;
+                }
+            });
+
+            function mostrarErrorOpenpay(mensaje) {
+                $('#openpay-error-alert').text(mensaje).slideDown(150);
+            }
+
+            function obtenerMensajeError(response) {
+                var code = (response.data && response.data.error_code) ? response.data.error_code : response.error_code;
+                var mensajes = {
+                    1001: 'El número de tarjeta es inválido.',
+                    1002: 'El código de seguridad (CVV) es inválido.',
+                    1003: 'La fecha de expiración es inválida.',
+                    1004: 'El nombre del titular de la tarjeta es requerido.',
+                    1005: 'El tipo de tarjeta no está soportado.',
+                    2004: 'El número de dígitos de la tarjeta no es válido.',
+                    2007: 'El número de tarjeta es de prueba y solo es válido en Sandbox.',
+                    3001: 'La tarjeta fue declinada por el banco emisor.',
+                    3002: 'La tarjeta ha expirado.',
+                    3003: 'La tarjeta no cuenta con fondos suficientes.',
+                    3004: 'La tarjeta fue reportada como robada o extraviada.',
+                    3005: 'La transacción fue rechazada por el sistema antifraude.'
+                };
+                if (mensajes[code]) return mensajes[code];
+                if (response.data && response.data.description) return response.data.description;
+                if (response.message) return response.message;
+                return 'No fue posible validar tu tarjeta. Por favor verifica los datos ingresados.';
+            }
+        });
     </script>
+
+    <!-- Librerías oficiales openpay.js para tokenización y antifraude -->
+    <script type="text/javascript" src="https://js.openpay.mx/openpay.v1.min.js"></script>
+    <script type="text/javascript" src="https://js.openpay.mx/openpay-data.v1.min.js"></script>
 @stop
+
+

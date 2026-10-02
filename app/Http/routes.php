@@ -492,6 +492,16 @@ Route::get('/pago-tienda-online', 'WebhooksController@pagoTiendaOnline')->name('
 // Esta es la ruta que recibe el POST reenviado desde Scoregol.
 Route::post('/webhooks/actualiza-orden', 'WebhooksController@actualizaOrdenWebhook');
 
+// 3. RUTA DEL WEBHOOK DE OPENPAY
+Route::post('/openpay/webhook', 'WebhooksController@webhookOpenpay')->name('openpay_webhook');
+
+// 4. RUTA DE PAGO OPENPAY PARA PROMOCIONES
+Route::post('/promociones/pagar-openpay', 'PublicWebController@pagarPromoOpenpay')->name('openpay_pagar_promo');
+
+// 5. RUTA DE PAGO OPENPAY PARA COTIZACIONES
+Route::post('/cotizaciones/pagar-openpay', 'WebProyectosRedesAnticaidasController@pagarCotizacionOpenpay')->name('openpay_pagar_cotizacion');
+
+
 // Comprar en landing
 Route::get('/comprarAhora', 'CartWebController@comprarAhora')->name('comprar_ahora');
 

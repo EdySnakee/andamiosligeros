@@ -30,19 +30,24 @@
         fbq('track', 'Purchase');
       </script>
       
-    @if (json_datos_sts_vta->articulo['id_producto'] == 1)
+    @if (!empty($json_datos_sts_vta->articulo) && (is_array($json_datos_sts_vta->articulo) ? ($json_datos_sts_vta->articulo['id_producto'] ?? 0) == 1 : ($json_datos_sts_vta->articulo->id_producto ?? 0) == 1))
+        @php
+            $art_id = is_array($json_datos_sts_vta->articulo) ? ($json_datos_sts_vta->articulo['id_producto'] ?? '') : ($json_datos_sts_vta->articulo->id_producto ?? '');
+            $art_tit = is_array($json_datos_sts_vta->articulo) ? ($json_datos_sts_vta->articulo['titulo'] ?? '') : ($json_datos_sts_vta->articulo->titulo ?? '');
+        @endphp
         <script>
             ttq.track('CompletePayment', {
                 "contents": [{
-                    "content_id": "{{ json_datos_sts_vta->articulo['id_producto'] }}", // string. ID of the product. Example: "1077218".
-                    "content_type": "product", // string. Either product or product_group.
-                    "content_name": "{{ json_datos_sts_vta->articulo['titulo'] }}" // string. The name of the page or product. Example: "shirt".
+                    "content_id": "{{ $art_id }}",
+                    "content_type": "product",
+                    "content_name": "{{ $art_tit }}"
                 }],
-                "value": {{ json_datos_sts_vta->total_orden }}, // number. Value of the order or items sold. Example: 100.
-                "currency": "MXN" // string. The 4217 currency code. Example: "USD".
+                "value": {{ $json_datos_sts_vta->total_orden ?? 0 }},
+                "currency": "MXN"
             });
         </script>
     @endif
+
 	
 	<link rel="canonical" href="{{url('/status_venta')}}">
 	<meta property="og:url" content="{{url('/status_venta')}}" />

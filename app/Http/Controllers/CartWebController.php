@@ -13,6 +13,7 @@ namespace App\Http\Controllers;
     use MercadoPago\SDK;
     use MercadoPago\Preference;
     use MercadoPago\Item;
+    use App\OpenpayService;
 
     class CartWebController extends Controller
     {
@@ -330,28 +331,170 @@ namespace App\Http\Controllers;
             // 3. GUARDAR DETALLE DE LA ORDEN
             OrdenesDetalle::postDetalleOrden($datos_orden, $cart);
 
-            // 4. GENERAR PREFERENCIA DE MERCADO PAGO
-
-            // **REEMPLAZAR: TOKEN DE ACCESO DE MERCADO PAGO**
-            SDK::setAccessToken(config('services.mercadopago.token'));
-
             $id_orden_numerico = $datos_orden->id_orden;
 
-            // **AQUÍ LA CLAVE DE LA CENTRALIZACIÓN**
+            // 4. EVENTO DE FACEBOOK
+            $evento = "InitiateCheckout";
+            $host = $_SERVER["HTTP_HOST"];
+            $url = $_SERVER["REQUEST_URI"];
+            $url_actual = "https://" . $host . $url;
+            $em = $data_post->email ?? "";
+            $ph = $data_post->telefono ?? "";
+            $content_name = "";
+            $value = $gran_total; // Usar el total calculado
+            $envia_eventos = new FacebookApi();
+            $respuesta_fb = $envia_eventos->FacebookApiModel($evento, $url_actual, $em, $ph, $content_name, $value);
+
+            // 5. EVALUAR MÉTODO DE PAGO SELECCIONADO
+            $metodo_pago = $request->input('metodo_pago', 'mercadopago');
+
+            if ($metodo_pago === 'openpay') {
+                $openpayService = new OpenpayService();
+                $descripcionOrden = "Orden #" . $id_orden_numerico . " - Tienda Andamios Ligeros";
+
+                // Si viene tokenizado desde openpay.js (Checkout transparente)
+                if (!empty($request->input('token_id'))) {
+                    $resCharge = $openpayService->createCardCharge([
+                        'token_id' => $request->input('token_id'),
+                        'device_session_id' => $request->input('device_session_id', ''),
+                        'monto' => $gran_total,
+                        'descripcion' => $descripcionOrden,
+                        'order_id' => 'AL-' . $id_orden_numerico,
+                        'redirect_url' => route('pago_tienda_online', [
+                            'id_orden' => $id_orden_numerico,
+                            'gateway' => 'openpay'
+                        ]),
+                        'cliente_nombre' => $data_post->nombre_c ?? '',
+                        'cliente_email' => $data_post->email ?? '',
+                        'cliente_telefono' => $data_post->telefono ?? '',
+                    ]);
+
+                    if ($resCharge['success'] && !empty($resCharge['data'])) {
+                        $chargeData = $resCharge['data'];
+                        $txId = $chargeData['id'] ?? '';
+                        $txStatus = $chargeData['status'] ?? '';
+
+                        $datos_orden->mp_payment_id = $txId;
+                        $datos_orden->mp_payment_type = 'openpay_' . ($chargeData['method'] ?? 'card');
+
+                        // Si requiere 3D Secure (Redirección bancaria de autenticación)
+                        if ($txStatus === 'charge_pending' && !empty($chargeData['payment_method']['url'])) {
+                            $datos_orden->mp_status = 'pending';
+                            $datos_orden->status_orden = 9;
+                            $datos_orden->save();
+
+                            return redirect($chargeData['payment_method']['url']);
+                        }
+
+                        // Si fue aprobado directamente
+                        if ($txStatus === 'completed') {
+                            $datos_orden->mp_status = 'approved';
+                            $datos_orden->status_orden = 1;
+                            $datos_orden->mp_fecha_post = date('Y-m-d H:i:s');
+                            $datos_orden->save();
+
+                            session()->forget('cart');
+
+                            $webhooksController = new WebhooksController();
+                            $webhooksController->notificarOrdenAprobada($datos_orden);
+
+                            return redirect()->route('pago_tienda_online', [
+                                'id_orden' => $id_orden_numerico,
+                                'gateway' => 'openpay'
+                            ]);
+                        }
+                    }
+
+                    \Log::error('Fallo al procesar cargo Openpay con tarjeta: ', $resCharge);
+                    $errorCode = $resCharge['error_code'] ?? null;
+                    $errorDescriptions = [
+                        1000 => 'Ocurrió un error interno en el procesador de pagos. Por favor intenta más tarde.',
+                        1001 => 'El formato de los datos de la transacción no es válido.',
+                        1004 => 'Servicio temporalmente fuera de línea. Por favor intenta más tarde.',
+                        1005 => 'Uno o más datos obligatorios no fueron proporcionados.',
+                        2004 => 'El número de tarjeta no es válido.',
+                        2005 => 'La fecha de expiración de la tarjeta no es válida.',
+                        2006 => 'El código de seguridad (CVV) es inválido.',
+                        2007 => 'El número de tarjeta es de prueba y solo es válido en modo Sandbox.',
+                        3001 => 'La tarjeta fue declinada por el banco emisor. Por favor intenta con otra tarjeta.',
+                        3002 => 'La tarjeta ha expirado.',
+                        3003 => 'La tarjeta no tiene fondos suficientes. Por favor intenta con otra tarjeta o método de pago.',
+                        3004 => 'La tarjeta fue reportada como robada o extraviada.',
+                        3005 => 'La transacción fue rechazada por el sistema de seguridad o antifraude del banco.',
+                        3006 => 'La operación no está permitida para este tipo de tarjeta.',
+                        3008 => 'La tarjeta no es válida para transacciones en línea.',
+                        3009 => 'La tarjeta fue reportada como extraviada.',
+                        3010 => 'El banco emisor ha restringido el uso de esta tarjeta.',
+                        3011 => 'El banco emisor solicita la retención de la tarjeta. Por favor contacta a tu banco.',
+                        3012 => 'Se requiere autorización adicional del banco emisor.',
+                        15001 => 'La autenticación de seguridad (3D Secure) fue rechazada por el banco emisor. Por favor intenta con otra tarjeta o método de pago.',
+                    ];
+
+                    if (isset($errorDescriptions[$errorCode])) {
+                        $errorMsg = $errorDescriptions[$errorCode];
+                    } elseif (!empty($resCharge['description'])) {
+                        $desc = $resCharge['description'];
+                        if (stripos($desc, 'Authentication/Account Verification Rejected') !== false || stripos($desc, '3D') !== false) {
+                            $errorMsg = 'La autenticación de seguridad (3D Secure) fue rechazada por el banco emisor. Por favor intenta con otra tarjeta.';
+                        } elseif (stripos($desc, 'declined') !== false) {
+                            $errorMsg = 'La tarjeta fue declinada por el banco emisor. Por favor intenta con otra tarjeta.';
+                        } elseif (stripos($desc, 'funds') !== false) {
+                            $errorMsg = 'La tarjeta no tiene fondos suficientes. Por favor intenta con otra tarjeta o método de pago.';
+                        } else {
+                            $errorMsg = 'No fue posible procesar el cargo a tu tarjeta (' . ($errorCode ? "Código $errorCode" : 'declinada') . '). Por favor intenta con otro método.';
+                        }
+                    } else {
+                        $errorMsg = 'No fue posible procesar el cargo a tu tarjeta. Verifica los datos o intenta con otro método.';
+                    }
+
+                    return redirect()->route('ver_carrito')->with('error', $errorMsg)->withInput();
+
+                }
+
+                // Generar Checkout Redirigido de Openpay (Fallback)
+                $resCheckout = $openpayService->createCheckout([
+                    'monto' => $gran_total,
+                    'descripcion' => $descripcionOrden,
+                    'order_id' => 'AL-' . $id_orden_numerico,
+                    'redirect_url' => route('pago_tienda_online', [
+                        'id_orden' => $id_orden_numerico,
+                        'gateway' => 'openpay'
+                    ]),
+                    'cliente_nombre' => $data_post->nombre_c ?? '',
+                    'cliente_email' => $data_post->email ?? '',
+                    'cliente_telefono' => $data_post->telefono ?? '',
+                ]);
+
+                if ($resCheckout['success'] && !empty($resCheckout['data']['checkout_link'])) {
+                    if (!empty($resCheckout['data']['id'])) {
+                        $datos_orden->mp_payment_id = $resCheckout['data']['id'];
+                        $datos_orden->mp_payment_type = 'openpay_checkout';
+                        $datos_orden->save();
+                    }
+                    return redirect($resCheckout['data']['checkout_link']);
+                } else {
+                    \Log::error('Fallo al crear checkout Openpay: ', $resCheckout);
+                    $errorMsg = $resCheckout['description'] ?? 'No fue posible iniciar el pago con Openpay. Intenta con otro método.';
+                    return redirect()->route('ver_carrito')->with('error', $errorMsg);
+                }
+            }
+
+
+            // 6. FLUJO MERCADO PAGO (POR DEFECTO)
+            SDK::setAccessToken(config('services.mercadopago.token'));
+
             $prefijo_sitio = env('SITIO_PREFIJO', 'vallas'); // Debe ser 'vallas' en este sitio
             $id_orden_con_prefijo = $prefijo_sitio . '-' . $id_orden_numerico;
             $webhook_url = env('WEBHOOK_MP_URL', 'https://scoregol.com/mercadopago/webhook'); // URL CENTRALIZADA
 
             $preference = new Preference();
 
-            // 🔴 LÓGICA DE ÍTEMS DE MERCADO PAGO (COMPLETA)
             $items = [];
             $total_items_precio = 0;
 
             foreach ($cart as $item) {
                 $mp_item = new Item();
                 $mp_item->title = $item['titulo'];
-                // Asegúrate de que los precios son flotantes y la cantidad es entera
                 $mp_item->unit_price = (float)$item['precio'];
                 $mp_item->quantity = (int)$item['cantidad'];
                 $items[] = $mp_item;
@@ -378,15 +521,10 @@ namespace App\Http\Controllers;
                 $total_items_precio += (float)$envio;
             }
 
-            // Puedes verificar que $total_items_precio debe ser igual a $gran_total
-
             $preference->items = $items;
-
-            // Referencia externa y URL de notificación (Webhook centralizado)
             $preference->external_reference = $id_orden_con_prefijo;
             $preference->notification_url = $webhook_url;
 
-            // URL de retorno del cliente (back_url)
             $preference->back_urls = [
                 "success" => route('pago_tienda_online', ['id_orden' => $id_orden_numerico]),
                 "pending" => route('pago_tienda_online', ['id_orden' => $id_orden_numerico]),
@@ -394,25 +532,12 @@ namespace App\Http\Controllers;
             ];
 
             $preference->auto_return = "all";
-
             $preference->save();
-            // ----------------------------------------------------
 
-            // 5. EVENTO DE FACEBOOK
-            $evento = "InitiateCheckout";
-            $host = $_SERVER["HTTP_HOST"];
-            $url = $_SERVER["REQUEST_URI"];
-            $url_actual = "https://" . $host . $url;
-            $em = "";
-            $ph = "";
-            $content_name = "";
-            $value = $gran_total; // Usar el total calculado
-            $envia_eventos = new FacebookApi();
-            $respuesta_fb = $envia_eventos->FacebookApiModel($evento, $url_actual, $em, $ph, $content_name, $value);
-
-            // 6. Redirección a Mercado Pago
+            // Redirección a Mercado Pago
             return redirect($preference->init_point);
         }
+
 
         public function verDetalleProduct(Request $request)
         {

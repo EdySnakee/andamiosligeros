@@ -38,5 +38,13 @@ return [
         'key' => env('MP_PUBLIC_KEY'),
         'token' => env('MP_ACCESS_TOKEN'),
     ],
+    'openpay' => [
+        'merchant_id' => env('OPENPAY_MERCHANT_ID'),
+        'private_key' => env('OPENPAY_PRIVATE_KEY'),
+        'public_key' => env('OPENPAY_PUBLIC_KEY'),
+        'sandbox' => env('OPENPAY_SANDBOX', true),
+        'use_3d_secure' => env('OPENPAY_USE_3D_SECURE', false),
+    ],
 
 ];
+
