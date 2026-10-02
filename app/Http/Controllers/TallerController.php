@@ -67,10 +67,40 @@ class TallerController extends Controller
             ->groupBy('ordenes_taller.id_cotizacion')
             ->pluck('total_terminadas', 'id_cotizacion');
 
+        // Obtener datos de ventas para enlazar directamente a la vista de venta
+        $ventas = \DB::table('ventas')
+            ->select('id_cotizacion', 'ruta_encrypt', 'giro_empresa')
+            ->whereIn('id_cotizacion', $ids_cotizaciones)
+            ->orderBy('id_venta', 'DESC')
+            ->get();
+
+        $slugs_giro = [
+            'ra' => 'redes-anticaidas',
+            'rp' => 'redes-perimetrales',
+            'sg' => 'score-gol',
+            'al' => 'andamios-ligeros'
+        ];
+
+        $ventas_info = [];
+        foreach ($ventas as $v) {
+            if (!isset($ventas_info[$v->id_cotizacion])) {
+                $ventas_info[$v->id_cotizacion] = $v;
+            }
+        }
+
         foreach ($ordenes as $item) {
             $total = $totales_piezas[$item->id_cotizacion] ?? 0;
             $terminadas = $totales_terminadas[$item->id_cotizacion] ?? 0;
             $item->porcentaje = $total > 0 ? round(($terminadas / $total) * 100) : 0;
+
+            $venta = $ventas_info[$item->id_cotizacion] ?? null;
+            if ($venta && !empty($venta->ruta_encrypt)) {
+                $giro = $venta->giro_empresa ?: $item->giro_empresa;
+                $slug = $slugs_giro[$giro] ?? 'andamios-ligeros';
+                $item->url_venta = url('ventas/' . $slug . '/' . $venta->ruta_encrypt);
+            } else {
+                $item->url_venta = null;
+            }
         }
 
         return view('app_redes/modulos/taller/listado_ordenes_taller', compact(
@@ -132,10 +162,40 @@ class TallerController extends Controller
             ->groupBy('ordenes_taller.id_cotizacion')
             ->pluck('total_terminadas', 'id_cotizacion');
 
+        // Obtener datos de ventas para enlazar directamente a la vista de venta
+        $ventas = \DB::table('ventas')
+            ->select('id_cotizacion', 'ruta_encrypt', 'giro_empresa')
+            ->whereIn('id_cotizacion', $ids_cotizaciones)
+            ->orderBy('id_venta', 'DESC')
+            ->get();
+
+        $slugs_giro = [
+            'ra' => 'redes-anticaidas',
+            'rp' => 'redes-perimetrales',
+            'sg' => 'score-gol',
+            'al' => 'andamios-ligeros'
+        ];
+
+        $ventas_info = [];
+        foreach ($ventas as $v) {
+            if (!isset($ventas_info[$v->id_cotizacion])) {
+                $ventas_info[$v->id_cotizacion] = $v;
+            }
+        }
+
         foreach ($ordenes as $item) {
             $total = $totales_piezas[$item->id_cotizacion] ?? 0;
             $terminadas = $totales_terminadas[$item->id_cotizacion] ?? 0;
             $item->porcentaje = $total > 0 ? round(($terminadas / $total) * 100) : 0;
+
+            $venta = $ventas_info[$item->id_cotizacion] ?? null;
+            if ($venta && !empty($venta->ruta_encrypt)) {
+                $giro = $venta->giro_empresa ?: $item->giro_empresa;
+                $slug = $slugs_giro[$giro] ?? 'andamios-ligeros';
+                $item->url_venta = url('ventas/' . $slug . '/' . $venta->ruta_encrypt);
+            } else {
+                $item->url_venta = null;
+            }
         }
 
         $counts = [

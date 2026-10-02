@@ -166,9 +166,15 @@
                                 {{ $orden->id_cotizacion }}
                             </td>
                             <td>
-                                <a href="{{ url('sb-admin/seguimineto/'.$orden->id_cotizacion) }}" target="_blank" class="font-weight-bold ml-1 text-primary">
-                                    {{ $orden->cod_venta ?? '—' }}
-                                </a>
+                                @if(!empty($orden->url_venta))
+                                    <a href="{{ $orden->url_venta }}" target="_blank" class="font-weight-bold ml-1 text-primary">
+                                        {{ $orden->cod_venta ?? '—' }}
+                                    </a>
+                                @else
+                                    <span class="font-weight-bold ml-1 text-primary">
+                                        {{ $orden->cod_venta ?? '—' }}
+                                    </span>
+                                @endif
                             </td>
                             <td><small class="text-muted">{{ $orden->cod_cotizacion }}</small></td>
                             <td><strong>{{ $orden->nombrecl }}</strong></td>

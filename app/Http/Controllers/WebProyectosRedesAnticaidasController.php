@@ -208,15 +208,17 @@ class WebProyectosRedesAnticaidasController extends Controller
     {
         $tipo_vista = "Ventas";
         $ventasRedes = Ventas::where("ruta_encrypt", $request->ruta_encrypt)->first();
-        if (isset($ventasRedes->id_cotizacion) and !empty($ventasRedes->id_cotizacion and $ventasRedes->status == 2 or $ventasRedes->status == 3)) {
+        if (isset($ventasRedes->id_cotizacion) && !empty($ventasRedes->id_cotizacion) && in_array($ventasRedes->status, [2, 3, 4, 5])) {
             $DetalleCotizaciones = DetalleCotizaciones::where("id_cotizacion", $ventasRedes->id_cotizacion)->get();
             $infoCliente = Clientes::where("idcl", $ventasRedes->id_cliente)->first();
 
+            $idsproductos = [];
             foreach ($DetalleCotizaciones as $key) {
                 # code...
                 $infoProducto = Productos::where("id_producto", $key->id_producto)->first();
-                //print_r($infoProducto->id_producto."<br>");
-                $idsproductos[] = $infoProducto->id_producto;
+                if ($infoProducto) {
+                    $idsproductos[] = $infoProducto->id_producto;
+                }
             }
             $idsproducts_unicos = array_unique($idsproductos);
             //print_r($ventasRedes->giro_empresa);

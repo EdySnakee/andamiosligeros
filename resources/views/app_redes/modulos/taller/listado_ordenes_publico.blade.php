@@ -315,7 +315,13 @@
                                 {{ $orden->id_cotizacion }}
                             </td>
                             <td>
-                                <span class="">{{ $orden->cod_venta ?? '—' }}</span>
+                                @if(!empty($orden->url_venta))
+                                    <a href="{{ $orden->url_venta }}" target="_blank" class="font-weight-bold text-primary">
+                                        {{ $orden->cod_venta ?? '—' }}
+                                    </a>
+                                @else
+                                    <span class="">{{ $orden->cod_venta ?? '—' }}</span>
+                                @endif
                             </td>
                             <td><small class="text-muted">{{ $orden->cod_cotizacion }}</small></td>
                             <td><strong>{{ $orden->nombrecl }}</strong></td>
