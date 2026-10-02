@@ -3,6 +3,7 @@
 @stop
 @section('content')
     @include('app_redes.modulos.ventas.contenido_listado_ventas')
+    @include('app_redes.modulos.ventas.modal_logistica')
 @stop
 
 @section('js')
@@ -712,5 +713,199 @@
                 }
             });
         }
+
+        // ==========================================
+        // GESTIÓN UNIFICADA DE LOGÍSTICA Y ENVÍOS
+        // ==========================================
+        var listaPaqueterias = ["Paquetexpress", "Pitic", "Tresguerras", "Castores", "DHL", "FedEx", "Estafeta", "Flecha Amarilla", "Transporte Propio / Local"];
+
+        $(document).on("click", ".open-modal-logistica", function(e) {
+            e.preventDefault();
+            var btn = $(this);
+            var idVta = btn.attr("data-id-vent");
+            var codVenta = btn.attr("data-cod-venta") || "—";
+            var cliente = btn.attr("data-cliente") || "—";
+            var envio = btn.attr("data-envio") || "";
+            var envioPaq = btn.attr("data-envio-paqueteria") || "";
+            var paqueteria = btn.attr("data-paqueteria") || "";
+            var fechaEnvio = btn.attr("data-fecha-envio") || "";
+            var origen = btn.attr("data-origen") || "";
+            var destino = btn.attr("data-destino") || "";
+
+            // Datos segundo envío
+            var envio2 = btn.attr("data-envio-2") || "";
+            var origen2 = btn.attr("data-origen-2") || "";
+            var destino2 = btn.attr("data-destino-2") || "";
+            var envioPaq2 = btn.attr("data-envio-paqueteria-2") || "";
+            var paqueteria2 = btn.attr("data-paqueteria-2") || "";
+            var fechaEnvio2 = btn.attr("data-fecha-envio-2") || "";
+
+            // Llenar datos principales
+            $("#modal_log_id_venta").val(idVta);
+            $("#modal_log_cod_venta").text(codVenta);
+            $("#modal_log_cliente").text(cliente);
+            $("#modal_log_envio").val((envio !== "" && parseFloat(envio) > 0) ? parseFloat(envio) : "");
+            $("#modal_log_origen").val(origen);
+            $("#modal_log_destino").val(destino);
+
+            // Primer envío paquetería
+            $("#modal_log_envio_paqueteria").val((envioPaq !== "" && parseFloat(envioPaq) > 0) ? parseFloat(envioPaq) : "");
+            $("#modal_log_fecha_envio").val(fechaEnvio);
+            if (paqueteria && listaPaqueterias.includes(paqueteria)) {
+                $("#modal_log_paqueteria_select").val(paqueteria);
+                $("#modal_log_paqueteria_otra").val("").hide();
+            } else if (paqueteria) {
+                $("#modal_log_paqueteria_select").val("Otros");
+                $("#modal_log_paqueteria_otra").val(paqueteria).show();
+            } else {
+                $("#modal_log_paqueteria_select").val("");
+                $("#modal_log_paqueteria_otra").val("").hide();
+            }
+
+            // Segundo envío completo
+            var tieneSegundoEnvio = (envioPaq2 !== "" && parseFloat(envioPaq2) > 0) || 
+                                    (paqueteria2 !== "") || 
+                                    (fechaEnvio2 !== "") || 
+                                    (envio2 !== "" && parseFloat(envio2) > 0) || 
+                                    (origen2 !== "") || 
+                                    (destino2 !== "");
+
+            if (tieneSegundoEnvio) {
+                $("#check_segundo_envio").prop("checked", true);
+                $("#seccion_segundo_envio").show();
+                $("#modal_log_envio_2").val((envio2 !== "" && parseFloat(envio2) > 0) ? parseFloat(envio2) : "");
+                $("#modal_log_origen_2").val(origen2);
+                $("#modal_log_destino_2").val(destino2);
+                $("#modal_log_envio_paqueteria_2").val((envioPaq2 !== "" && parseFloat(envioPaq2) > 0) ? parseFloat(envioPaq2) : "");
+                $("#modal_log_fecha_envio_2").val(fechaEnvio2);
+                if (paqueteria2 && listaPaqueterias.includes(paqueteria2)) {
+                    $("#modal_log_paqueteria_select_2").val(paqueteria2);
+                    $("#modal_log_paqueteria_otra_2").val("").hide();
+                } else if (paqueteria2) {
+                    $("#modal_log_paqueteria_select_2").val("Otros");
+                    $("#modal_log_paqueteria_otra_2").val(paqueteria2).show();
+                } else {
+                    $("#modal_log_paqueteria_select_2").val("");
+                    $("#modal_log_paqueteria_otra_2").val("").hide();
+                }
+            } else {
+                $("#check_segundo_envio").prop("checked", false);
+                $("#seccion_segundo_envio").hide();
+                $("#modal_log_envio_2").val("");
+                $("#modal_log_origen_2").val("");
+                $("#modal_log_destino_2").val("");
+                $("#modal_log_envio_paqueteria_2").val("");
+                $("#modal_log_fecha_envio_2").val("");
+                $("#modal_log_paqueteria_select_2").val("");
+                $("#modal_log_paqueteria_otra_2").val("").hide();
+            }
+
+            $("#modalLogisticaEnvio").modal("show");
+        });
+
+        // Copiar dirección del destino 1 al destino 2
+        $(document).on("click", "#btn_copiar_destino", function(e) {
+            e.preventDefault();
+            var dirPrincipal = $("#modal_log_destino").val();
+            $("#modal_log_destino_2").val(dirPrincipal).focus();
+        });
+
+        // Alternar select "Otros" para paquetería 1
+        $(document).on("change", "#modal_log_paqueteria_select", function() {
+            if ($(this).val() === "Otros") {
+                $("#modal_log_paqueteria_otra").show().focus();
+            } else {
+                $("#modal_log_paqueteria_otra").hide().val("");
+            }
+        });
+
+        // Alternar select "Otros" para paquetería 2
+        $(document).on("change", "#modal_log_paqueteria_select_2", function() {
+            if ($(this).val() === "Otros") {
+                $("#modal_log_paqueteria_otra_2").show().focus();
+            } else {
+                $("#modal_log_paqueteria_otra_2").hide().val("");
+            }
+        });
+
+        // Checkbox segundo envío
+        $(document).on("change", "#check_segundo_envio", function() {
+            if ($(this).is(":checked")) {
+                $("#seccion_segundo_envio").slideDown(200);
+            } else {
+                $("#seccion_segundo_envio").slideUp(200);
+            }
+        });
+
+        // Guardar logística unificada
+        $(document).on("click", "#btn_guardar_logistica", function(e) {
+            e.preventDefault();
+            var idVta = $("#modal_log_id_venta").val();
+            if (!idVta) return;
+
+            var envio = $("#modal_log_envio").val();
+            var origen = $("#modal_log_origen").val();
+            var destino = $("#modal_log_destino").val();
+
+            // Paquetería 1
+            var selPaq = $("#modal_log_paqueteria_select").val();
+            var paqueteria = selPaq === "Otros" ? $("#modal_log_paqueteria_otra").val().trim() : selPaq;
+            var envioPaq = $("#modal_log_envio_paqueteria").val();
+            var fechaEnvio = $("#modal_log_fecha_envio").val();
+
+            // Segundo envío
+            var habilitarSegundo = $("#check_segundo_envio").is(":checked") ? 1 : 0;
+            var envio2 = $("#modal_log_envio_2").val();
+            var origen2 = $("#modal_log_origen_2").val();
+            var destino2 = $("#modal_log_destino_2").val();
+            var selPaq2 = $("#modal_log_paqueteria_select_2").val();
+            var paqueteria2 = selPaq2 === "Otros" ? $("#modal_log_paqueteria_otra_2").val().trim() : selPaq2;
+            var envioPaq2 = $("#modal_log_envio_paqueteria_2").val();
+            var fechaEnvio2 = $("#modal_log_fecha_envio_2").val();
+
+            var dataJson = {
+                "accion": "guardarLogisticaEnvio",
+                "datos": {
+                    "id_vta": idVta,
+                    "envio": envio,
+                    "origen": origen,
+                    "destino": destino,
+                    "paqueteria": paqueteria,
+                    "envio_paqueteria": envioPaq,
+                    "fecha_envio_paqueteria": fechaEnvio,
+                    "habilitar_segundo_envio": habilitarSegundo,
+                    "envio_2": envio2,
+                    "origen_2": origen2,
+                    "destino_2": destino2,
+                    "paqueteria_2": paqueteria2,
+                    "envio_paqueteria_2": envioPaq2,
+                    "fecha_envio_paqueteria_2": fechaEnvio2
+                }
+            };
+
+            var btn = $(this);
+            btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+
+            ajaxSetup();
+            $.ajax({
+                data: dataJson,
+                url: '{{ route('path_ajax_ventas') }}',
+                type: 'post',
+                dataType: 'json',
+                success: function(response) {
+                    btn.prop("disabled", false).html('<i class="fas fa-save mr-1"></i> Guardar Cambios');
+                    $("#modalLogisticaEnvio").modal("hide");
+                    swal("¡Éxito!", "La información de envío y logística ha sido actualizada correctamente.", "success")
+                        .then(() => {
+                            getTablaVentas();
+                        });
+                },
+                error: function(err) {
+                    btn.prop("disabled", false).html('<i class="fas fa-save mr-1"></i> Guardar Cambios');
+                    console.log(err);
+                    swal("Error", "Ocurrió un problema al guardar la información de logística.", "error");
+                }
+            });
+        });
     </script>
 @stop

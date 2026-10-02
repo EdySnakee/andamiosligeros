@@ -46,7 +46,14 @@ use App\SeguimientoBitacora;
                 @endif
             </td>
             <td><?php echo "$" . number_format($result_vta->total, 2, '.', ','); ?></td>
-            <td><?php echo "$" . number_format($result_vta->envio, 2, '.', ','); ?></td>
+            <td>
+                <?php echo "$" . number_format($result_vta->envio, 2, '.', ','); ?>
+                @if (!empty($result_vta->envio_2) && $result_vta->envio_2 != 0)
+                    <div class="mt-1" style="font-size: 0.8rem; color: #17a2b8;">
+                        <span class="badge badge-info" style="font-size:0.68rem;">2º</span> <?php echo "$" . number_format($result_vta->envio_2, 2, '.', ','); ?>
+                    </div>
+                @endif
+            </td>
             <td>
                 @if ($result_vta->status == 3)
                     <span class="status bg-gradient-warning shadow">
@@ -79,6 +86,15 @@ use App\SeguimientoBitacora;
             <td>
                 @if (!empty($result_vta->envio_paqueteria) && $result_vta->envio_paqueteria != 0)
                     <?php echo "$" . number_format($result_vta->envio_paqueteria, 2, '.', ','); ?>
+                    @if (!empty($result_vta->envio_paqueteria_2) && $result_vta->envio_paqueteria_2 != 0)
+                        <div class="mt-1" style="font-size: 0.8rem; color: #17a2b8;">
+                            <span class="badge badge-info" style="font-size:0.68rem;">2º</span> <?php echo "$" . number_format($result_vta->envio_paqueteria_2, 2, '.', ','); ?>
+                        </div>
+                    @endif
+                @elseif(!empty($result_vta->envio_paqueteria_2) && $result_vta->envio_paqueteria_2 != 0)
+                    <div style="font-size: 0.8rem; color: #17a2b8;">
+                        <span class="badge badge-info" style="font-size:0.68rem;">2º</span> <?php echo "$" . number_format($result_vta->envio_paqueteria_2, 2, '.', ','); ?>
+                    </div>
                 @else
                     <span style="color:#aaa;">-</span>
                 @endif
@@ -88,6 +104,15 @@ use App\SeguimientoBitacora;
             <td>
                 @if (!empty($result_vta->paqueteria))
                     {{ $result_vta->paqueteria }}
+                    @if (!empty($result_vta->paqueteria_2))
+                        <div class="mt-1" style="font-size: 0.8rem; color: #17a2b8;">
+                            <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ $result_vta->paqueteria_2 }}
+                        </div>
+                    @endif
+                @elseif(!empty($result_vta->paqueteria_2))
+                    <div style="font-size: 0.8rem; color: #17a2b8;">
+                        <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ $result_vta->paqueteria_2 }}
+                    </div>
                 @else
                     <span style="color:#aaa;">-</span>
                 @endif
@@ -97,6 +122,15 @@ use App\SeguimientoBitacora;
             <td>
                 @if (!empty($result_vta->fecha_envio_paqueteria))
                     {{ \Carbon\Carbon::parse($result_vta->fecha_envio_paqueteria)->format('d/m/y') }}
+                    @if (!empty($result_vta->fecha_envio_paqueteria_2))
+                        <div class="mt-1" style="font-size: 0.8rem; color: #17a2b8;">
+                            <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ \Carbon\Carbon::parse($result_vta->fecha_envio_paqueteria_2)->format('d/m/y') }}
+                        </div>
+                    @endif
+                @elseif(!empty($result_vta->fecha_envio_paqueteria_2))
+                    <div style="font-size: 0.8rem; color: #17a2b8;">
+                        <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ \Carbon\Carbon::parse($result_vta->fecha_envio_paqueteria_2)->format('d/m/y') }}
+                    </div>
                 @else
                     <span style="color:#aaa;">-</span>
                 @endif
@@ -106,6 +140,15 @@ use App\SeguimientoBitacora;
             <td>
                 @if (!empty($result_vta->origen))
                     {{ $result_vta->origen }}
+                    @if (!empty($result_vta->origen_2))
+                        <div class="mt-1" style="font-size: 0.8rem; color: #17a2b8;">
+                            <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ $result_vta->origen_2 }}
+                        </div>
+                    @endif
+                @elseif(!empty($result_vta->origen_2))
+                    <div style="font-size: 0.8rem; color: #17a2b8;">
+                        <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ $result_vta->origen_2 }}
+                    </div>
                 @else
                     <span style="color:#aaa;">-</span>
                 @endif
@@ -115,6 +158,15 @@ use App\SeguimientoBitacora;
             <td>
                 @if (!empty($result_vta->destino))
                     {{ $result_vta->destino }}
+                    @if (!empty($result_vta->destino_2))
+                        <div class="mt-1" style="font-size: 0.8rem; color: #17a2b8;">
+                            <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ $result_vta->destino_2 }}
+                        </div>
+                    @endif
+                @elseif(!empty($result_vta->destino_2))
+                    <div style="font-size: 0.8rem; color: #17a2b8;">
+                        <span class="badge badge-info" style="font-size:0.68rem;">2º</span> {{ $result_vta->destino_2 }}
+                    </div>
                 @else
                     <span style="color:#aaa;">-</span>
                 @endif
@@ -181,88 +233,28 @@ use App\SeguimientoBitacora;
                             </li>
                         @endif
 
-                        {{-- Costo de envío normal --}}
-                        @if ($result_vta->envio == 0)
-                            <li>
-                                <a id="open_add_envio" class="btn btn-success col-md-12 btn-dropdown-fix"
-                                    data-id-vent="{{ $result_vta->id_venta }}"> Agregar envío</a>
-                            </li>
-                        @else
-                            <li>
-                                <a id="open_add_envio" class="btn btn-warning col-md-12 btn-dropdown-fix"
-                                 style="color:#333 !important;"
-                                    data-id-vent="{{ $result_vta->id_venta }}"> Editar envío</a>
-                            </li>
-                        @endif
-
-                        {{-- Envío Paquetería y Logística - Solo si Seguimiento de Venta ha iniciado (Status != 3 o tiene Bitácora) --}}
-                        @if ($result_vta->status != 3 || !empty($datosSeguimientoTrabajo))
-                            {{-- Envío Paquetería --}}
-                            @if (empty($result_vta->envio_paqueteria) || $result_vta->envio_paqueteria == 0)
-                                <li>
-                                    <a id="open_add_envio_paqueteria" class="btn btn-success col-md-12 btn-dropdown-fix"
-                                        style="color:#fff !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"> Agregar envío paquetería</a>
-                                </li>
-                            @else
-                                <li>
-                                    <a id="open_add_envio_paqueteria" class="btn btn-warning col-md-12 btn-dropdown-fix"
-                                        style="color:#333 !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"> Editar envío paquetería</a>
-                                </li>
-                            @endif
-    
-                            {{-- Paquetería --}}
-                            @if (empty($result_vta->paqueteria))
-                                <li>
-                                    <a id="open_add_paqueteria" class="btn btn-success col-md-12 btn-dropdown-fix"
-                                        style="color:#fff !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"
-                                        data-paqueteria="{{ $result_vta->paqueteria }}"> Agregar paquetería</a>
-                                </li>
-                            @else
-                                <li>
-                                    <a id="open_add_paqueteria" class="btn btn-warning col-md-12 btn-dropdown-fix"
-                                        style="color:#333 !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"
-                                        data-paqueteria="{{ $result_vta->paqueteria }}"> Editar paquetería</a>
-                                </li>
-                            @endif
-    
-                            {{-- Origen --}}
-                            @if (empty($result_vta->origen))
-                                <li>
-                                    <a id="open_add_origen" class="btn btn-success col-md-12 btn-dropdown-fix"
-                                        style="color:#fff !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"
-                                        data-valor="{{ $result_vta->origen }}"> Agregar origen</a>
-                                </li>
-                            @else
-                                <li>
-                                    <a id="open_add_origen" class="btn btn-warning col-md-12 btn-dropdown-fix"
-                                        style="color:#333 !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"
-                                        data-valor="{{ $result_vta->origen }}"> Editar origen</a>
-                                </li>
-                            @endif
-    
-                            {{-- Destino --}}
-                            @if (empty($result_vta->destino))
-                                <li>
-                                    <a id="open_add_destino" class="btn btn-success col-md-12 btn-dropdown-fix"
-                                        style="color:#fff !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"
-                                        data-valor="{{ $result_vta->destino }}"> Agregar destino</a>
-                                </li>
-                            @else
-                                <li>
-                                    <a id="open_add_destino" class="btn btn-warning col-md-12 btn-dropdown-fix"
-                                        style="color:#333 !important;"
-                                        data-id-vent="{{ $result_vta->id_venta }}"
-                                        data-valor="{{ $result_vta->destino }}"> Editar destino</a>
-                                </li>
-                            @endif
-                        @endif
+                        {{-- Logística y Envíos Unificado --}}
+                        <li>
+                            <a href="javascript:void(0)" class="btn btn-primary col-md-12 btn-dropdown-fix open-modal-logistica"
+                                style="color:#fff !important; text-align: left; padding: 6px 12px; font-weight: 500;"
+                                data-id-vent="{{ $result_vta->id_venta }}"
+                                data-cod-venta="{{ $result_vta->cod_venta }}"
+                                data-cliente="{{ $result_vta->nombrecl }}"
+                                data-envio="{{ $result_vta->envio ?? 0 }}"
+                                data-envio-paqueteria="{{ $result_vta->envio_paqueteria ?? '' }}"
+                                data-paqueteria="{{ $result_vta->paqueteria ?? '' }}"
+                                data-fecha-envio="{{ $result_vta->fecha_envio_paqueteria ?? '' }}"
+                                data-origen="{{ $result_vta->origen ?? '' }}"
+                                data-destino="{{ $result_vta->destino ?? '' }}"
+                                data-envio-2="{{ $result_vta->envio_2 ?? '' }}"
+                                data-origen-2="{{ $result_vta->origen_2 ?? '' }}"
+                                data-destino-2="{{ $result_vta->destino_2 ?? '' }}"
+                                data-envio-paqueteria-2="{{ $result_vta->envio_paqueteria_2 ?? '' }}"
+                                data-paqueteria-2="{{ $result_vta->paqueteria_2 ?? '' }}"
+                                data-fecha-envio-2="{{ $result_vta->fecha_envio_paqueteria_2 ?? '' }}">
+                                <i class="fas fa-truck mr-1"></i> Gestionar Envío
+                            </a>
+                        </li>
 
                         @if ($result_vta->status == 2 or $result_vta->status == 3 or $result_vta->status == 4 or $result_vta->status == 5)
                             <li>

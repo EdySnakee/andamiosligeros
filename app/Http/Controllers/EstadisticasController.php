@@ -29,8 +29,8 @@ class EstadisticasController extends Controller
         $totalCotizaciones = $cotizaciones->sum('total');
 
         $totalIVA = $ventas->sum('iva');
-        $totalEnvios = $ventas->sum('envio');
-        $totalEnviosPaqueteria = $ventas->sum('envio_paqueteria');
+        $totalEnvios = $ventas->sum('envio') + (float) ($ventas->sum('envio_2') ?? 0);
+        $totalEnviosPaqueteria = $ventas->sum('envio_paqueteria') + (float) ($ventas->sum('envio_paqueteria_2') ?? 0);
 
         $totalNeto = $totalVentas - $totalIVA - $totalEnvios;
 
@@ -233,8 +233,8 @@ class EstadisticasController extends Controller
 
                         // Nuevos agregados
                         $totalIVA = (float) $qVentas->sum('iva');
-                        $totalEnvios = (float) $qVentas->sum('envio');
-                        $totalEnviosPaqueteria = (float) $qVentas->sum('envio_paqueteria');
+                        $totalEnvios = (float) $qVentas->sum('envio') + (float) ($qVentas->sum('envio_2') ?? 0);
+                        $totalEnviosPaqueteria = (float) $qVentas->sum('envio_paqueteria') + (float) ($qVentas->sum('envio_paqueteria_2') ?? 0);
                         $numCotizaciones = (int) $qCotizaciones->count();
                         $totalCotizaciones = (float) $qCotizaciones->sum('total');
 
