@@ -591,7 +591,11 @@
 						},
 						success: function(res) {
 							if (res.success && res.redirect_url) {
-								window.location.href = res.redirect_url;
+								// REDIRECCIÓN PAUSADA TEMPORALMENTE PARA MOSTRAR NETWORK PAYLOAD A OPENPAY
+								console.log("¡Pago exitoso con Openpay!", res);
+								$btn.prop('disabled', false).css({'background': '#28a745', 'color': '#fff', 'box-shadow': '0 4px 10px rgba(40,167,69,0.3)'}).text('PAGO EXITOSO (REDIRECCIÓN PAUSADA)');
+								alert('¡Pago completado con éxito!\n\nSe ha pausado temporalmente la redirección para que puedas inspeccionar el Payload y la respuesta en la pestaña Network.');
+								// window.location.href = res.redirect_url;
 							} else {
 								$btn.prop('disabled', false).text(origText);
 								$('#cot-openpay-error').text(res.message || 'No fue posible completar el pago.').slideDown(150);
