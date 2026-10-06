@@ -176,6 +176,11 @@ Route::get('sb-admin/cotizaciones', [
     'as' => 'app_ver_cotizaciones',
 ]
 );
+Route::get('sb-admin/exportar-cotizaciones', [
+    'uses' => 'CotizadorController@exportarCotizaciones',
+    'as' => 'path_exportar_cotizaciones',
+]
+);
 Route::get('sb-admin/genera-cotizacion', [
     'uses' => 'CotizadorController@generaCotizacion',
     'as' => 'app_redes_cotizaciones',
