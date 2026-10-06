@@ -834,14 +834,22 @@ class CotizadorController extends Controller
                         $condicion_filtro = '';
 
                         if (!empty($data_post->filtrar_busqueda)) {
-                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' (cli.nombrecl LIKE \'%' . $data_post->filtrar_busqueda . '%\' OR cot.id_cotizacion LIKE \'%' . $data_post->filtrar_busqueda . '%\' OR cli.lead LIKE \'%' . $data_post->filtrar_busqueda . '%\' OR cli.telefonocl LIKE \'%' . $data_post->filtrar_busqueda . '%\' OR cli.celularcl LIKE \'%' . $data_post->filtrar_busqueda . '%\')';
+                            $term = trim($data_post->filtrar_busqueda);
+                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' (cli.nombrecl LIKE \'%' . $term . '%\' OR cot.cod_cotizacion LIKE \'%' . $term . '%\' OR cot.id_cotizacion LIKE \'%' . $term . '%\' OR cli.lead LIKE \'%' . $term . '%\' OR cli.telefonocl LIKE \'%' . $term . '%\' OR cli.celularcl LIKE \'%' . $term . '%\')';
                         }
                         if (!empty($data_post->filtro_usuario)) {
-                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . " us.name LIKE '%" . $data_post->filtro_usuario . "%'";
+                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . " us.name LIKE '%" . trim($data_post->filtro_usuario) . "%'";
+                        }
+                        if (!empty($data_post->filtro_status)) {
+                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . " cot.status = '" . (int)$data_post->filtro_status . "'";
                         }
 
                         if (!empty($data_post->fecha_inicio) && !empty($data_post->fecha_fin)) {
-                            $condicion_filtro .= ' cot.fecha BETWEEN \'' . $data_post->fecha_inicio . '\' AND \'' . $data_post->fecha_fin . '\'';
+                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' cot.fecha BETWEEN \'' . $data_post->fecha_inicio . '\' AND \'' . $data_post->fecha_fin . '\'';
+                        } elseif (!empty($data_post->fecha_inicio)) {
+                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' cot.fecha >= \'' . $data_post->fecha_inicio . '\'';
+                        } elseif (!empty($data_post->fecha_fin)) {
+                            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' cot.fecha <= \'' . $data_post->fecha_fin . '\'';
                         }
 
                         if (!$condicion_filtro) {
@@ -1102,4 +1110,100 @@ class CotizadorController extends Controller
         }
     }
 
+    public function exportarCotizaciones(Request $request)
+    {
+        $objCotizaciones = new Cotizaciones();
+        $usuario_id = \Auth::User()->id;
+        $tipo_usuario = \Auth::User()->tipo_usuario;
+
+        $condicion_filtro = '';
+
+        if (!empty($request->filtrar_busqueda)) {
+            $term = trim($request->filtrar_busqueda);
+            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' (cli.nombrecl LIKE \'%' . $term . '%\' OR cot.cod_cotizacion LIKE \'%' . $term . '%\' OR cot.id_cotizacion LIKE \'%' . $term . '%\' OR cli.lead LIKE \'%' . $term . '%\' OR cli.telefonocl LIKE \'%' . $term . '%\' OR cli.celularcl LIKE \'%' . $term . '%\')';
+        }
+        if (!empty($request->filtro_usuario)) {
+            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . " us.name LIKE '%" . trim($request->filtro_usuario) . "%'";
+        }
+        if (!empty($request->filtro_status)) {
+            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . " cot.status = '" . (int)$request->filtro_status . "'";
+        }
+
+        if (!empty($request->fecha_inicio) && !empty($request->fecha_fin)) {
+            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' cot.fecha BETWEEN \'' . $request->fecha_inicio . '\' AND \'' . $request->fecha_fin . '\'';
+        } elseif (!empty($request->fecha_inicio)) {
+            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' cot.fecha >= \'' . $request->fecha_inicio . '\'';
+        } elseif (!empty($request->fecha_fin)) {
+            $condicion_filtro .= ($condicion_filtro ? ' AND ' : '') . ' cot.fecha <= \'' . $request->fecha_fin . '\'';
+        }
+
+        if (!$condicion_filtro) {
+            $condicion_filtro = '1';
+        }
+
+        $query = $objCotizaciones
+            ->select('cot.*', 'cli.nombrecl', 'cli.lead as cli_lead', 'cli.telefonocl', 'cli.celularcl', 'us.name as vendedor')
+            ->from('cotizaciones AS cot')
+            ->join('clientes AS cli', 'cli.idcl', '=', 'cot.id_cliente')
+            ->join('users AS us', 'us.id', '=', 'cot.id_usuario_genera')
+            ->where('cot.giro_empresa', 'al')
+            ->whereRaw($condicion_filtro)
+            ->orderBy('cot.id_cotizacion', 'DESC');
+
+        if ($tipo_usuario == 'f1' || $tipo_usuario == 'v1') {
+            $query->where('cot.id_usuario_genera', $usuario_id);
+        }
+
+        $cotizaciones = $query->get();
+
+        $statusMap = [
+            1 => 'Activo',
+            2 => 'Inactivo',
+            3 => 'Aceptada',
+            4 => 'Pendiente',
+            5 => 'Vencida',
+            6 => 'Facturado'
+        ];
+
+        $sucursalesMap = [
+            1 => 'MTY',
+            2 => 'MID',
+            3 => 'CDMX',
+            5 => 'GDL'
+        ];
+
+        $headers = ['Código', 'Tipo', 'Cliente', 'Teléfono', 'Lead', 'Sucursal', 'Fecha', 'Subtotal', 'Descuento', 'Envío', 'IVA', 'Total', 'Estatus', 'Cotizó'];
+
+        $filename = 'cotizaciones_' . date('Y-m-d_His') . '.csv';
+
+        $callback = function() use ($cotizaciones, $headers, $statusMap, $sucursalesMap) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, $headers);
+            foreach ($cotizaciones as $c) {
+                fputcsv($file, [
+                    $c->cod_cotizacion,
+                    $c->tipo_cotizacion ?: 'Venta',
+                    $c->nombrecl,
+                    $c->telefonocl ?: $c->celularcl,
+                    $c->lead ?: $c->cli_lead,
+                    $sucursalesMap[$c->id_sucursal] ?? 's/suc',
+                    $c->fecha_formato ?: $c->fecha,
+                    '$' . number_format($c->subtotal, 2, '.', ','),
+                    $c->descuento_aplicado ? '-$' . number_format($c->descuento_aplicado, 2, '.', ',') : '0',
+                    '$' . number_format($c->envio, 2, '.', ','),
+                    '$' . number_format($c->iva, 2, '.', ','),
+                    '$' . number_format($c->total, 2, '.', ','),
+                    $statusMap[$c->status] ?? $c->status,
+                    $c->vendedor ?: $c->name,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }
