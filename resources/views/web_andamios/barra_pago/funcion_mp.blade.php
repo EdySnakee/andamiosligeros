@@ -325,12 +325,12 @@
             // window.location.href = res.redirect_url;
           } else {
             $btn.prop('disabled', false).text(origText);
-            $('#promo-openpay-error').text(res.message || 'No fue posible completar el pago.').slideDown(150);
+            $('#promo-openpay-error').text(res.message || 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.').slideDown(150);
           }
         },
         error: function(xhr) {
           $btn.prop('disabled', false).text(origText);
-          var msg = 'No fue posible procesar el pago con tu tarjeta. Verifica los datos o intenta con otro método.';
+          var msg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
           if (xhr.responseJSON && xhr.responseJSON.message) {
             msg = xhr.responseJSON.message;
           }
@@ -339,7 +339,7 @@
       });
     }, function(response) {
       $btn.prop('disabled', false).text(origText);
-      var msg = (response.data && response.data.description) ? response.data.description : 'Los datos de la tarjeta son inválidos.';
+      var msg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
       $('#promo-openpay-error').text(msg).slideDown(150);
     });
   });

@@ -455,42 +455,38 @@ namespace App\Http\Controllers;
                     $errorCode = $resCharge['error_code'] ?? null;
                     $errorDescriptions = [
                         1000 => 'Ocurrió un error interno en el procesador de pagos. Por favor intenta más tarde.',
-                        1001 => 'El formato de los datos de la transacción no es válido.',
+                        1001 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
                         1004 => 'Servicio temporalmente fuera de línea. Por favor intenta más tarde.',
                         1005 => 'Uno o más datos obligatorios no fueron proporcionados.',
-                        2004 => 'El número de tarjeta no es válido.',
-                        2005 => 'La fecha de expiración de la tarjeta no es válida.',
-                        2006 => 'El código de seguridad (CVV) es inválido.',
+                        2004 => 'Tarjeta rechazada. El número de tarjeta no es válido.',
+                        2005 => 'Tarjeta rechazada. La fecha de expiración no es válida.',
+                        2006 => 'Tarjeta rechazada. El código de seguridad (CVV) es inválido.',
                         2007 => 'El número de tarjeta es de prueba y solo es válido en modo Sandbox.',
-                        3001 => 'La tarjeta fue declinada por el banco emisor. Por favor intenta con otra tarjeta.',
-                        3002 => 'La tarjeta ha expirado.',
-                        3003 => 'La tarjeta no tiene fondos suficientes. Por favor intenta con otra tarjeta o método de pago.',
-                        3004 => 'La tarjeta fue reportada como robada o extraviada.',
-                        3005 => 'La transacción fue rechazada por el sistema de seguridad o antifraude del banco.',
-                        3006 => 'La operación no está permitida para este tipo de tarjeta.',
-                        3008 => 'La tarjeta no es válida para transacciones en línea.',
-                        3009 => 'La tarjeta fue reportada como extraviada.',
-                        3010 => 'El banco emisor ha restringido el uso de esta tarjeta.',
-                        3011 => 'El banco emisor solicita la retención de la tarjeta. Por favor contacta a tu banco.',
-                        3012 => 'Se requiere autorización adicional del banco emisor.',
-                        15001 => 'La autenticación de seguridad (3D Secure) fue rechazada por el banco emisor. Por favor intenta con otra tarjeta o método de pago.',
+                        3001 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3002 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3003 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3004 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3005 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3006 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3008 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3009 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3010 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3011 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        3012 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                        15001 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
                     ];
 
                     if (isset($errorDescriptions[$errorCode])) {
                         $errorMsg = $errorDescriptions[$errorCode];
                     } elseif (!empty($resCharge['description'])) {
                         $desc = $resCharge['description'];
-                        if (stripos($desc, 'Authentication/Account Verification Rejected') !== false || stripos($desc, '3D') !== false) {
-                            $errorMsg = 'La autenticación de seguridad (3D Secure) fue rechazada por el banco emisor. Por favor intenta con otra tarjeta.';
-                        } elseif (stripos($desc, 'declined') !== false) {
-                            $errorMsg = 'La tarjeta fue declinada por el banco emisor. Por favor intenta con otra tarjeta.';
-                        } elseif (stripos($desc, 'funds') !== false) {
-                            $errorMsg = 'La tarjeta no tiene fondos suficientes. Por favor intenta con otra tarjeta o método de pago.';
+                        if (stripos($desc, 'Authentication') !== false || stripos($desc, '3D') !== false || stripos($desc, 'declined') !== false || stripos($desc, 'funds') !== false || stripos($desc, 'card') !== false) {
+                            $errorMsg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
                         } else {
-                            $errorMsg = 'No fue posible procesar el cargo a tu tarjeta (' . ($errorCode ? "Código $errorCode" : 'declinada') . '). Por favor intenta con otro método.';
+                            $errorMsg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
                         }
                     } else {
-                        $errorMsg = 'No fue posible procesar el cargo a tu tarjeta. Verifica los datos o intenta con otro método.';
+                        $errorMsg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
                     }
 
                     if ($request->ajax() || $request->wantsJson()) {

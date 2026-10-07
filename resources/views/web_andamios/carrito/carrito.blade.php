@@ -475,23 +475,21 @@
             function obtenerMensajeError(response) {
                 var code = (response.data && response.data.error_code) ? response.data.error_code : response.error_code;
                 var mensajes = {
-                    1001: 'El número de tarjeta es inválido.',
+                    1001: 'Tarjeta rechazada. Por favor verifica los datos o intenta con otra tarjeta.',
                     1002: 'El código de seguridad (CVV) es inválido.',
                     1003: 'La fecha de expiración es inválida.',
-                    1004: 'El nombre del titular de la tarjeta es requerido.',
-                    1005: 'El tipo de tarjeta no está soportado.',
-                    2004: 'El número de dígitos de la tarjeta no es válido.',
+                    1004: 'Por favor ingresa el nombre del titular.',
+                    1005: 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                    2004: 'El número de tarjeta no es válido.',
                     2007: 'El número de tarjeta es de prueba y solo es válido en Sandbox.',
-                    3001: 'La tarjeta fue declinada por el banco emisor.',
-                    3002: 'La tarjeta ha expirado.',
-                    3003: 'La tarjeta no cuenta con fondos suficientes.',
-                    3004: 'La tarjeta fue reportada como robada o extraviada.',
-                    3005: 'La transacción fue rechazada por el sistema antifraude.'
+                    3001: 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                    3002: 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                    3003: 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                    3004: 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                    3005: 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.'
                 };
                 if (mensajes[code]) return mensajes[code];
-                if (response.data && response.data.description) return response.data.description;
-                if (response.message) return response.message;
-                return 'No fue posible validar tu tarjeta. Por favor verifica los datos ingresados.';
+                return 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
             }
         });
     </script>
