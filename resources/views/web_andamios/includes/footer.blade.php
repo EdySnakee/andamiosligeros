@@ -77,6 +77,10 @@
                     <h2>Políticas</h2>
                     <ul>
                         <li>
+                            <p class="tit-sub-footer"><a href="{{ url('/terminos-y-condiciones') }}">Términos y
+                                    Condiciones</a></p>
+                        </li>
+                        <li>
                             <p class="tit-sub-footer"><a href="{{ url('/politicas-privacidad') }}">Políticas de
                                     privacidad</a></p>
                         </li>
@@ -90,10 +94,6 @@
                         </li>
                         <li>
                             <p class="tit-sub-footer"><a href="{{ url('/politicas-envios') }}">Políticas de envíos</a>
-                            </p>
-                        </li>
-                        <li>
-                            <p class="tit-sub-footer"><a href="{{ url('/politicas-compras') }}">Políticas de compras</a>
                             </p>
                         </li>
                         <li>

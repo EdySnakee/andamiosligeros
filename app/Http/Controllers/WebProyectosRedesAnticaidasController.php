@@ -209,30 +209,45 @@ class WebProyectosRedesAnticaidasController extends Controller
         $tipo_vista = "Ventas";
         $ventasRedes = Ventas::where("ruta_encrypt", $request->ruta_encrypt)->first();
         if (isset($ventasRedes->id_cotizacion) && !empty($ventasRedes->id_cotizacion) && in_array($ventasRedes->status, [2, 3, 4, 5])) {
-            $DetalleCotizaciones = DetalleCotizaciones::where("id_cotizacion", $ventasRedes->id_cotizacion)->get();
+            $cotizacionesRedes = Cotizaciones::find($ventasRedes->id_cotizacion);
+
+            $objDetalleCoti = new DetalleCotizaciones();
+            $DetalleCotizaciones = $objDetalleCoti
+                ->select("dc.*", "pr.nombre_p", "pr.SKU")
+                ->from("detalle_cotizaciones as dc")
+                ->leftJoin("productos AS pr", "pr.id_producto", "=", "dc.id_producto")
+                ->where("dc.id_cotizacion", $ventasRedes->id_cotizacion)
+                ->orderBy("dc.id_det_cotizacion", "ASC")
+                ->get();
+
             $infoCliente = Clientes::where("idcl", $ventasRedes->id_cliente)->first();
+
+            $vendedor = User::find($ventasRedes->id_usuario_genera);
+            if (!$vendedor && $cotizacionesRedes && !empty($cotizacionesRedes->id_usuario_genera)) {
+                $vendedor = User::find($cotizacionesRedes->id_usuario_genera);
+            }
 
             $idsproductos = [];
             foreach ($DetalleCotizaciones as $key) {
-                # code...
-                $infoProducto = Productos::where("id_producto", $key->id_producto)->first();
-                if ($infoProducto) {
-                    $idsproductos[] = $infoProducto->id_producto;
+                if (!empty($key->id_producto)) {
+                    $idsproductos[] = $key->id_producto;
                 }
             }
             $idsproducts_unicos = array_unique($idsproductos);
-            //print_r($ventasRedes->giro_empresa);
+
+            $viewData = compact("ventasRedes", "cotizacionesRedes", "DetalleCotizaciones", "infoCliente", "idsproducts_unicos", "tipo_vista", "vendedor");
+
             if (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'ra') {
-                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_redes', compact("ventasRedes", "DetalleCotizaciones", "infoCliente", "idsproducts_unicos", "tipo_vista"));
+                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_redes', $viewData);
             }
             if (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'rp') {
-                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_rp', compact("ventasRedes", "DetalleCotizaciones", "infoCliente", "idsproducts_unicos", "tipo_vista"));
+                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_rp', $viewData);
             }
             if (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'al') {
-                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_al', compact("ventasRedes", "DetalleCotizaciones", "infoCliente", "idsproducts_unicos", "tipo_vista"));
+                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_al', $viewData);
             }
             if (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'sg') {
-                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_sg', compact("ventasRedes", "DetalleCotizaciones", "infoCliente", "idsproducts_unicos", "tipo_vista"));
+                return view('app_redes/modulos/ventas/ver_ventas/ver_ventas_sg', $viewData);
             }
         } else {
             return Redirect::to('/');
@@ -282,33 +297,46 @@ class WebProyectosRedesAnticaidasController extends Controller
     {
         $ventasRedes = Ventas::where("ruta_encrypt", $request->ruta_encrypt)->first();
         if (!empty($ventasRedes->id_cotizacion)) {
-            $DetalleCotizaciones = DetalleCotizaciones::where("id_cotizacion", $ventasRedes->id_cotizacion)->get();
+            $DetalleCotizaciones = DetalleCotizaciones::from('detalle_cotizaciones as dc')
+                ->where("dc.id_cotizacion", $ventasRedes->id_cotizacion)
+                ->leftJoin('productos as pr', 'pr.id_producto', '=', 'dc.id_producto')
+                ->select("dc.*", "pr.nombre_p", "pr.SKU")
+                ->get();
             $infoCliente = Clientes::where("idcl", $ventasRedes->id_cliente)->first();
-            foreach ($DetalleCotizaciones as $key) {
-                # code...
-                $infoProducto = Productos::where("id_producto", $key->id_producto)->first();
-                $idsproductos[] = $infoProducto->id_producto;
-            }
+            $cotizacionesRedes = Cotizaciones::where("id_cotizacion", $ventasRedes->id_cotizacion)->first();
+            $idUsuarioGenera = $ventasRedes->id_usuario_genera ?? ($cotizacionesRedes->id_usuario_genera ?? null);
+            $vendedor = !empty($idUsuarioGenera) ? User::find($idUsuarioGenera) : null;
 
-            $idsproducts_unicos = array_unique($idsproductos);
+            $idsproductos = [];
+            foreach ($DetalleCotizaciones as $key) {
+                if (!empty($key->id_producto)) {
+                    $idsproductos[] = $key->id_producto;
+                }
+            }
+            $idsproducts_unicos = !empty($idsproductos) ? array_unique($idsproductos) : [];
 
             $nombre_archivo_pdf = $ventasRedes->cod_venta . "-" . $ventasRedes->fecha_venta;
 
-            print_r($ventasRedes->giro_empresa);
+            $dataView = [
+                "infoCliente" => $infoCliente,
+                "DetalleCotizaciones" => $DetalleCotizaciones,
+                "ventasRedes" => $ventasRedes,
+                "cotizacionesRedes" => $cotizacionesRedes,
+                "vendedor" => $vendedor,
+                "idsproducts_unicos" => $idsproducts_unicos
+            ];
+
             if (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'ra') {
-
-                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_ra', ["infoCliente" => $infoCliente, "DetalleCotizaciones" => $DetalleCotizaciones, "ventasRedes" => $ventasRedes, "idsproducts_unicos" => $idsproducts_unicos]);
+                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_ra', $dataView);
                 return $pdf->download($nombre_archivo_pdf . '.pdf');
-                //return view('app_redes/modulos/ventas/crea_pdf/crea_pdf_ra', compact("ventasRedes","DetalleCotizaciones", "infoCliente", "idsproducts_unicos"));
-
             } elseif (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'sg') {
-                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_sg', ["infoCliente" => $infoCliente, "DetalleCotizaciones" => $DetalleCotizaciones, "ventasRedes" => $ventasRedes, "idsproducts_unicos" => $idsproducts_unicos]);
+                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_sg', $dataView);
                 return $pdf->download($nombre_archivo_pdf . '.pdf');
             } elseif (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'al') {
-                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_al', ["infoCliente" => $infoCliente, "DetalleCotizaciones" => $DetalleCotizaciones, "ventasRedes" => $ventasRedes, "idsproducts_unicos" => $idsproducts_unicos]);
+                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_al', $dataView);
                 return $pdf->download($nombre_archivo_pdf . '.pdf');
             } elseif (!empty($ventasRedes->giro_empresa) and $ventasRedes->giro_empresa == 'rp') {
-                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_rp', ["infoCliente" => $infoCliente, "DetalleCotizaciones" => $DetalleCotizaciones, "ventasRedes" => $ventasRedes, "idsproducts_unicos" => $idsproducts_unicos]);
+                $pdf = \PDF::loadView('app_redes/modulos/ventas/crea_pdf/crea_pdf_rp', $dataView);
                 return $pdf->download($nombre_archivo_pdf . '.pdf');
             } else {
                 return "SIN PDF CONFIGURADO";
@@ -317,6 +345,7 @@ class WebProyectosRedesAnticaidasController extends Controller
             return Redirect::to('/');
         }
     }
+
 
     public function verBlog(Request $request)
     {

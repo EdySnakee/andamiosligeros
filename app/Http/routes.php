@@ -548,8 +548,11 @@ Route::get('/politicas-devoluciones', function () {
 Route::get('/politicas-envios', function () {
     return view('web_andamios.politicas.envios.envios');
 });
-Route::get('/politicas-compras', function () {
+Route::get('/terminos-y-condiciones', function () {
     return view('web_andamios.politicas.compras.compras');
+});
+Route::get('/politicas-compras', function () {
+    return redirect('/terminos-y-condiciones', 301);
 });
 Route::get('/politicas-pagos', function () {
     return view('web_andamios.politicas.pagos.pagos');

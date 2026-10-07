@@ -2,15 +2,15 @@
 @extends('layouts.web_andamios')
 @section('css')
 <!-- Title -->
-<title>Políticas de compras | Andamios Ligeros</title>
+<title>Términos y Condiciones | Andamios Ligeros</title>
 <meta name="description" content="Términos y condiciones de compra en andamiosligeros.com: precios, pagos con Openpay, envíos, garantías y devoluciones.">
 <meta name="author" content="Eureka">
 <meta name="keywords" content="">
  
 <meta property="og:description" content="Términos y condiciones de compra en andamiosligeros.com.">
-<meta property="og:title" content="Políticas de compras | Andamios Ligeros">
+<meta property="og:title" content="Términos y Condiciones | Andamios Ligeros">
 <meta name="twitter:description" content="Términos y condiciones de compra en andamiosligeros.com.">
-<meta name="twitter:title" content="Políticas de compras | Andamios Ligeros">
+<meta name="twitter:title" content="Términos y Condiciones | Andamios Ligeros">
  
 <meta name="twitter:card" content="summary">
 <meta property="og:type" content="website" />
@@ -193,7 +193,7 @@
 		<div class="container-md cont-princ-product tyc">
  
 			<header class="tyc-head">
-				<h1 class="titulofondoverde">Políticas de compras</h1>
+				<h1 class="titulofondoverde">Términos y Condiciones</h1>
 				<p class="tyc-updated">Términos y condiciones · Última actualización: octubre de 2026</p>
 			</header>
  
