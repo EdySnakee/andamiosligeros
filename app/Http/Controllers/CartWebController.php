@@ -395,6 +395,13 @@ namespace App\Http\Controllers;
                             $datos_orden->status_orden = 9;
                             $datos_orden->save();
 
+                            if ($request->ajax() || $request->wantsJson()) {
+                                return response()->json([
+                                    'success' => true,
+                                    'redirect_url' => $chargeData['payment_method']['url']
+                                ]);
+                            }
+
                             return redirect($chargeData['payment_method']['url']);
                         }
 
@@ -425,29 +432,7 @@ namespace App\Http\Controllers;
                                 ]);
                             }
 
-                            // REDIRECCIÓN PAUSADA TEMPORALMENTE PARA DEMO DE OPENPAY
-                            $jsonFormatted = json_encode($chargeData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-                            return response("<div style='font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:760px;margin:40px auto;padding:30px;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.1);border-top:6px solid #28a745;'>
-                                <div style='display:flex;align-items:center;gap:12px;margin-bottom:16px;'>
-                                    <span style='background:#28a745;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;'>✓</span>
-                                    <h2 style='margin:0;color:#155724;font-size:1.4rem;'>¡Pago procesado con éxito con Openpay!</h2>
-                                </div>
-                                <p style='color:#495057;font-size:0.95rem;line-height:1.5;'>
-                                    <b>Redirección pausada temporalmente para revisión técnica con Openpay.</b><br>
-                                    La orden <b>#{$id_orden_numerico}</b> fue aprobada y registrada en el sistema. Puedes inspeccionar a continuación el payload retornado por la API:
-                                </p>
-                                <div style='background:#1e293b;color:#e2e8f0;padding:18px;border-radius:8px;font-family:monospace;font-size:0.85rem;overflow-x:auto;max-height:360px;'>
-                                    <pre style='margin:0;'>{$jsonFormatted}</pre>
-                                </div>
-                                <div style='margin-top:24px;display:flex;gap:12px;align-items:center;'>
-                                    <a href='{$redirectUrl}' style='display:inline-block;background:#28a745;color:#fff;padding:10px 22px;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.9rem;'>
-                                        Continuar a Thank You Page &rarr;
-                                    </a>
-                                    <a href='/carrito' style='display:inline-block;background:#f8f9fa;color:#495057;padding:10px 18px;border-radius:6px;text-decoration:none;font-size:0.9rem;border:1px solid #ced4da;'>
-                                        Volver al Carrito
-                                    </a>
-                                </div>
-                            </div>");
+                            return redirect($redirectUrl);
                         }
                     }
 
