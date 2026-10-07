@@ -414,9 +414,49 @@
                         "expiration_month": expMonth,
                         "expiration_year": yearNormal
                     }, function(response) {
-                        // Éxito: asignar token y enviar formulario
+                        // Éxito: asignar token
                         $('#token_id').val(response.data.id);
-                        $('#checkout-form')[0].submit();
+
+                        // REDIRECCIÓN PAUSADA TEMPORALMENTE PARA DEMO DE OPENPAY
+                        var formData = $('#checkout-form').serialize();
+                        $.ajax({
+                            url: $('#checkout-form').attr('action'),
+                            type: 'POST',
+                            data: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            success: function(res) {
+                                if (res && res.success) {
+                                    console.log("¡Pago exitoso con Openpay en Tienda!", res);
+                                    $btn.prop('disabled', false)
+                                        .css({'background': '#28a745', 'color': '#fff', 'box-shadow': '0 4px 10px rgba(40,167,69,0.3)'})
+                                        .text('PAGO EXITOSO (REDIRECCIÓN PAUSADA)');
+
+                                    if (!$('#btn-continuar-thankyou').length && res.redirect_url) {
+                                        $btn.after('<div id="btn-continuar-thankyou" style="margin-top: 12px; text-align: center;"><a href="' + res.redirect_url + '" class="btn btn-sm btn-outline-success" style="font-weight: 600;">Continuar a Thank You Page &rarr;</a></div>');
+                                    }
+
+                                    alert('¡Pago completado con éxito en la Tienda!\n\nSe ha pausado temporalmente la redirección para que puedas inspeccionar el Payload y la respuesta de Openpay en la pestaña Network.');
+                                } else {
+                                    $btn.prop('disabled', false).text(originalText);
+                                    mostrarErrorOpenpay((res && res.message) ? res.message : 'No fue posible completar el pago.');
+                                }
+                            },
+                            error: function(xhr) {
+                                // Fallback si el backend devolvió la pantalla HTML o hubo un error
+                                if (xhr.status === 200 && xhr.responseText) {
+                                    document.open();
+                                    document.write(xhr.responseText);
+                                    document.close();
+                                } else {
+                                    $btn.prop('disabled', false).text(originalText);
+                                    var errorJson = xhr.responseJSON;
+                                    var errMsg = (errorJson && errorJson.message) ? errorJson.message : 'Ocurrió un error al procesar el pago.';
+                                    mostrarErrorOpenpay(errMsg);
+                                }
+                            }
+                        });
                     }, function(response) {
                         $btn.prop('disabled', false).text(originalText);
                         var msg = obtenerMensajeError(response);
