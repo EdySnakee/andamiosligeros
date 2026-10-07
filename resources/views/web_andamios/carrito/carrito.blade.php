@@ -436,8 +436,6 @@
                                     if (!$('#btn-continuar-thankyou').length && res.redirect_url) {
                                         $btn.after('<div id="btn-continuar-thankyou" style="margin-top: 12px; text-align: center;"><a href="' + res.redirect_url + '" class="btn btn-sm btn-outline-success" style="font-weight: 600;">Continuar a Thank You Page &rarr;</a></div>');
                                     }
-
-                                    alert('¡Pago completado con éxito en la Tienda!\n\nSe ha pausado temporalmente la redirección para que puedas inspeccionar el Payload y la respuesta de Openpay en la pestaña Network.');
                                 } else {
                                     $btn.prop('disabled', false).text(originalText);
                                     mostrarErrorOpenpay((res && res.message) ? res.message : 'No fue posible completar el pago.');

@@ -319,7 +319,9 @@
             // REDIRECCIÓN PAUSADA TEMPORALMENTE PARA MOSTRAR NETWORK PAYLOAD A OPENPAY
             console.log("¡Pago exitoso con Openpay!", res);
             $btn.prop('disabled', false).css({'background': '#28a745', 'color': '#fff', 'box-shadow': '0 4px 10px rgba(40,167,69,0.3)'}).text('PAGO EXITOSO (REDIRECCIÓN PAUSADA)');
-            alert('¡Pago completado con éxito!\n\nSe ha pausado temporalmente la redirección para que puedas inspeccionar el Payload y la respuesta en la pestaña Network.');
+            if (!$('#btn-continuar-promo-thankyou').length && res.redirect_url) {
+              $btn.after('<div id="btn-continuar-promo-thankyou" style="margin-top: 10px; text-align: center;"><a href="' + res.redirect_url + '" class="btn btn-sm btn-outline-success" style="font-weight: 600;">Continuar a Thank You Page &rarr;</a></div>');
+            }
             // window.location.href = res.redirect_url;
           } else {
             $btn.prop('disabled', false).text(origText);
