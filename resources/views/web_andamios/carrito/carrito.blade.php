@@ -258,7 +258,7 @@
                 OpenPay.setSandboxMode({{ config('services.openpay.sandbox') ? 'true' : 'false' }});
 
                 // 2. Generar identificador de dispositivo para antifraude
-                var deviceSessionId = OpenPay.deviceData.setup("checkout-form", "device_session_id");
+                window.cartDeviceSessionId = OpenPay.deviceData.setup("checkout-form", "device_session_id");
             } catch (err) {
                 console.warn("OpenPay JS Setup Warning:", err);
             }
@@ -364,6 +364,11 @@
                     e.preventDefault();
                     $('#openpay-error-alert').hide().text('');
 
+                    if ($('.cart-producto').length === 0) {
+                        mostrarErrorOpenpay('Tu carrito de compras está vacío. Agrega un producto a la tienda antes de proceder al pago.');
+                        return false;
+                    }
+
                     var holderName = $.trim($('#openpay_holder_name').val());
                     var rawCard = $('#openpay_card_number').val().replace(/\s+/g, '');
                     
@@ -416,6 +421,9 @@
                     }, function(response) {
                         // Éxito: asignar token
                         $('#token_id').val(response.data.id);
+                        if (window.cartDeviceSessionId && !$('#device_session_id').val()) {
+                            $('#device_session_id').val(window.cartDeviceSessionId);
+                        }
 
                         // REDIRECCIÓN PAUSADA TEMPORALMENTE PARA DEMO DE OPENPAY
                         var formData = $('#checkout-form').serialize();
@@ -423,8 +431,10 @@
                             url: $('#checkout-form').attr('action'),
                             type: 'POST',
                             data: formData,
+                            dataType: 'json',
                             headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
                             },
                             success: function(res) {
                                 if (res && res.success) {
@@ -442,17 +452,10 @@
                                 }
                             },
                             error: function(xhr) {
-                                // Fallback si el backend devolvió la pantalla HTML o hubo un error
-                                if (xhr.status === 200 && xhr.responseText) {
-                                    document.open();
-                                    document.write(xhr.responseText);
-                                    document.close();
-                                } else {
-                                    $btn.prop('disabled', false).text(originalText);
-                                    var errorJson = xhr.responseJSON;
-                                    var errMsg = (errorJson && errorJson.message) ? errorJson.message : 'Ocurrió un error al procesar el pago.';
-                                    mostrarErrorOpenpay(errMsg);
-                                }
+                                $btn.prop('disabled', false).text(originalText);
+                                var errorJson = xhr.responseJSON;
+                                var errMsg = (errorJson && errorJson.message) ? errorJson.message : 'No fue posible procesar el pago. Verifica los datos o intenta nuevamente.';
+                                mostrarErrorOpenpay(errMsg);
                             }
                         });
                     }, function(response) {

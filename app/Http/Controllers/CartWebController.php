@@ -275,6 +275,12 @@ namespace App\Http\Controllers;
             $cart = session()->get('cart');
 
             if (empty($cart)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Tu carrito de compras está vacío. Por favor agrega un producto en la tienda antes de proceder al pago.'
+                    ], 422);
+                }
                 return redirect()->route('ver_carrito')->with('error', 'Tu carrito está vacío.');
             }
 
@@ -310,6 +316,12 @@ namespace App\Http\Controllers;
             $datos_cliente = Clientes::postClienteTienda($data_post);
 
             if (empty($datos_cliente)) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Faltan datos obligatorios de contacto y envío (nombre, teléfono o dirección).'
+                    ], 422);
+                }
                 return redirect()->back()->withInput()->with('error', 'Faltan datos del cliente para procesar la orden.');
             }
 

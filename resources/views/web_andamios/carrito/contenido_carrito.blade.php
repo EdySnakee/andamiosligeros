@@ -236,7 +236,7 @@
 
 
                 <div class="cart-buttons">
-                    <button class="cart-confirmar">CONFIRMAR PEDIDO</button>
+                    <button class="cart-confirmar" @if(empty($cart)) disabled style="opacity: 0.65; cursor: not-allowed;" title="Tu carrito está vacío" @endif>CONFIRMAR PEDIDO</button>
                     <a href="{{ url('/tienda-de-andamios-ligeros-galvanizados') }}"
                         class="continuar-compra">CONTINUAR COMPRANDO</a>
                 </div>
