@@ -397,11 +397,11 @@ class WebhooksController extends Controller
     {
         \Log::info('Webhook Openpay recibido: ', $request->all());
 
-        $type = $request->input('type');
+        $type = strtolower((string) $request->input('type'));
 
         // Manejo del evento de verificación de Openpay al registrar el Webhook en el Dashboard
         if ($type === 'verification') {
-            $code = $request->input('verification_code');
+            $code = $request->input('verificationCode') ?? $request->input('verification_code');
             \Log::info("Openpay Webhook Verification Code recibido: " . $code);
             @file_put_contents(storage_path('logs/openpay_verification_code.txt'), $code);
 
