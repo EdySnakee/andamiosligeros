@@ -16,70 +16,14 @@
 
 	<style>
 		/* ========================================================
-		   ESTILOS GENERALES Y HERO COMPACTO DE LA TIENDA
+		   ESTILOS GENERALES DE LA TIENDA
 		   ======================================================== */
 		.tienda-wrapper {
 			background-color: #f8fafc;
-			padding-top: 95px;
+			padding-top: 100px;
 			padding-bottom: 70px;
 			min-height: 100vh;
 			font-family: 'Poppins', sans-serif;
-		}
-
-		.tienda-hero-compact {
-			background: linear-gradient(135deg, #001f47 0%, #002f6c 100%);
-			border-radius: 12px;
-			color: #ffffff;
-			padding: 22px 26px 18px;
-			margin-bottom: 20px;
-			box-shadow: 0 4px 18px rgba(0, 47, 108, 0.12);
-		}
-
-		.tienda-hero-title {
-			font-family: 'Montserrat', sans-serif;
-			font-size: 24px;
-			font-weight: 700;
-			color: #ffffff;
-			margin: 0;
-			line-height: 1.25;
-			letter-spacing: -0.3px;
-		}
-
-		.tienda-hero-subtitle {
-			font-size: 13.5px;
-			color: #cbd5e1;
-			margin: 0;
-			line-height: 1.5;
-		}
-
-		.tienda-trust-strip-compact {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: center;
-			justify-content: space-between;
-			gap: 8px 16px;
-			margin-top: 14px;
-			padding-top: 14px;
-			border-top: 1px solid rgba(255, 255, 255, 0.12);
-		}
-
-		.trust-pill-compact {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			font-size: 12px;
-			color: #cbd5e1;
-		}
-
-		.trust-ico {
-			color: #ffbb01;
-			font-size: 14px;
-			flex-shrink: 0;
-		}
-
-		.trust-pill-compact strong {
-			color: #ffffff;
-			font-weight: 600;
 		}
 
 		/* ========================================================
@@ -664,32 +608,9 @@
 		}
 
 		/* Responsive tweaks */
-		@media (max-width: 991px) {
-			.tienda-hero-title {
-				font-size: 22px;
-				margin-bottom: 8px;
-			}
-			.tienda-hero-subtitle {
-				font-size: 13px;
-				margin-bottom: 10px;
-			}
-		}
-
 		@media (max-width: 768px) {
 			.tienda-wrapper {
 				padding-top: 85px;
-			}
-			.tienda-hero-compact {
-				padding: 18px 16px 14px;
-			}
-			.tienda-hero-title {
-				font-size: 20px;
-				margin-bottom: 6px;
-			}
-			.tienda-trust-strip-compact {
-				display: grid;
-				grid-template-columns: 1fr;
-				gap: 8px;
 			}
 			.filter-row-secondary {
 				flex-direction: column;

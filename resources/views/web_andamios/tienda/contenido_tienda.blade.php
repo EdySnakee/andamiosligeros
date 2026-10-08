@@ -1,38 +1,5 @@
 <div class="tienda-wrapper">
     <div class="container tienda-main-container">
-        <!-- HERO COMPACTO (ALINEADO EN ANCHO CON FILTROS Y CARDS) -->
-        <section class="tienda-hero-compact">
-            <div class="row align-items-center">
-                <div class="col-lg-7 col-md-12">
-                    <h1 class="tienda-hero-title">Tienda en Línea de Andamios Galvanizados</h1>
-                </div>
-                <div class="col-lg-5 col-md-12">
-                    <p class="tienda-hero-subtitle">
-                        Estructuras seguras, resistentes y <strong>50% más ligeras</strong>. Venta directa de fábrica con garantía y envíos a todo México.
-                    </p>
-                </div>
-            </div>
-
-            <!-- TRUST STRIP COMPACTO EN 1 SOLA LÍNEA -->
-            <div class="tienda-trust-strip-compact">
-                <div class="trust-pill-compact">
-                    <i class="fa fa-truck trust-ico"></i>
-                    <span><strong>Envíos a Todo México</strong> (Entregas directas)</span>
-                </div>
-                <div class="trust-pill-compact">
-                    <i class="fa fa-shield trust-ico"></i>
-                    <span><strong>100% Acero Galvanizado</strong> (Sin mantenimiento)</span>
-                </div>
-                <div class="trust-pill-compact">
-                    <i class="fa fa-credit-card trust-ico"></i>
-                    <span><strong>Pago Seguro con Tarjeta</strong> (MSI y SPEI)</span>
-                </div>
-                <div class="trust-pill-compact">
-                    <i class="fa fa-certificate trust-ico"></i>
-                    <span><strong>Garantía de Fábrica</strong> (Calidad industrial)</span>
-                </div>
-            </div>
-        </section>
 
         <!-- BARRA DE FILTROS Y BÚSQUEDA -->
         <div class="tienda-filter-card">
