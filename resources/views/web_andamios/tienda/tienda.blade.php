@@ -16,124 +16,70 @@
 
 	<style>
 		/* ========================================================
-		   ESTILOS GENERALES Y HERO DE LA TIENDA
+		   ESTILOS GENERALES Y HERO COMPACTO DE LA TIENDA
 		   ======================================================== */
 		.tienda-wrapper {
 			background-color: #f8fafc;
-			padding-top: 105px;
-			padding-bottom: 80px;
+			padding-top: 95px;
+			padding-bottom: 70px;
 			min-height: 100vh;
 			font-family: 'Poppins', sans-serif;
 		}
 
-		.tienda-hero-banner {
-			background: linear-gradient(135deg, #001f47 0%, #002f6c 55%, #083b80 100%);
-			border-radius: 20px;
+		.tienda-hero-compact {
+			background: linear-gradient(135deg, #001f47 0%, #002f6c 100%);
+			border-radius: 12px;
 			color: #ffffff;
-			padding: 45px 24px 35px;
-			margin-bottom: 35px;
-			box-shadow: 0 10px 30px rgba(0, 47, 108, 0.2);
-			position: relative;
-			overflow: hidden;
-		}
-
-		.tienda-hero-banner::after {
-			content: "";
-			position: absolute;
-			top: -40px;
-			right: -40px;
-			width: 280px;
-			height: 280px;
-			background: radial-gradient(circle, rgba(255, 187, 1, 0.18) 0%, rgba(255, 187, 1, 0) 70%);
-			border-radius: 50%;
-			pointer-events: none;
-		}
-
-		.tienda-hero-tag {
-			display: inline-flex;
-			align-items: center;
-			gap: 8px;
-			background: rgba(255, 187, 1, 0.16);
-			color: #ffbb01;
-			border: 1px solid rgba(255, 187, 1, 0.35);
-			font-size: 12.5px;
-			font-weight: 700;
-			letter-spacing: 0.6px;
-			text-transform: uppercase;
-			padding: 6px 16px;
-			border-radius: 50px;
-			margin-bottom: 14px;
+			padding: 22px 26px 18px;
+			margin-bottom: 20px;
+			box-shadow: 0 4px 18px rgba(0, 47, 108, 0.12);
 		}
 
 		.tienda-hero-title {
 			font-family: 'Montserrat', sans-serif;
-			font-size: 32px;
-			font-weight: 800;
+			font-size: 24px;
+			font-weight: 700;
 			color: #ffffff;
-			margin-bottom: 12px;
+			margin: 0;
 			line-height: 1.25;
-			letter-spacing: -0.5px;
+			letter-spacing: -0.3px;
 		}
 
 		.tienda-hero-subtitle {
-			font-size: 15px;
+			font-size: 13.5px;
 			color: #cbd5e1;
-			max-width: 680px;
-			margin: 0 auto 30px;
-			line-height: 1.6;
+			margin: 0;
+			line-height: 1.5;
 		}
 
-		.tienda-trust-row {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-			gap: 14px;
-			margin-top: 10px;
+		.tienda-trust-strip-compact {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px 16px;
+			margin-top: 14px;
+			padding-top: 14px;
+			border-top: 1px solid rgba(255, 255, 255, 0.12);
 		}
 
-		.trust-badge-card {
-			background: rgba(255, 255, 255, 0.08);
-			backdrop-filter: blur(8px);
-			border: 1px solid rgba(255, 255, 255, 0.12);
-			padding: 12px 14px;
-			border-radius: 12px;
+		.trust-pill-compact {
 			display: flex;
 			align-items: center;
-			gap: 12px;
-			transition: all 0.25s ease;
+			gap: 8px;
+			font-size: 12px;
+			color: #cbd5e1;
 		}
 
-		.trust-badge-card:hover {
-			background: rgba(255, 255, 255, 0.15);
-			transform: translateY(-2px);
-		}
-
-		.trust-badge-icon {
-			width: 38px;
-			height: 38px;
-			border-radius: 10px;
-			background: #ffbb01;
-			color: #002f6c;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 16px;
+		.trust-ico {
+			color: #ffbb01;
+			font-size: 14px;
 			flex-shrink: 0;
-			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 		}
 
-		.trust-badge-info strong {
-			display: block;
-			font-size: 13px;
+		.trust-pill-compact strong {
 			color: #ffffff;
-			font-weight: 700;
-			line-height: 1.3;
-		}
-
-		.trust-badge-info span {
-			display: block;
-			font-size: 11.5px;
-			color: #94a3b8;
-			line-height: 1.2;
+			font-weight: 600;
 		}
 
 		/* ========================================================
@@ -141,11 +87,11 @@
 		   ======================================================== */
 		.tienda-filter-card {
 			background: #ffffff;
-			border-radius: 18px;
+			border-radius: 12px;
 			padding: 20px 24px;
 			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 			border: 1px solid #e2e8f0;
-			margin-bottom: 30px;
+			margin-bottom: 25px;
 		}
 
 		.filter-row {
@@ -718,21 +664,32 @@
 		}
 
 		/* Responsive tweaks */
+		@media (max-width: 991px) {
+			.tienda-hero-title {
+				font-size: 22px;
+				margin-bottom: 8px;
+			}
+			.tienda-hero-subtitle {
+				font-size: 13px;
+				margin-bottom: 10px;
+			}
+		}
+
 		@media (max-width: 768px) {
 			.tienda-wrapper {
 				padding-top: 85px;
 			}
-			.tienda-hero-banner {
-				padding: 30px 18px 25px;
+			.tienda-hero-compact {
+				padding: 18px 16px 14px;
 			}
 			.tienda-hero-title {
-				font-size: 24px;
+				font-size: 20px;
+				margin-bottom: 6px;
 			}
-			.tienda-hero-subtitle {
-				font-size: 13.5px;
-			}
-			.tienda-trust-row {
+			.tienda-trust-strip-compact {
+				display: grid;
 				grid-template-columns: 1fr;
+				gap: 8px;
 			}
 			.filter-row-secondary {
 				flex-direction: column;

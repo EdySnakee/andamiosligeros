@@ -1,67 +1,40 @@
 <div class="tienda-wrapper">
-    <!-- HERO HEADER SECTION -->
-    <section class="tienda-hero-banner">
-        <div class="container">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <div class="tienda-hero-tag">
-                        <i class="fa fa-shopping-bag"></i> Catálogo Oficial Andamios Ligeros
-                    </div>
+    <div class="container tienda-main-container">
+        <!-- HERO COMPACTO (ALINEADO EN ANCHO CON FILTROS Y CARDS) -->
+        <section class="tienda-hero-compact">
+            <div class="row align-items-center">
+                <div class="col-lg-7 col-md-12">
                     <h1 class="tienda-hero-title">Tienda en Línea de Andamios Galvanizados</h1>
+                </div>
+                <div class="col-lg-5 col-md-12">
                     <p class="tienda-hero-subtitle">
-                        Estructuras seguras, resistentes y <strong>50% más ligeras</strong> que el andamio tradicional. Adquiere directo de fábrica con garantía total y envío a todo México.
+                        Estructuras seguras, resistentes y <strong>50% más ligeras</strong>. Venta directa de fábrica con garantía y envíos a todo México.
                     </p>
                 </div>
             </div>
 
-            <!-- TRUST BADGES / BENEFICIOS -->
-            <div class="tienda-trust-row">
-                <div class="trust-badge-card">
-                    <div class="trust-badge-icon">
-                        <i class="fa fa-truck"></i>
-                    </div>
-                    <div class="trust-badge-info">
-                        <strong>Envíos a Todo México</strong>
-                        <span>Entregas directas y seguras</span>
-                    </div>
+            <!-- TRUST STRIP COMPACTO EN 1 SOLA LÍNEA -->
+            <div class="tienda-trust-strip-compact">
+                <div class="trust-pill-compact">
+                    <i class="fa fa-truck trust-ico"></i>
+                    <span><strong>Envíos a Todo México</strong> (Entregas directas)</span>
                 </div>
-
-                <div class="trust-badge-card">
-                    <div class="trust-badge-icon">
-                        <i class="fa fa-shield"></i>
-                    </div>
-                    <div class="trust-badge-info">
-                        <strong>100% Acero Galvanizado</strong>
-                        <span>Sin mantenimiento ni corrosión</span>
-                    </div>
+                <div class="trust-pill-compact">
+                    <i class="fa fa-shield trust-ico"></i>
+                    <span><strong>100% Acero Galvanizado</strong> (Sin mantenimiento)</span>
                 </div>
-
-                <div class="trust-badge-card">
-                    <div class="trust-badge-icon">
-                        <i class="fa fa-credit-card"></i>
-                    </div>
-                    <div class="trust-badge-info">
-                        <strong>Pago Seguro con Tarjeta</strong>
-                        <span>Crédito, Débito, MSI y SPEI</span>
-                    </div>
+                <div class="trust-pill-compact">
+                    <i class="fa fa-credit-card trust-ico"></i>
+                    <span><strong>Pago Seguro con Tarjeta</strong> (MSI y SPEI)</span>
                 </div>
-
-                <div class="trust-badge-card">
-                    <div class="trust-badge-icon">
-                        <i class="fa fa-certificate"></i>
-                    </div>
-                    <div class="trust-badge-info">
-                        <strong>Garantía de Fábrica</strong>
-                        <span>Calidad industrial probada</span>
-                    </div>
+                <div class="trust-pill-compact">
+                    <i class="fa fa-certificate trust-ico"></i>
+                    <span><strong>Garantía de Fábrica</strong> (Calidad industrial)</span>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- STORE CONTAINER -->
-    <div class="container tienda-main-container">
-        <!-- FILTER & SEARCH CONTROL BAR -->
+        <!-- BARRA DE FILTROS Y BÚSQUEDA -->
         <div class="tienda-filter-card">
             <!-- Row 1: Search and Sort -->
             <div class="filter-row filter-row-primary">
