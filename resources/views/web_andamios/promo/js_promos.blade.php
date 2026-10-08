@@ -1,6 +1,6 @@
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-<script type="text/javascript" src="https://openpay.s3.amazonaws.com/openpay.v1.min.js"></script>
-<script type="text/javascript" src="https://openpay.s3.amazonaws.com/openpay-data.v1.min.js"></script>
+<script type="text/javascript" src="https://js.openpay.mx/openpay.v1.min.js"></script>
+<script type="text/javascript" src="https://js.openpay.mx/openpay-data.v1.min.js"></script>
 <script>
    
     $(document).on("click", "#btn-accion-mp", btnAccionMp);

@@ -175,8 +175,8 @@
   }
 
   if (typeof OpenPay === 'undefined') {
-    $.getScript('https://openpay.s3.amazonaws.com/openpay.v1.min.js', function() {
-      $.getScript('https://openpay.s3.amazonaws.com/openpay-data.v1.min.js', function() {
+    $.getScript('https://js.openpay.mx/openpay.v1.min.js', function() {
+      $.getScript('https://js.openpay.mx/openpay-data.v1.min.js', function() {
         setupPromoOpenPay();
       });
     });
