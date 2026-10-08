@@ -398,6 +398,26 @@ class WebhooksController extends Controller
         \Log::info('Webhook Openpay recibido: ', $request->all());
 
         $type = $request->input('type');
+
+        // Manejo del evento de verificación de Openpay al registrar el Webhook en el Dashboard
+        if ($type === 'verification') {
+            $code = $request->input('verification_code');
+            \Log::info("Openpay Webhook Verification Code recibido: " . $code);
+            @file_put_contents(storage_path('logs/openpay_verification_code.txt'), $code);
+
+            try {
+                \Mail::raw("El código de verificación del Webhook de Openpay es: {$code}\n\nIngrésalo en tu panel de Openpay para confirmar el webhook.", function ($message) use ($code) {
+                    $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
+                        ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
+                        ->subject('🔑 Código de Verificación Webhook Openpay: ' . $code);
+                });
+            } catch (\Exception $e) {
+                \Log::warning("No se pudo enviar email de verification_code Openpay: " . $e->getMessage());
+            }
+
+            return response()->json(['status' => 'success', 'verification_code' => $code], 200);
+        }
+
         $transaction = $request->input('transaction', []);
 
         if (empty($transaction)) {
@@ -538,6 +558,19 @@ class WebhooksController extends Controller
         } catch (\Exception $e) {
             \Log::error("Webhook Andamios: Error al enviar email de ADMIN para Cotización #{$info_cotizacion->id_cotizacion}: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Endpoint auxiliar para consultar fácilmente el código de verificación de Openpay sin acceder por SSH.
+     */
+    public function obtenerCodigoVerificacionOpenpay()
+    {
+        $path = storage_path('logs/openpay_verification_code.txt');
+        if (file_exists($path)) {
+            $code = trim(file_get_contents($path));
+            return response("<div style='font-family:sans-serif;padding:40px;text-align:center;'><h2>Código de verificación de Openpay:</h2><h1 style='color:#002f6c;font-size:38px;letter-spacing:2px;background:#f1f5f9;padding:16px 28px;display:inline-block;border-radius:10px;border:1px solid #cbd5e1;'>{$code}</h1><p style='color:#64748b;margin-top:16px;font-size:15px;'>Copia y pega este código en el modal de Openpay para verificar tu Webhook.</p></div>");
+        }
+        return response("<div style='font-family:sans-serif;padding:40px;text-align:center;'><h3 style='color:#991b1b;'>Aún no se ha recibido ningún código de verificación.</h3><p style='color:#64748b;'>Asegúrate de registrar la URL en el panel de Openpay y pulsar en \"Configurar\".</p></div>", 404);
     }
 }
 

@@ -494,6 +494,7 @@ Route::post('/webhooks/actualiza-orden', 'WebhooksController@actualizaOrdenWebho
 
 // 3. RUTA DEL WEBHOOK DE OPENPAY
 Route::post('/openpay/webhook', 'WebhooksController@webhookOpenpay')->name('openpay_webhook');
+Route::get('/openpay/codigo-verificacion', 'WebhooksController@obtenerCodigoVerificacionOpenpay')->name('openpay_codigo_verificacion');
 
 // 4. RUTA DE PAGO OPENPAY PARA PROMOCIONES
 Route::post('/promociones/pagar-openpay', 'PublicWebController@pagarPromoOpenpay')->name('openpay_pagar_promo');
