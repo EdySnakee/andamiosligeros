@@ -1,4 +1,6 @@
 <script src="https://sdk.mercadopago.com/js/v2"></script>
+<script type="text/javascript" src="https://js.openpay.mx/openpay.v1.min.js"></script>
+<script type="text/javascript" src="https://js.openpay.mx/openpay-data.v1.min.js"></script>
 <script>
    
     $(document).on("click", "#btn-accion-mp", btnAccionMp);
@@ -71,7 +73,7 @@
             }
 
             subtotal = (cantidad * precio_articulo) + subtenvio;
-            $('#costo_activo').val(parseFloat(precio_articulo) + parseFloat(envio));
+            $('#costo_activo').val(precio_articulo);
             $('.punitact').html(numberFormat2.format(precio_articulo));
             $('.info-preciounit').html(label_pu);
             $('.costopluscant').html(numberFormat2.format(cantidad * precio_articulo));
@@ -191,9 +193,8 @@
             return alert("Necesitamos tu dirección");
         }
         
-        if (cantidad == '1') {
-            actualizaPrecio(1);
-        }
+        var qtyNum = parseInt(cantidad) || 1;
+        actualizaPrecio(qtyNum);
         confirmaPedido();
     }
 

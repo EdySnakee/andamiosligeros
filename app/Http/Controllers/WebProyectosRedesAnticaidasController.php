@@ -23,6 +23,8 @@ use PHPMailer\PHPMailer;
 use MercadoPago\SDK;
 use MercadoPago\Preference;
 use MercadoPago\Item;
+use App\OpenpayService;
+use App\Http\Controllers\WebhooksController;
 
 //require_once("phpmailer/PHPMailerAutoload.php");
 
@@ -170,17 +172,24 @@ class WebProyectosRedesAnticaidasController extends Controller
                     $preference->notification_url = $webhook_url;
 
                     // 5. *** URLs DE RETORNO (para el cliente) ***
-                    // Esta ruta 'pago.cotizacion.retorno' la crearemos en el paso 3
+                    $urlSuccess = str_replace('http://', 'https://', route('pago.cotizacion.retorno', ['id_cotizacion' => $cotizacionesRedes->id_cotizacion, 'status' => 'success']));
+                    $urlFailure = str_replace('http://', 'https://', route('pago.cotizacion.retorno', ['id_cotizacion' => $cotizacionesRedes->id_cotizacion, 'status' => 'failure']));
+                    $urlPending = str_replace('http://', 'https://', route('pago.cotizacion.retorno', ['id_cotizacion' => $cotizacionesRedes->id_cotizacion, 'status' => 'pending']));
+
                     $preference->back_urls = array(
-                        "success" => route('pago.cotizacion.retorno', ['id_cotizacion' => $cotizacionesRedes->id_cotizacion, 'status' => 'success']),
-                        "failure" => route('pago.cotizacion.retorno', ['id_cotizacion' => $cotizacionesRedes->id_cotizacion, 'status' => 'failure']),
-                        "pending" => route('pago.cotizacion.retorno', ['id_cotizacion' => $cotizacionesRedes->id_cotizacion, 'status' => 'pending'])
+                        "success" => $urlSuccess,
+                        "failure" => $urlFailure,
+                        "pending" => $urlPending
                     );
                     $preference->auto_return = "approved";
 
                     // 6. Guardar la preferencia
                     $preference->save();
-                    $preference_id = $preference->id; // Obtenemos el ID
+                    if (!empty($preference->id)) {
+                        $preference_id = $preference->id;
+                    } elseif (!empty($preference->error)) {
+                        \Log::error("Error al guardar preferencia de MP para Cotización {$cotizacionesRedes->id_cotizacion}: ", (array) $preference->error);
+                    }
 
                 } catch (\Exception $e) {
                     // Manejar el error si MP falla
@@ -336,6 +345,7 @@ class WebProyectosRedesAnticaidasController extends Controller
             return Redirect::to('/');
         }
     }
+
 
     public function verBlog(Request $request)
     {
@@ -665,6 +675,138 @@ class WebProyectosRedesAnticaidasController extends Controller
                     # code...
                     break;
             }
+        }
+    }
+
+    /**
+     * Procesa el cargo directo de Openpay para una cotización.
+     */
+    public function pagarCotizacionOpenpay(Request $request)
+    {
+        $id_cotizacion = (int) $request->input('id_cotizacion');
+        $token_id = $request->input('token_id');
+        $device_session_id = $request->input('device_session_id', '');
+
+        if (!$id_cotizacion || !$token_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Faltan datos obligatorios para procesar la transacción.'
+            ], 400);
+        }
+
+        $cotizacion = Cotizaciones::find($id_cotizacion);
+        if (!$cotizacion) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró la cotización especificada.'
+            ], 404);
+        }
+
+        $cliente = Clientes::where('idcl', $cotizacion->id_cliente)->first();
+
+        $nombreCliente = (!empty($cliente) && !empty(trim($cliente->nombrecl))) ? trim($cliente->nombrecl) : 'Cliente';
+        $emailCliente = (!empty($cliente) && !empty(trim($cliente->emailcl))) ? trim($cliente->emailcl) : 'ventas@andamiosligeros.com';
+        $telCliente = !empty($cliente) ? (!empty($cliente->telefonocl) ? $cliente->telefonocl : $cliente->celularcl) : '';
+
+        try {
+            $openpayService = new OpenpayService();
+
+            $resCharge = $openpayService->createCardCharge([
+                'token_id' => $token_id,
+                'device_session_id' => $device_session_id,
+                'monto' => (float) $cotizacion->total,
+                'descripcion' => 'Cotización Andamios Ligeros #' . $cotizacion->cod_cotizacion,
+                'order_id' => 'COT-' . $cotizacion->id_cotizacion,
+                'redirect_url' => str_replace('http://', 'https://', route('pago.cotizacion.retorno', [
+                    'id_cotizacion' => $cotizacion->id_cotizacion,
+                    'gateway' => 'openpay'
+                ])),
+                'cliente_nombre' => $nombreCliente,
+                'cliente_email' => $emailCliente,
+                'cliente_telefono' => $telCliente,
+            ]);
+
+            if ($resCharge['success']) {
+                $chargeData = $resCharge['data'];
+                $txStatus = $chargeData['status'] ?? '';
+
+                // Si requiere redirección 3D Secure
+                if ($txStatus === 'charge_pending' && !empty($chargeData['payment_method']['url'])) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => $chargeData['payment_method']['url']
+                    ]);
+                }
+
+                // Si fue aprobado directamente
+                if ($txStatus === 'completed') {
+                    $webhooksController = new WebhooksController();
+                    $webhooksController->notificarCotizacionAprobada(
+                        $cotizacion,
+                        $chargeData['id'] ?? '',
+                        'openpay_' . ($chargeData['method'] ?? 'card')
+                    );
+
+                    return response()->json([
+                        'success' => true,
+                        'redirect_url' => route('pago.cotizacion.retorno', [
+                            'id_cotizacion' => $cotizacion->id_cotizacion,
+                            'status' => 'success',
+                            'gateway' => 'openpay'
+                        ])
+                    ]);
+                }
+            }
+
+            \Log::error('Fallo al procesar cargo Openpay Cotización: ', $resCharge);
+            $errorCode = $resCharge['error_code'] ?? null;
+            $errorDescriptions = [
+                1000 => 'Ocurrió un error interno en el procesador de pagos. Por favor intenta más tarde.',
+                1001 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                1004 => 'Servicio temporalmente fuera de línea. Por favor intenta más tarde.',
+                1005 => 'Uno o más datos obligatorios no fueron proporcionados.',
+                2004 => 'Tarjeta rechazada. El número de tarjeta no es válido.',
+                2005 => 'Tarjeta rechazada. La fecha de expiración no es válida.',
+                2006 => 'Tarjeta rechazada. El código de seguridad (CVV) es inválido.',
+                2007 => 'El número de tarjeta es de prueba y solo es válido en modo Sandbox.',
+                3001 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3002 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3003 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3004 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3005 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3006 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3008 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3009 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3010 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3011 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                3012 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+                15001 => 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.',
+            ];
+
+            if (isset($errorDescriptions[$errorCode])) {
+                $errorMsg = $errorDescriptions[$errorCode];
+            } elseif (!empty($resCharge['description'])) {
+                $desc = $resCharge['description'];
+                if (stripos($desc, 'Authentication') !== false || stripos($desc, '3D') !== false || stripos($desc, 'declined') !== false || stripos($desc, 'funds') !== false || stripos($desc, 'card') !== false) {
+                    $errorMsg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
+                } else {
+                    $errorMsg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
+                }
+            } else {
+                $errorMsg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $errorMsg
+            ], 422);
+
+        } catch (\Exception $e) {
+            \Log::error('Excepción al pagar cotización con Openpay: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error inesperado al procesar tu tarjeta. Por favor intenta nuevamente.'
+            ], 500);
         }
     }
 }

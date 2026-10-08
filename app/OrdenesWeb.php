@@ -30,21 +30,35 @@ class OrdenesWeb extends Model
         'status_orden'
     ];
 
-    public static function postOrden($req_mp, $data_post, $datos_cliente, $subtotal_orden, $costo_item, $status_accion, $status_orden)
+    public static function postOrden($req_mp, $data_post, $datos_cliente, $subtotal_orden, $costo_item, $status_accion, $status_orden, $iva = null, $total = null)
     {
-        //dd($datos_cliente->idcl);
-        $iva = $subtotal_orden * 0.16;
+        $requiere_iva = (!empty($data_post->iva) && ($data_post->iva === 'si' || $data_post->iva === 'on'));
+
+        if ($iva === null || $total === null) {
+            $cantidad = isset($data_post->cantidad) ? (int)$data_post->cantidad : 1;
+            $envio_unitario = isset($data_post->envio) ? (float)$data_post->envio : 0;
+            $total_envio = $cantidad * $envio_unitario;
+            $subtotal_con_envio = $subtotal_orden + $total_envio;
+
+            if ($requiere_iva) {
+                $iva = round($subtotal_con_envio * 0.16, 2);
+                $total = $subtotal_con_envio + $iva;
+            } else {
+                $iva = 0.0;
+                $total = $subtotal_con_envio;
+            }
+        }
 
         $ordenesWeb = new OrdenesWeb();
         $ordenesWeb->idcl = $datos_cliente->idcl;
-        $ordenesWeb->req_fact = $data_post->iva;
+        $ordenesWeb->req_fact = $requiere_iva ? 'si' : 'no';
         $ordenesWeb->cantidad = $data_post->cantidad;
-        $ordenesWeb->costo_articulo = $data_post->costo_articulo;
+        $ordenesWeb->costo_articulo = $costo_item;
         $ordenesWeb->iva = $iva;
         $ordenesWeb->subtotal = $subtotal_orden;
-        $ordenesWeb->total = $subtotal_orden + $iva;
+        $ordenesWeb->total = $total;
         $ordenesWeb->status_accion = $status_accion;
-        if ($status_orden == 1) {
+        if ($status_orden == 1 && !empty($req_mp)) {
             $ordenesWeb->mp_payment_id = $req_mp->payment_id;
             $ordenesWeb->mp_payment_type = $req_mp->payment_type;
             $ordenesWeb->mp_status = $req_mp->status;
@@ -95,20 +109,37 @@ class OrdenesWeb extends Model
         }
 
         // 2. Prepara las filas de totales
+        $costo_envio = round($datos_orden->total - ($datos_orden->subtotal + $datos_orden->iva), 2);
+        $envio_html = '';
+        if ($costo_envio > 0) {
+            $envio_html = '
+                <tr>
+                    <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right;">Costo de Envío</td>
+                    <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right;">$' . number_format($costo_envio, 2) . '</td>
+                </tr>';
+        }
+        $iva_html = '';
+        if ($datos_orden->iva > 0) {
+            $iva_html = '
+                <tr>
+                    <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right;">IVA (16%)</td>
+                    <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right;">$' . number_format($datos_orden->iva, 2) . '</td>
+                </tr>';
+        }
+
         $totales_html = '
             <tr>
                 <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right; border-top: 1px solid #eeeeee;">Subtotal</td>
                 <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right; border-top: 1px solid #eeeeee;">$' . number_format($datos_orden->subtotal, 2) . '</td>
-            </tr>
-            <tr>
-                <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right;">IVA</td>
-                <td style="font-family: Arial, sans-serif; font-size: 14px; padding: 5px 10px; text-align: right;">$' . number_format($datos_orden->iva, 2) . '</td>
-            </tr>
+            </tr>' .
+            $envio_html .
+            $iva_html . '
             <tr>
                 <td style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; padding: 10px 10px; text-align: right; background-color: #f7f7f7;">TOTAL</td>
                 <td style="font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; padding: 10px 10px; text-align: right; background-color: #f7f7f7;">$' . number_format($datos_orden->total, 2) . '</td>
             </tr>
         ';
+
         $mensaje = '
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>

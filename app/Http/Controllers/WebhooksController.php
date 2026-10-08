@@ -104,7 +104,36 @@ class WebhooksController extends Controller
             return redirect()->route('status_vta', $array_orden);
         }
 
-        // El estatus ya debe haber sido actualizado por el Webhook de Scoregol (actualizaOrdenWebhook)
+        // Si el usuario regresa de Openpay y la orden sigue en estatus 9 (creada/pendiente)
+        if ($request->get('gateway') === 'openpay' && $info_orden->status_orden == 9) {
+            $openpayTxId = $request->get('id') ?: $info_orden->mp_payment_id;
+            if (!empty($openpayTxId)) {
+                try {
+                    $openpayService = new \App\OpenpayService();
+                    $charge = $openpayService->getCharge($openpayTxId);
+                    if ($charge['success'] && isset($charge['data']['status'])) {
+                        if ($charge['data']['status'] === 'completed') {
+                            $info_orden->status_orden = 1;
+                            $info_orden->mp_payment_id = $charge['data']['id'];
+                            $info_orden->mp_payment_type = 'openpay_' . ($charge['data']['method'] ?? 'card');
+                            $info_orden->mp_status = 'approved';
+                            $info_orden->mp_fecha_post = date('Y-m-d H:i:s');
+                            $info_orden->save();
+
+                            $this->notificarOrdenAprobada($info_orden);
+                        } elseif (in_array($charge['data']['status'], ['in_progress', 'charge_pending'])) {
+                            $info_orden->status_orden = 2; // Pendiente
+                            $info_orden->save();
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error verificando cargo Openpay en retorno: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // El estatus ya debe haber sido actualizado por el Webhook o por la consulta directa
+
 
         // Los estatus de la DB: 1=Venta/Aprobada, 2=Pendiente, 3=Error, 9=Creada/Abandonada
         if ($info_orden->status_orden == 1) {
@@ -199,29 +228,7 @@ class WebhooksController extends Controller
 
             // *** ENVÍO DE CORREO DE ADMIN PARA COTIZACIÓN ***
             if ($status_orden == 2) { // Si fue aprobado
-                try {
-                    // Cotizaciones usa 'id_cliente'
-                    $datos_cliente = \App\Clientes::find($info_cotizacion->id_cliente);
-                    $detalle_items = \App\DetalleCotizaciones::where('id_cotizacion', $info_cotizacion->id_cotizacion)->get();
-
-                    \Mail::send(
-                        'emails.admin_notificacion_pago_cotizacion', // <-- Vista separada
-                        [
-                            'cotizacion' => $info_cotizacion,
-                            'cliente' => $datos_cliente,
-                            'detalles' => $detalle_items,
-                            'mp_id' => $payment_id, // Pasamos el ID de MP por separado
-                            'mp_payment_type' => $payment_type, // Pasamos el tipo de pago
-                        ],
-                        function ($message) use ($info_cotizacion) {
-                            $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
-                                ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
-                                ->subject('✅ Pago (Andamios - Cotización): #' . $info_cotizacion->cod_cotizacion);
-                        }
-                    );
-                } catch (\Exception $e) {
-                    \Log::error("Webhook Andamios: Error al enviar email de ADMIN para Cotización #{$id_orden_remota}: " . $e->getMessage());
-                }
+                $this->notificarCotizacionAprobada($info_cotizacion, $payment_id, $payment_type);
             }
             // *** FIN DE CORREO ADMIN ***
 
@@ -305,6 +312,33 @@ class WebhooksController extends Controller
             return redirect('/')->with('error', 'Cotización no encontrada.');
         }
 
+        // Si el usuario regresa de Openpay (ej. autenticación 3D Secure)
+        if ($request->get('gateway') === 'openpay') {
+            $openpayTxId = $request->get('id');
+            if (!empty($openpayTxId)) {
+                try {
+                    $openpayService = new \App\OpenpayService();
+                    $charge = $openpayService->getCharge($openpayTxId);
+                    if ($charge['success'] && isset($charge['data']['status'])) {
+                        if ($charge['data']['status'] === 'completed') {
+                            $status_mp = 'success';
+                            $this->notificarCotizacionAprobada(
+                                $info_cotizacion,
+                                $charge['data']['id'] ?? '',
+                                'openpay_' . ($charge['data']['method'] ?? 'card')
+                            );
+                        } elseif (in_array($charge['data']['status'], ['in_progress', 'charge_pending'])) {
+                            $status_mp = 'pending';
+                        } else {
+                            $status_mp = 'failure';
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error verificando cargo Openpay cotizacion en retorno: ' . $e->getMessage());
+                }
+            }
+        }
+
         if ($status_mp === 'success' || $status_mp === 'approved') {
             $titulo_orden = "🌟 GRACIAS POR TU PAGO 🌟";
             $msj_orden = "Su pago para la cotización ha sido registrado con éxito: ";
@@ -355,4 +389,188 @@ class WebhooksController extends Controller
         $json_datos_sts_vta = json_decode(json_encode($datos_sts_vta));
         return view('web_andamios/status_venta/status_venta', compact('json_datos_sts_vta'));
     }
+
+    /**
+     * Webhook oficial para recibir notificaciones automáticas de Openpay.
+     */
+    public function webhookOpenpay(Request $request)
+    {
+        \Log::info('Webhook Openpay recibido: ', $request->all());
+
+        $type = $request->input('type');
+
+        // Manejo del evento de verificación de Openpay al registrar el Webhook en el Dashboard
+        if ($type === 'verification') {
+            $code = $request->input('verification_code');
+            \Log::info("Openpay Webhook Verification Code recibido: " . $code);
+            @file_put_contents(storage_path('logs/openpay_verification_code.txt'), $code);
+
+            try {
+                \Mail::raw("El código de verificación del Webhook de Openpay es: {$code}\n\nIngrésalo en tu panel de Openpay para confirmar el webhook.", function ($message) use ($code) {
+                    $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
+                        ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
+                        ->subject('🔑 Código de Verificación Webhook Openpay: ' . $code);
+                });
+            } catch (\Exception $e) {
+                \Log::warning("No se pudo enviar email de verification_code Openpay: " . $e->getMessage());
+            }
+
+            return response()->json(['status' => 'success', 'verification_code' => $code], 200);
+        }
+
+        $transaction = $request->input('transaction', []);
+
+        if (empty($transaction)) {
+            return response()->json(['message' => 'Sin datos de transacción.'], 400);
+        }
+
+        $orderIdRaw = $transaction['order_id'] ?? null;
+        $id_orden = null;
+
+        if ($orderIdRaw && strpos($orderIdRaw, 'COT-') === 0) {
+            $id_cot = (int) str_replace('COT-', '', $orderIdRaw);
+            $info_cot = \App\Cotizaciones::find($id_cot);
+            if ($info_cot) {
+                if ($type === 'charge.succeeded' || ($transaction['status'] ?? '') === 'completed') {
+                    $this->notificarCotizacionAprobada(
+                        $info_cot,
+                        $transaction['id'] ?? '',
+                        'openpay_' . ($transaction['method'] ?? 'card')
+                    );
+                }
+                return response()->json(['message' => 'Cotización notificada con éxito.'], 200);
+            }
+        }
+
+        if ($orderIdRaw && strpos($orderIdRaw, 'AL-') === 0) {
+            $id_orden = (int) str_replace('AL-', '', $orderIdRaw);
+        }
+
+        if (!$id_orden && !empty($transaction['id'])) {
+            $info_orden_by_tx = \App\OrdenesWeb::where('mp_payment_id', $transaction['id'])->first();
+            if ($info_orden_by_tx) {
+                $id_orden = $info_orden_by_tx->id_orden;
+            }
+        }
+
+        if (!$id_orden) {
+            \Log::warning('Webhook Openpay: No se pudo determinar el ID de la orden.', $transaction);
+            return response()->json(['message' => 'Orden no identificada.'], 404);
+        }
+
+        $info_orden = \App\OrdenesWeb::find($id_orden);
+
+        if (!$info_orden) {
+            \Log::warning("Webhook Openpay: Orden #{$id_orden} no encontrada en base de datos.");
+            return response()->json(['message' => 'Orden no encontrada.'], 404);
+        }
+
+        // Idempotencia: Si ya está en estatus 1 (aprobada), respondemos 200 sin duplicar correos
+        if ($info_orden->status_orden == 1) {
+            return response()->json(['message' => 'Orden ya confirmada previamente.'], 200);
+        }
+
+        $txStatus = $transaction['status'] ?? '';
+        $txMethod = $transaction['method'] ?? 'card';
+        $txId = $transaction['id'] ?? '';
+
+        if ($type === 'charge.succeeded' || $txStatus === 'completed') {
+            $info_orden->status_orden = 1; // VENTA / APROBADO
+            $info_orden->mp_status = 'approved';
+            $info_orden->mp_payment_id = $txId;
+            $info_orden->mp_payment_type = 'openpay_' . $txMethod;
+            $info_orden->mp_fecha_post = date('Y-m-d H:i:s');
+            $info_orden->save();
+
+            $this->notificarOrdenAprobada($info_orden);
+        } elseif (in_array($txStatus, ['in_progress', 'charge_pending'])) {
+            $info_orden->status_orden = 2; // PENDIENTE
+            $info_orden->mp_status = 'pending';
+            $info_orden->save();
+        } elseif ($type === 'charge.failed' || in_array($txStatus, ['failed', 'cancelled'])) {
+            $info_orden->status_orden = 3; // ERROR / RECHAZADO
+            $info_orden->mp_status = 'rejected';
+            $info_orden->save();
+        }
+
+        return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * Helper para enviar correos de notificación al cliente y admin cuando una orden es aprobada.
+     */
+    public function notificarOrdenAprobada($info_orden)
+    {
+        try {
+            $datos_cliente = \App\Clientes::find($info_orden->idcl);
+            $cart_items = \App\OrdenesDetalle::where('id_orden', $info_orden->id_orden)->get();
+
+            if ($datos_cliente && $cart_items) {
+                // 1. Enviar al CLIENTE
+                \App\OrdenesWeb::enviaOrdenMail($datos_cliente, $info_orden, $cart_items);
+
+                // 2. Enviar al ADMIN
+                \Mail::send(
+                    'emails.admin_notificacion_pago_orden',
+                    [
+                        'orden' => $info_orden,
+                        'cliente' => $datos_cliente,
+                        'detalles' => $cart_items,
+                        'mp_id' => $info_orden->mp_payment_id,
+                        'mp_payment_type' => $info_orden->mp_payment_type,
+                    ],
+                    function ($message) use ($info_orden) {
+                        $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
+                            ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
+                            ->subject('✅ Pago (Andamios - Orden en Tienda en Línea): #' . $info_orden->id_orden);
+                    }
+                );
+            }
+        } catch (\Exception $e) {
+            \Log::error("Webhook Andamios: Error al enviar emails para Orden #{$info_orden->id_orden}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper para enviar correo de notificación al admin cuando una cotización es pagada.
+     */
+    public function notificarCotizacionAprobada($info_cotizacion, $payment_id, $payment_type)
+    {
+        try {
+            $datos_cliente = \App\Clientes::find($info_cotizacion->id_cliente);
+            $detalle_items = \App\DetalleCotizaciones::where('id_cotizacion', $info_cotizacion->id_cotizacion)->get();
+
+            \Mail::send(
+                'emails.admin_notificacion_pago_cotizacion',
+                [
+                    'cotizacion' => $info_cotizacion,
+                    'cliente' => $datos_cliente,
+                    'detalles' => $detalle_items,
+                    'mp_id' => $payment_id,
+                    'mp_payment_type' => $payment_type,
+                ],
+                function ($message) use ($info_cotizacion) {
+                    $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
+                        ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
+                        ->subject('✅ Pago (Andamios - Cotización): #' . $info_cotizacion->cod_cotizacion);
+                }
+            );
+        } catch (\Exception $e) {
+            \Log::error("Webhook Andamios: Error al enviar email de ADMIN para Cotización #{$info_cotizacion->id_cotizacion}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Endpoint auxiliar para consultar fácilmente el código de verificación de Openpay sin acceder por SSH.
+     */
+    public function obtenerCodigoVerificacionOpenpay()
+    {
+        $path = storage_path('logs/openpay_verification_code.txt');
+        if (file_exists($path)) {
+            $code = trim(file_get_contents($path));
+            return response("<div style='font-family:sans-serif;padding:40px;text-align:center;'><h2>Código de verificación de Openpay:</h2><h1 style='color:#002f6c;font-size:38px;letter-spacing:2px;background:#f1f5f9;padding:16px 28px;display:inline-block;border-radius:10px;border:1px solid #cbd5e1;'>{$code}</h1><p style='color:#64748b;margin-top:16px;font-size:15px;'>Copia y pega este código en el modal de Openpay para verificar tu Webhook.</p></div>");
+        }
+        return response("<div style='font-family:sans-serif;padding:40px;text-align:center;'><h3 style='color:#991b1b;'>Aún no se ha recibido ningún código de verificación.</h3><p style='color:#64748b;'>Asegúrate de registrar la URL en el panel de Openpay y pulsar en \"Configurar\".</p></div>", 404);
+    }
 }
+

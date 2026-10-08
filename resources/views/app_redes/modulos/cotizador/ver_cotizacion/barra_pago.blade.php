@@ -1,13 +1,13 @@
-<div class="detallepago">
-	<div class="botonera-mp animate__animated animate__heartBeat animate__infinite">
-		<div class="cont-botones">
-			<ul>
-				<li>
-					<a id="btn-accion-mp" class="" data-accion="open" href="#"> REALIZAR PAGO </a>
-				</li>
-			</ul>
-		</div>
+<div class="botonera-mp animate__animated animate__heartBeat animate__infinite">
+	<div class="cont-botones">
+		<ul>
+			<li>
+				<a id="btn-accion-mp" class="" data-accion="open" href="#"> REALIZAR PAGO </a>
+			</li>
+		</ul>
 	</div>
+</div>
+<div class="detallepago">
 	<div class="txt-pago text-center">
 		<a href="#" id="cerrar-pago" data-accion="close"><i class="fa fa-times" aria-hidden="true"></i></a>
 		<div class="info-resumen">
@@ -259,25 +259,367 @@
 				</div>
 				<p id="" class="text"><span>Si tu paquete no llega, te devolvemos tu dinero.</span></p>
 			</div>
-			<div class="cho-container"></div>
+			<div class="cho-container" style="min-height: 48px;"></div>
+
+			<!-- Opción de Pago con Openpay Tarjetas -->
+			<div style="margin-top: 14px; width: 100%;">
+				<div style="display: flex; align-items: center; text-align: center; margin: 12px 0 10px 0;">
+					<div style="flex: 1; border-bottom: 1px solid #dcdcdc;"></div>
+					<span style="padding: 0 10px; color: #777; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">O también</span>
+					<div style="flex: 1; border-bottom: 1px solid #dcdcdc;"></div>
+				</div>
+
+				<button type="button" id="btn-abrir-popup-openpay" onclick="abrirModalCotOpenpay(event)" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: #002f6c; color: #ffffff; border: none; border-radius: 8px; padding: 12px 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 3px 10px rgba(0,47,108,0.22); outline: none;">
+					<div style="display: flex; align-items: center; gap: 8px;">
+						<i class="fa fa-credit-card" style="font-size: 16px; color: #ffbb01;"></i>
+						<span>Pagar con Tarjeta</span>
+					</div>
+					<img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 18px; max-width: 85px; object-fit: contain; filter: brightness(0) invert(1);">
+				</button>
+				<div style="text-align: center; margin-top: 6px;">
+					<small style="color: #666; font-size: 11px;">Crédito o Débito directo (Openpay by BBVA)</small>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
 
+<!-- MODAL POP-UP OPENPAY COTIZACIONES -->
+<div id="modal-openpay-cotizacion" onclick="if(event.target === this) cerrarModalCotOpenpay(event);" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); z-index: 9999999; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; box-sizing: border-box;">
+	<div class="modal-openpay-card" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); position: relative; border: 1px solid #e2e8f0; padding: 0; animation: modalPopFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+		
+		<!-- Header del Modal -->
+		<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid #edf2f7; background: #f8fafc; border-radius: 16px 16px 0 0;">
+			<div style="display: flex; align-items: center; gap: 10px;">
+				<img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 22px; max-width: 95px; object-fit: contain;">
+				<span style="font-size: 11px; font-weight: 700; color: #002f6c; background: #e0f2fe; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px;">BBVA</span>
+			</div>
+			<button type="button" id="btn-cerrar-popup-openpay" onclick="cerrarModalCotOpenpay(event)" style="background: none; border: none; font-size: 26px; line-height: 1; color: #94a3b8; cursor: pointer; padding: 2px 8px; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#0f172a'; this.style.backgroundColor='#f1f5f9';" onmouseout="this.style.color='#94a3b8'; this.style.backgroundColor='transparent';">&times;</button>
+		</div>
+
+		<!-- Contenido del Modal -->
+		<div style="padding: 22px;">
+			<!-- Resumen de cotización -->
+			<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between;">
+				<div>
+					<span style="display: block; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase;">Cotización</span>
+					<strong style="font-size: 15px; color: #0f172a;">#{{ $cotizacionesRedes->cod_cotizacion }}</strong>
+				</div>
+				<div style="text-align: right;">
+					<span style="display: block; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase;">Total a pagar</span>
+					<strong style="font-size: 18px; color: #002f6c;">${{ number_format($cotizacionesRedes->total, 2) }}</strong>
+				</div>
+			</div>
+
+			<!-- Formulario de tarjeta personalizado -->
+			<div style="text-align: left;">
+				<div style="margin-bottom: 14px;">
+					<label for="cot_openpay_holder" style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Nombre del titular como aparece en la tarjeta *</label>
+					<input type="text" id="cot_openpay_holder" placeholder="Como aparece en la tarjeta" style="width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 14px; background: #fff; box-sizing: border-box; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#002f6c';" onblur="this.style.borderColor='#cbd5e1';">
+				</div>
+
+				<div style="margin-bottom: 14px;">
+					<label for="cot_openpay_card" style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+						<span>Número de tarjeta *</span>
+						<span id="cot_card_type" style="font-size: 11px; font-weight: 700; color: #004481;"></span>
+					</label>
+					<input type="text" id="cot_openpay_card" placeholder="0000 0000 0000 0000" maxlength="19" style="width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 14px; background: #fff; box-sizing: border-box; font-family: monospace; letter-spacing: 1.5px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#002f6c';" onblur="this.style.borderColor='#cbd5e1';">
+				</div>
+
+				<div style="display: flex; gap: 12px; margin-bottom: 16px;">
+					<div style="flex: 1;">
+						<label for="cot_openpay_expiry" style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Vigencia (MM / AA) *</label>
+						<input type="text" id="cot_openpay_expiry" placeholder="MM / AA" maxlength="7" style="width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 14px; background: #fff; box-sizing: border-box; text-align: center; font-family: monospace; letter-spacing: 1px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#002f6c';" onblur="this.style.borderColor='#cbd5e1';">
+						<input type="hidden" id="cot_openpay_exp_month">
+						<input type="hidden" id="cot_openpay_exp_year">
+					</div>
+					<div style="flex: 1;">
+						<label for="cot_openpay_cvv" style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">CVV *</label>
+						<input type="password" id="cot_openpay_cvv" placeholder="123" maxlength="4" style="width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 14px; background: #fff; box-sizing: border-box; text-align: center; font-family: monospace; letter-spacing: 2px; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#002f6c';" onblur="this.style.borderColor='#cbd5e1';">
+					</div>
+				</div>
+
+				<!-- Alert de error -->
+				<div id="cot-openpay-error" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; line-height: 1.4;">
+				</div>
+
+				<!-- Botón de Pagar -->
+				<button type="button" id="btn-pagar-openpay-cot" style="width: 100%; background: #ffbb01; color: #000; border: none; font-weight: 800; font-size: 15px; padding: 14px; border-radius: 10px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(255, 187, 1, 0.35); text-transform: uppercase; letter-spacing: 0.5px;">
+					Pagar ${{ number_format($cotizacionesRedes->total, 2) }} con Tarjeta
+				</button>
+
+				<!-- Seguridad -->
+				<div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+					<small style="color: #64748b; font-size: 11px;">🔒 Tus datos viajan encriptados directo a Openpay by BBVA (PCI-DSS)</small>
+					<img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay" style="height: 16px; max-width: 80px; object-fit: contain; opacity: 0.85;">
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<style>
+@keyframes modalPopFadeIn {
+	from { opacity: 0; transform: scale(0.96) translateY(8px); }
+	to { opacity: 1; transform: scale(1) translateY(0); }
+}
+</style>
+
+<!-- 1. SDK de Mercado Pago -->
 <script src="https://sdk.mercadopago.com/js/v2"></script>
+@if(!empty($preference_id))
+<script>
+	(function() {
+		try {
+			var mpKey = "{{ config('services.mercadopago.key') }}";
+			var mpPrefId = "{{ $preference_id }}";
+			if (mpKey && mpPrefId) {
+				var mpInstance = new MercadoPago(mpKey, { locale: 'es-AR' });
+				mpInstance.checkout({
+					preference: {
+						id: mpPrefId
+					},
+					render: {
+						container: '.cho-container',
+						label: 'Pagar'
+					}
+				});
+			}
+		} catch(err) {
+			console.error("Error al inicializar Mercado Pago:", err);
+		}
+	})();
+</script>
+@endif
+
+<!-- 2. SDK de Openpay -->
+<script type="text/javascript" src="https://js.openpay.mx/openpay.v1.min.js"></script>
+<script type="text/javascript" src="https://js.openpay.mx/openpay-data.v1.min.js"></script>
 
 <script>
-	const mp = new MercadoPago("{{config('services.mercadopago.key')}}", {
-		locale: 'es-AR'
-	});
-
-	mp.checkout({
-		preference: {
-			id: '{{ $preference_id }}'
-		},
-		render: {
-			container: '.cho-container',
-			label: 'Pagar',
+	// Funciones globales para control del pop-up modal
+	function abrirModalCotOpenpay(e) {
+		if (e) e.preventDefault();
+		var modal = document.getElementById('modal-openpay-cotizacion');
+		if (!modal) return;
+		if (modal.parentElement !== document.body) {
+			document.body.appendChild(modal);
 		}
-	});
+		var errBox = document.getElementById('cot-openpay-error');
+		if (errBox) {
+			errBox.style.display = 'none';
+			errBox.textContent = '';
+		}
+		initCotOpenPay();
+		modal.style.display = 'flex';
+	}
+
+	function cerrarModalCotOpenpay(e) {
+		if (e) e.preventDefault();
+		var modal = document.getElementById('modal-openpay-cotizacion');
+		if (modal) {
+			modal.style.display = 'none';
+		}
+	}
+
+	// Inicialización de OpenPay SDK
+	function initCotOpenPay() {
+		if (typeof OpenPay !== 'undefined') {
+			try {
+				OpenPay.setId("{{ config('services.openpay.merchant_id') }}");
+				OpenPay.setApiKey("{{ config('services.openpay.public_key') }}");
+				OpenPay.setSandboxMode({{ config('services.openpay.sandbox') ? 'true' : 'false' }});
+				window.cotDeviceSessionId = OpenPay.deviceData.setup();
+			} catch(err) {
+				console.warn("OpenPay setup warning:", err);
+			}
+		}
+	}
+
+	// Ejecutar inicialización inmediata
+	initCotOpenPay();
+
+	// Handlers interactivos con jQuery cuando esté disponible
+	(function() {
+		function bindEvents() {
+			if (typeof $ === 'undefined') {
+				setTimeout(bindEvents, 50);
+				return;
+			}
+
+			// Asegurar que el modal esté en body para no verse afectado por el contenedor lateral
+			var $modal = $('#modal-openpay-cotizacion');
+			if ($modal.length && $modal.parent()[0] !== document.body) {
+				$('body').append($modal);
+			}
+
+			// Botón abrir pop-up
+			$(document).off('click', '#btn-abrir-popup-openpay').on('click', '#btn-abrir-popup-openpay', function(e) {
+				abrirModalCotOpenpay(e);
+			});
+
+			// Botón cerrar pop-up
+			$(document).off('click', '#btn-cerrar-popup-openpay').on('click', '#btn-cerrar-popup-openpay', function(e) {
+				cerrarModalCotOpenpay(e);
+			});
+
+			// Clic fuera del contenido
+			$(document).off('click', '#modal-openpay-cotizacion').on('click', '#modal-openpay-cotizacion', function(e) {
+				if ($(e.target).is('#modal-openpay-cotizacion')) {
+					cerrarModalCotOpenpay(e);
+				}
+			});
+
+			// Formateo número de tarjeta y detección de marca
+			$(document).off('input', '#cot_openpay_card').on('input', '#cot_openpay_card', function() {
+				var raw = $(this).val().replace(/\D/g, '');
+				if (raw.length > 16) raw = raw.substring(0, 16);
+				var formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+				$(this).val(formatted);
+
+				try {
+					if (typeof OpenPay !== 'undefined' && OpenPay.card) {
+						var cardType = OpenPay.card.cardType(raw);
+						if (cardType) {
+							$('#cot_card_type').text(cardType.toUpperCase()).fadeIn();
+						} else {
+							$('#cot_card_type').text('').hide();
+						}
+					}
+				} catch(e) {}
+			});
+
+			// Formateo expiración MM / AA
+			$(document).off('input', '#cot_openpay_expiry').on('input', '#cot_openpay_expiry', function() {
+				var val = $(this).val().replace(/\D/g, '');
+				if (val.length > 4) val = val.substring(0, 4);
+				if (val.length >= 3) {
+					$(this).val(val.substring(0, 2) + ' / ' + val.substring(2));
+				} else if (val.length === 2 && !$(this).data('deleting')) {
+					$(this).val(val + ' / ');
+				} else {
+					$(this).val(val);
+				}
+
+				var m = val.substring(0, 2);
+				var y = val.substring(2);
+				$('#cot_openpay_exp_month').val(m);
+				$('#cot_openpay_exp_year').val(y);
+			});
+
+			$(document).off('keydown', '#cot_openpay_expiry').on('keydown', '#cot_openpay_expiry', function(e) {
+				if (e.key === 'Backspace') {
+					$(this).data('deleting', true);
+					var val = $(this).val();
+					if (val.endsWith(' / ') || val.endsWith('/ ') || val.endsWith('/')) {
+						e.preventDefault();
+						var digits = val.replace(/\D/g, '');
+						digits = digits.substring(0, digits.length - 1);
+						$(this).val(digits);
+						$('#cot_openpay_exp_month').val(digits.substring(0, 2));
+						$('#cot_openpay_exp_year').val(digits.substring(2));
+					}
+				} else {
+					$(this).data('deleting', false);
+				}
+			});
+
+			$(document).off('input', '#cot_openpay_cvv').on('input', '#cot_openpay_cvv', function() {
+				$(this).val($(this).val().replace(/\D/g, ''));
+			});
+
+			// Procesar pago con Openpay
+			$(document).off('click', '#btn-pagar-openpay-cot').on('click', '#btn-pagar-openpay-cot', function(e) {
+				e.preventDefault();
+				$('#cot-openpay-error').hide().text('');
+
+				var holderName = $.trim($('#cot_openpay_holder').val());
+				var rawCard = $('#cot_openpay_card').val().replace(/\s+/g, '');
+				var expVal = $('#cot_openpay_expiry').val() || '';
+				var expDigits = expVal.replace(/\D/g, '');
+				var expMonth = expDigits.substring(0, 2);
+				var expYear = expDigits.substring(2);
+				var cvv = $.trim($('#cot_openpay_cvv').val());
+
+				if (!holderName) {
+					$('#cot-openpay-error').text('Por favor ingresa el nombre del titular de la tarjeta.').slideDown(150);
+					$('#cot_openpay_holder').focus();
+					return false;
+				}
+
+				if (!rawCard || (typeof OpenPay !== 'undefined' && !OpenPay.card.validateCardNumber(rawCard))) {
+					$('#cot-openpay-error').text('El número de tarjeta no es válido. Verifica los dígitos.').slideDown(150);
+					$('#cot_openpay_card').focus();
+					return false;
+				}
+
+				if (!expMonth || !expYear || expMonth.length < 2 || expYear.length < 2 || (typeof OpenPay !== 'undefined' && !OpenPay.card.validateExpiry(expMonth, expYear))) {
+					$('#cot-openpay-error').text('La fecha de vencimiento es inválida (MM / AA).').slideDown(150);
+					$('#cot_openpay_expiry').focus();
+					return false;
+				}
+
+				if (!cvv || (typeof OpenPay !== 'undefined' && !OpenPay.card.validateCVC(cvv, rawCard))) {
+					$('#cot-openpay-error').text('El código de seguridad (CVV) es inválido.').slideDown(150);
+					$('#cot_openpay_cvv').focus();
+					return false;
+				}
+
+				var $btn = $(this);
+				var origText = $btn.text();
+				$btn.prop('disabled', true).text('PROCESANDO PAGO SEGURO...');
+
+				var yearNormal = expYear.length === 4 ? expYear.substring(2) : expYear;
+
+				OpenPay.token.create({
+					"holder_name": holderName,
+					"card_number": rawCard,
+					"cvv2": cvv,
+					"expiration_month": expMonth,
+					"expiration_year": yearNormal
+				}, function(response) {
+					$.ajax({
+						url: '{{ route("openpay_pagar_cotizacion") }}',
+						type: 'POST',
+						dataType: 'json',
+						data: {
+							_token: '{{ csrf_token() }}',
+							id_cotizacion: '{{ $cotizacionesRedes->id_cotizacion }}',
+							token_id: response.data.id,
+							device_session_id: window.cotDeviceSessionId || ''
+						},
+						success: function(res) {
+							if (res.success && res.redirect_url) {
+								console.log("¡Pago exitoso con Openpay!", res);
+								$btn.css({'background': '#28a745', 'color': '#fff', 'box-shadow': '0 4px 10px rgba(40,167,69,0.3)'}).text('PAGO EXITOSO. REDIRIGIENDO...');
+								window.location.href = res.redirect_url;
+							} else {
+								$btn.prop('disabled', false).text(origText);
+								$('#cot-openpay-error').text(res.message || 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.').slideDown(150);
+							}
+						},
+						error: function(xhr) {
+							$btn.prop('disabled', false).text(origText);
+							var msg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
+							if (xhr.responseJSON && xhr.responseJSON.message) {
+								msg = xhr.responseJSON.message;
+							}
+							$('#cot-openpay-error').text(msg).slideDown(150);
+						}
+					});
+				}, function(response) {
+					$btn.prop('disabled', false).text(origText);
+					var msg = 'Tarjeta rechazada. Por favor intenta con otra tarjeta o método de pago.';
+					$('#cot-openpay-error').text(msg).slideDown(150);
+				});
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', bindEvents);
+		} else {
+			bindEvents();
+		}
+	})();
 </script>

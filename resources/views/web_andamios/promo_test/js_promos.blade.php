@@ -51,10 +51,10 @@
             var subtotal;
             if (cantidad >= cant_min && (cant_min != "" && cant_min != 0)) {
                 subtotal = (cantidad * costo_desc) + subtenvio;
-                $('#costo_activo').val(parseFloat(costo_desc) + parseFloat(envio));
+                $('#costo_activo').val(costo_desc);
             } else {
                 subtotal = (cantidad * costo_articulo) + subtenvio;
-                $('#costo_activo').val(parseFloat(costo_articulo) + parseFloat(envio));
+                $('#costo_activo').val(costo_articulo);
             }
 
             const options2 = { style: 'currency', currency: 'USD' };

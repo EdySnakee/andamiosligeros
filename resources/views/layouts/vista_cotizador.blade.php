@@ -17,6 +17,7 @@ use App\Ventas;
     <!-- Styles -->
     <link href="{{ url('cotizaciones/custom_coti.css') }}" rel="stylesheet">
     <link href="{{ url('cotizaciones/bootstrap.css') }}" rel="stylesheet">
+    <script src="{{ url('cotizaciones/jquery.min.js') }}"></script>
     @if($tipo_vista == "Cotizaciones")
     @if($cotizacionesRedes->status == 3 OR $cotizacionesRedes->status == 4)
     <style>
@@ -252,10 +253,13 @@ use App\Ventas;
             background: #f5f5f5;
             position: fixed;
             width: 30vw;
+            min-width: 350px;
+            max-width: 100vw;
             height: 100%;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
+            overflow: visible;
         }
 
         .cont-img-res {
@@ -334,15 +338,22 @@ use App\Ventas;
 
         .txt-pago {
             width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
             padding: 2em;
             position: relative;
+            box-sizing: border-box;
+            padding-bottom: 60px;
         }
 
         .tabla-resumen {
-            height: 16vw;
-            overflow: auto;
-            margin-bottom: 2em;
-            margin-top: 2em;
+            max-height: 170px;
+            overflow-y: auto;
+            margin-bottom: 1em;
+            margin-top: 1em;
         }
 
         .nav-top {
@@ -418,8 +429,7 @@ use App\Ventas;
             position: absolute;
             left: -6.5em;
             top: 13em;
-            z-index: 9;
-
+            z-index: 99999;
         }
 
         .cont-botones {

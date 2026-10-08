@@ -87,13 +87,23 @@
             <p>Se ha recibido la notificación de pago aprobado para la siguiente cotización:</p>
 
             <h3>Detalles de la Transacción</h3>
+            @php
+                $es_openpay_cot = (strpos($mp_payment_type, 'openpay') !== false || strpos($mp_id, 'tr') === 0 || strpos($mp_id, 'ch_') === 0);
+                $pasarela_nombre_cot = $es_openpay_cot ? 'Openpay by BBVA' : 'Mercado Pago';
+            @endphp
             <ul style="list-style: none; padding: 0;">
                 <li><strong>Tipo:</strong> <span class="highlight">Cotización</span></li>
                 <li><strong>Código Cotización:</strong> <span class="highlight">#{{ $cotizacion->cod_cotizacion }}</span></li>
-                <li><strong>ID de Pago Mercado Pago:</strong> <code>{{ $mp_id }}</code></li>
+                <li><strong>Pasarela de Pago:</strong> <strong>{{ $pasarela_nombre_cot }}</strong></li>
+                @if ($es_openpay_cot)
+                    <li><strong>ID de Transacción Openpay:</strong> <code>{{ $mp_id }}</code></li>
+                @else
+                    <li><strong>ID de Pago Mercado Pago:</strong> <code>{{ $mp_id }}</code></li>
+                @endif
                 <li><strong>Tipo de Pago:</strong> <code>{{ $mp_payment_type }}</code></li>
                 <li><strong>Monto Total:</strong> <span class="highlight">${{ number_format($cotizacion->total, 2) }}</span></li>
             </ul>
+
 
             @if ($cliente)
             <h3>Información del Cliente</h3>

@@ -27,12 +27,34 @@ th { background-color: #f2f2f2; }
     <div class="content">
         <p>Se ha recibido la notificación de pago aprobado para la siguiente orden:</p>
 
+        @php
+            $es_openpay = (strpos($mp_payment_type, 'openpay') !== false || strpos($mp_id, 'tr') === 0 || strpos($mp_id, 'ch_') === 0 || (isset($orden->mp_payment_type) && strpos($orden->mp_payment_type, 'openpay') !== false));
+            $pasarela_nombre = $es_openpay ? 'Openpay by BBVA' : 'Mercado Pago';
+            $costo_envio = round($orden->total - ($orden->subtotal + $orden->iva), 2);
+
+            $tipo_pago_nombre = $mp_payment_type;
+            if ($mp_payment_type === 'openpay_card') {
+                $tipo_pago_nombre = 'Tarjeta de Crédito / Débito (Openpay)';
+            } elseif ($mp_payment_type === 'openpay_checkout') {
+                $tipo_pago_nombre = 'Checkout Openpay';
+            } elseif ($mp_payment_type === 'openpay_bank_account') {
+                $tipo_pago_nombre = 'Transferencia SPEI (Openpay)';
+            } elseif ($mp_payment_type === 'openpay_store') {
+                $tipo_pago_nombre = 'Pago en Efectivo / Tienda (Paynet)';
+            }
+        @endphp
+
         <h3>Detalles de la Transacción</h3>
         <ul style="list-style: none; padding: 0;">
-            <li><strong>Tipo:</strong> <span class="highlight">Orden en Tienda en Línea</span></li> 
+            <li><strong>Tipo:</strong> <span class="highlight">{{ (isset($orden->status_accion) && $orden->status_accion === 'confirma_pedido') ? 'Orden en Promoción' : 'Orden en Tienda en Línea' }}</span></li> 
             <li><strong>ID de Orden:</strong> <span class="highlight">#{{ $orden->id_orden }}</span></li>
-            <li><strong>ID de Pago Mercado Pago:</strong> <code>{{ $mp_id }}</code></li>
-            <li><strong>Tipo de Pago:</strong> <code>{{ $mp_payment_type }}</code></li>
+            <li><strong>Pasarela de Pago:</strong> <strong>{{ $pasarela_nombre }}</strong></li>
+            @if ($es_openpay)
+                <li><strong>ID de Transacción Openpay:</strong> <code>{{ $mp_id }}</code></li>
+            @else
+                <li><strong>ID de Pago Mercado Pago:</strong> <code>{{ $mp_id }}</code></li>
+            @endif
+            <li><strong>Método de Pago:</strong> <code>{{ $tipo_pago_nombre }}</code></li>
             <li><strong>Monto Total:</strong> <span class="highlight">${{ number_format($orden->total, 2) }}</span></li>
         </ul>
 
@@ -69,13 +91,19 @@ th { background-color: #f2f2f2; }
             </tbody>
             <tfoot>
                 <tr><td colspan="3" style="text-align: right;">Subtotal:</td><td>${{ number_format($orden->subtotal, 2) }}</td></tr>
-                <tr><td colspan="3" style="text-align: right;">IVA (si aplica):</td><td>${{ number_format($orden->iva, 2) }}</td></tr>
+                @if ($costo_envio > 0)
+                    <tr><td colspan="3" style="text-align: right;">Costo de Envío:</td><td>${{ number_format($costo_envio, 2) }}</td></tr>
+                @endif
+                @if ($orden->iva > 0)
+                    <tr><td colspan="3" style="text-align: right;">IVA (16%):</td><td>${{ number_format($orden->iva, 2) }}</td></tr>
+                @endif
                 <tr style="font-weight: bold; background-color: #f2f2f2;">
                     <td colspan="3" style="text-align: right;">TOTAL:</td>
                     <td>${{ number_format($orden->total, 2) }}</td>
                 </tr>
             </tfoot>
         </table>
+
     </div>
 
     <div class="footer">
