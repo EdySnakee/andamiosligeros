@@ -641,21 +641,58 @@ namespace App\Http\Controllers;
             if (!empty($request->accion)) {
                 switch ($request->accion) {
                     case 'actualizaProductos':
-                        //dd($data_post);
-                        $condicion_filtro = (!empty($data_post->categoria_activa)) ? ' PT.categoria = \'' . $data_post->categoria_activa . '\'' : 1;
-                        $condicion_filtro .= (!empty($data_post->modelo_activo)) ? ' AND PT.modelo = \'' . $data_post->modelo_activo . '\'' : '';
+                        $categoria = !empty($data_post->categoria_activa) ? trim($data_post->categoria_activa) : null;
+                        $modelo = !empty($data_post->modelo_activo) ? trim($data_post->modelo_activo) : null;
+                        $busqueda = !empty($data_post->busqueda) ? trim($data_post->busqueda) : null;
+                        $orden = !empty($data_post->orden) ? trim($data_post->orden) : 'destacados';
 
                         $objProductosTienda = new ProductosTienda();
-                        $productosTienda = $objProductosTienda
-                            ->select('*')
+                        $query = $objProductosTienda
+                            ->select('PT.*', 'PTD.imagen_portada', 'PTD.imagen_alt', 'PTD.descripcion_producto')
                             ->from('productos_tienda as PT')
-                            ->Leftjoin('productos_tienda_detalle as PTD',  'PT.id_product', '=', 'PTD.id_product')
-                            ->whereIn('PT.post_estatus', [1, 3])
-                            ->whereRaw($condicion_filtro)
-                            ->orderBy('PT.estrella', 'DESC')
-                            ->orderBy('PT.categoria', 'ASC')
-                            ->get();
-                        //STATUS 3 ES DE PRODUCTO VENCIDO
+                            ->leftJoin('productos_tienda_detalle as PTD', 'PT.id_product', '=', 'PTD.id_product')
+                            ->whereIn('PT.post_estatus', [1, 3]);
+
+                        if (!empty($categoria)) {
+                            $query->where('PT.categoria', $categoria);
+                        }
+
+                        if (!empty($modelo)) {
+                            $query->where('PT.modelo', $modelo);
+                        }
+
+                        if (!empty($busqueda)) {
+                            $query->where(function ($q) use ($busqueda) {
+                                $q->where('PT.post_titulo', 'LIKE', '%' . $busqueda . '%')
+                                    ->orWhere('PT.modelo', 'LIKE', '%' . $busqueda . '%')
+                                    ->orWhere('PT.modelo_ref', 'LIKE', '%' . $busqueda . '%')
+                                    ->orWhere('PT.descripcion_corta', 'LIKE', '%' . $busqueda . '%');
+                            });
+                        }
+
+                        switch ($orden) {
+                            case 'precio_asc':
+                                $query->orderByRaw('CASE WHEN PT.precio2 IS NOT NULL AND PT.precio2 > 0 THEN PT.precio2 ELSE PT.precio END ASC');
+                                break;
+                            case 'precio_desc':
+                                $query->orderByRaw('CASE WHEN PT.precio2 IS NOT NULL AND PT.precio2 > 0 THEN PT.precio2 ELSE PT.precio END DESC');
+                                break;
+                            case 'nombre_asc':
+                                $query->orderBy('PT.post_titulo', 'ASC');
+                                break;
+                            case 'nombre_desc':
+                                $query->orderBy('PT.post_titulo', 'DESC');
+                                break;
+                            case 'destacados':
+                            default:
+                                $query->orderBy('PT.estrella', 'DESC')
+                                    ->orderBy('PT.categoria', 'ASC')
+                                    ->orderBy('PT.id_product', 'DESC');
+                                break;
+                        }
+
+                        $productosTienda = $query->get();
+                        // STATUS 3 ES DE PRODUCTO VENCIDO
                         return view('web_andamios.tienda.listado_productos', compact('productosTienda'));
                         break;
 
