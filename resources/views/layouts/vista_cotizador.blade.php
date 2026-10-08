@@ -198,6 +198,9 @@ use App\Ventas;
             .cont-pago {
                 width: 100vw !important;
                 right: -100vw !important;
+                position: fixed !important;
+                top: 0 !important;
+                height: 100vh !important;
             }
 
             .muestra-p {
@@ -207,6 +210,10 @@ use App\Ventas;
             .detallepago {
                 background: #f5f5f5f0 !important;
                 width: 100% !important;
+                height: 100% !important;
+                position: absolute !important;
+                top: 0 !important;
+                right: 0 !important;
                 align-items: start !important;
             }
 
@@ -238,10 +245,11 @@ use App\Ventas;
 
         .cont-pago {
             width: 30vw;
-            position: absolute;
-            z-index: 999;
+            position: fixed;
+            z-index: 99999;
             top: 0;
             right: -30vw;
+            height: 100vh;
             -webkit-transition: all 0.5s ease;
             -moz-transition: all 0.5s ease;
             -ms-transition: all 0.5s ease;
@@ -249,12 +257,22 @@ use App\Ventas;
             transition: all 0.5s ease;
         }
 
+        @media (min-width: 768px) and (max-width: 1100px) {
+            .cont-pago {
+                width: 380px !important;
+                right: -380px !important;
+            }
+            .muestra-p {
+                right: 0 !important;
+            }
+        }
+
         .detallepago {
             background: #f5f5f5;
-            position: fixed;
-            width: 30vw;
-            min-width: 350px;
-            max-width: 100vw;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
             height: 100%;
             display: flex;
             align-items: flex-start;
@@ -422,7 +440,7 @@ use App\Ventas;
         }
 
         .muestra-p {
-            right: 0;
+            right: 0 !important;
         }
 
         .botonera-mp {
