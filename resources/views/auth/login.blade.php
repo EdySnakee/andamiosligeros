@@ -200,26 +200,31 @@
 
         .btn-toggle-pass {
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            background: none;
-            border: none;
+            background: transparent !important;
+            border: none !important;
             color: #94a3b8;
-            font-size: 15px;
-            cursor: pointer;
-            padding: 6px;
+            font-size: 16px;
+            cursor: pointer !important;
+            padding: 8px 10px;
             line-height: 1;
             transition: color 0.2s ease;
-            z-index: 2;
+            z-index: 25 !important;
+            pointer-events: auto !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none !important;
         }
 
-        .btn-toggle-pass:hover {
+        .btn-toggle-pass:hover,
+        .btn-toggle-pass:focus,
+        .btn-toggle-pass:active {
             color: #002f6c;
-        }
-
-        .btn-toggle-pass:focus {
-            outline: none;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         /* TOGGLE RECORDAR SESIÓN */
@@ -425,8 +430,8 @@
                                                    id="password" 
                                                    placeholder="••••••••••••" 
                                                    required>
-                                            <button type="button" class="btn-toggle-pass" id="btnTogglePassword" title="Mostrar/Ocultar contraseña" tabindex="-1">
-                                                <i class="fas fa-eye" id="iconTogglePassword"></i>
+                                            <button type="button" class="btn-toggle-pass" id="btnTogglePassword" onclick="togglePassword(event)" title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                                <i class="fas fa-eye" id="iconTogglePassword" style="pointer-events: none;"></i>
                                             </button>
                                         </div>
                                         @if ($errors->has('password'))
@@ -468,24 +473,64 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function togglePassword(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            var pass = document.getElementById('password');
+            var icon = document.getElementById('iconTogglePassword');
+            if (!pass) return;
+
+            if (pass.type === 'password') {
+                pass.type = 'text';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            } else {
+                pass.type = 'password';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        }
+    </script>
 @endsection
 
 @section('js')
     <script>
-        $(document).ready(function() {
-            // Alternar visibilidad de la contraseña
-            $('#btnTogglePassword').on('click', function(e) {
+        function togglePassword(e) {
+            if (e) {
                 e.preventDefault();
-                var $pass = $('#password');
-                var $icon = $('#iconTogglePassword');
+                e.stopPropagation();
+            }
+            var pass = document.getElementById('password');
+            var icon = document.getElementById('iconTogglePassword');
+            if (!pass) return;
 
-                if ($pass.attr('type') === 'password') {
-                    $pass.attr('type', 'text');
-                    $icon.removeClass('fa-eye').addClass('fa-eye-slash');
-                } else {
-                    $pass.attr('type', 'password');
-                    $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            if (pass.type === 'password') {
+                pass.type = 'text';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
                 }
+            } else {
+                pass.type = 'password';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+        }
+
+        $(document).ready(function() {
+            // Event listener secundario por delegación
+            $(document).on('click', '#btnTogglePassword', function(e) {
+                togglePassword(e);
             });
 
             // Feedback visual en el botón de submit
