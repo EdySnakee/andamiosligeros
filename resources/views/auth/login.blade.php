@@ -110,24 +110,6 @@
             letter-spacing: -0.3px;
         }
 
-        .dog-brand-desc {
-            font-size: 13px;
-            color: #cbd5e1;
-            margin-bottom: 14px;
-            line-height: 1.45;
-        }
-
-        .dog-security-tag {
-            display: inline-flex;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 600;
-            color: #93c5fd;
-            background: rgba(14, 51, 132, 0.45);
-            border: 1px solid rgba(147, 197, 253, 0.3);
-            padding: 4px 12px;
-            border-radius: 6px;
-        }
 
         /* ========================================================
            COLUMNA DERECHA: FORMULARIO MODERNO
@@ -389,10 +371,6 @@
                                 <div class="dog-bottom-content">
                                     <div class="dog-brand-subtitle">SISTEMA INTEGRAL</div>
                                     <h2 class="dog-brand-title">Andamios Ligeros</h2>
-                                    <p class="dog-brand-desc">Gestión operativa, cotizaciones y catálogo oficial en altura.</p>
-                                    <div class="dog-security-tag">
-                                        <i class="fas fa-lock mr-1"></i> Conexión Segura SSL
-                                    </div>
                                 </div>
                             </div>
                         </div>
