@@ -44,7 +44,7 @@
             width: 100%;
             height: 100%;
             min-height: 560px;
-            background-image: url('{{ asset("script/img/dog-login.jpg") }}'), url('https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?auto=format&fit=crop&w=700&h=900&q=80');
+            background-image: url('{{ asset("web/img/perrito-diademuertos.jpeg") }}');
             background-size: cover;
             background-position: center center;
             position: relative;
