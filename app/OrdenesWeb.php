@@ -97,7 +97,8 @@ class OrdenesWeb extends Model
         $mail = new PHPMailer\PHPMailer();
         $enviaMail = new Utilidades();
 
-        $titulo2 = "Confirmacíon de orden de compra " . $datos_orden->id_orden;
+        $es_promo = (isset($datos_orden->status_accion) && $datos_orden->status_accion === 'confirma_pedido');
+        $titulo2 = "Confirmación de orden " . ($es_promo ? "de Promoción #" : "de compra #") . $datos_orden->id_orden;
         // 1. Prepara las filas de productos para la tabla
         $productos_html = '';
         foreach ($cart as $item) {
@@ -167,7 +168,7 @@ class OrdenesWeb extends Model
 </tr>
 <tr>
 <td style="padding: 20px 0 30px 0; color: #153643; font-family: Arial, sans-serif; font-size: 16px; line-height: 20px;">
-<p style="text-align: justify;">Hemos recibido tu orden de compra con el número: <b>' . $datos_orden->id_orden . '<b>, con el le podrás dar seguimiento con nuestros asesores de venta.</p>
+<p style="text-align: justify;">Hemos recibido tu orden ' . ($es_promo ? 'de la promoción' : 'de compra') . ' con el número: <b>' . $datos_orden->id_orden . '</b>, con el le podrás dar seguimiento con nuestros asesores de venta.</p>
 
                                                <h4 style="font-family: Arial, sans-serif; margin-top: 30px;">Resumen de tu Orden (No. ' . $datos_orden->id_orden . ')</h4>
                                                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1px solid #cccccc; border-collapse: collapse; margin-bottom: 20px;">

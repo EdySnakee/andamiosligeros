@@ -13,7 +13,8 @@ class VerifyCsrfToken extends BaseVerifier
      */
     protected $except = [
         'webhooks/actualiza-orden',
-        'openpay/webhook'
+        'openpay/webhook',
+        'admin/regularizar-orden-pago'
     ];
 
 }

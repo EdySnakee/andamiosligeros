@@ -38,13 +38,20 @@
         'id_orden' => $datos_orden->id_orden,
     ];
 
+    $prefijo_sitio = env('SITIO_PREFIJO', 'andamios');
+    $id_orden_con_prefijo = $prefijo_sitio . '-' . $datos_orden->id_orden;
+    $webhook_url = env('WEBHOOK_MP_URL', 'https://scoregol.com/mercadopago/webhook');
+
+    $preference->external_reference = $id_orden_con_prefijo;
+    $preference->notification_url = $webhook_url;
+
     $preference->back_urls = array(
-        "success" => route('webhooks_post_web', $arrDatosOrden),
-        "failure" => route('webhooks_post_web', $arrDatosOrden),
-        "pending" => route('webhooks_post_web', $arrDatosOrden)
+        "success" => route('pago_tienda_online', $arrDatosOrden),
+        "failure" => route('pago_tienda_online', $arrDatosOrden),
+        "pending" => route('pago_tienda_online', $arrDatosOrden)
     );
 
-    $preference->auto_return = "approved";
+    $preference->auto_return = "all";
     $preference->items = $products;
     $preference->save();
 

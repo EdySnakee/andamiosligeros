@@ -84,6 +84,19 @@ class WebhooksController extends Controller
         }
     }
 
+    /**
+     * URL de retorno para pagos de promociones (webhooks_promo/pay).
+     * Redirige limpiamente a la vista de estatus de orden en la tienda.
+     */
+    public function notificaPagoEnWeb(Request $request)
+    {
+        $id_orden = $request->get('id_orden');
+        if (!empty($id_orden)) {
+            return redirect()->route('pago_tienda_online', ['id_orden' => $id_orden]);
+        }
+        return redirect('/');
+    }
+
     public function pagoTiendaOnline(Request $request)
     {
         // Este es el back_url (Return URL) de Mercado Pago.
@@ -278,9 +291,11 @@ class WebhooksController extends Controller
                                 'mp_payment_type' => $payment_type, // Pasamos el tipo de pago
                             ],
                             function ($message) use ($info_orden) {
+                                $esPromo = (isset($info_orden->status_accion) && $info_orden->status_accion === 'confirma_pedido');
+                                $asuntoTipo = $esPromo ? 'Promoción Web' : 'Orden en Tienda en Línea';
                                 $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
                                     ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
-                                    ->subject('✅ Pago (Andamios - Orden en Tienda en Línea): #' . $info_orden->id_orden);
+                                    ->subject('✅ Pago (Andamios - ' . $asuntoTipo . '): #' . $info_orden->id_orden);
                             }
                         );
                     }
@@ -520,9 +535,11 @@ class WebhooksController extends Controller
                         'mp_payment_type' => $info_orden->mp_payment_type,
                     ],
                     function ($message) use ($info_orden) {
+                        $esPromo = (isset($info_orden->status_accion) && $info_orden->status_accion === 'confirma_pedido');
+                        $asuntoTipo = $esPromo ? 'Promoción Web' : 'Orden en Tienda en Línea';
                         $message->to(env('ADMIN_NOTIFICATION_EMAIL', 'ventas@andamiosligeros.com'), 'Admin Ventas')
                             ->from(env('MAIL_FROM_ADDRESS', 'no-reply@andamiosligeros.com'), env('MAIL_FROM_NAME', 'Notificaciones Andamios'))
-                            ->subject('✅ Pago (Andamios - Orden en Tienda en Línea): #' . $info_orden->id_orden);
+                            ->subject('✅ Pago (Andamios - ' . $asuntoTipo . '): #' . $info_orden->id_orden);
                     }
                 );
             }
@@ -571,6 +588,46 @@ class WebhooksController extends Controller
             return response("<div style='font-family:sans-serif;padding:40px;text-align:center;'><h2>Código de verificación de Openpay:</h2><h1 style='color:#002f6c;font-size:38px;letter-spacing:2px;background:#f1f5f9;padding:16px 28px;display:inline-block;border-radius:10px;border:1px solid #cbd5e1;'>{$code}</h1><p style='color:#64748b;margin-top:16px;font-size:15px;'>Copia y pega este código en el modal de Openpay para verificar tu Webhook.</p></div>");
         }
         return response("<div style='font-family:sans-serif;padding:40px;text-align:center;'><h3 style='color:#991b1b;'>Aún no se ha recibido ningún código de verificación.</h3><p style='color:#64748b;'>Asegúrate de registrar la URL en el panel de Openpay y pulsar en \"Configurar\".</p></div>", 404);
+    }
+
+    /**
+     * Endpoint administrativo seguro para regularizar una orden pagada manualmente
+     * y disparar los correos al cliente y administrador.
+     */
+    public function regularizarOrdenPago(Request $request)
+    {
+        $token = $request->input('token');
+        $tokenEsperado = env('ADMIN_REGULARIZAR_TOKEN', 'andamios_reg_2026_op');
+        if ($token !== $tokenEsperado) {
+            return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+
+        $id_orden = (int) $request->input('id_orden');
+        $payment_id = $request->input('payment_id', '');
+        $payment_type = $request->input('payment_type', 'mercadopago_credit_card');
+
+        $orden = \App\OrdenesWeb::find($id_orden);
+        if (!$orden) {
+            return response()->json(['success' => false, 'message' => "Orden #{$id_orden} no encontrada"], 404);
+        }
+
+        $orden->status_orden = 1; // Aprobada
+        $orden->mp_status = 'approved';
+        if (!empty($payment_id)) {
+            $orden->mp_payment_id = $payment_id;
+        }
+        $orden->mp_payment_type = $payment_type;
+        $orden->mp_fecha_post = date('Y-m-d H:i:s');
+        $orden->save();
+
+        // Enviar correos al cliente y al administrador
+        $this->notificarOrdenAprobada($orden);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Orden #{$orden->id_orden} regularizada con éxito y correos enviados.",
+            'orden' => $orden
+        ]);
     }
 }
 
