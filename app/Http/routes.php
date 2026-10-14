@@ -131,6 +131,14 @@ Route::get('/pago-cotizacion-retorno', [
     'as' => 'pago.cotizacion.retorno',
 ]);
 
+Route::get('/admin/regularizar-orden-pago', [
+    'uses' => 'WebhooksController@regularizarOrdenPago',
+    'as' => 'admin_regularizar_orden_pago',
+]);
+Route::post('/admin/regularizar-orden-pago', [
+    'uses' => 'WebhooksController@regularizarOrdenPago',
+]);
+
 /*fin ver ventas web*/
 Route::get(
     '/pdf/redes-anticaidas/{ruta_encrypt}',

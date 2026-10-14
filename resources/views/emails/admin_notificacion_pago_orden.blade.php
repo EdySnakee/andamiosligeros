@@ -19,10 +19,13 @@ th { background-color: #f2f2f2; }
 </head>
 <body>
 <div class="container">
-<div class="header">
-<h2 style="margin: 0;">¡Pago Aprobado (Orden en Tienda en Línea)! ✅</h2>
-<p>Se ha recibido una nueva orden de la tienda en línea.</p>
-</div>
+    @php
+        $esPromo = (isset($orden->status_accion) && $orden->status_accion === 'confirma_pedido');
+    @endphp
+    <div class="header">
+        <h2 style="margin: 0;">¡Pago Aprobado ({{ $esPromo ? 'Apartado de Promociones' : 'Orden en Tienda en Línea' }})! ✅</h2>
+        <p style="margin: 5px 0 0 0; font-size: 14px; color: #555;">{{ $esPromo ? 'Se ha recibido una nueva compra desde la sección de PROMOCIONES de la web.' : 'Se ha recibido una nueva orden de la tienda en línea.' }}</p>
+    </div>
 
     <div class="content">
         <p>Se ha recibido la notificación de pago aprobado para la siguiente orden:</p>
@@ -41,12 +44,16 @@ th { background-color: #f2f2f2; }
                 $tipo_pago_nombre = 'Transferencia SPEI (Openpay)';
             } elseif ($mp_payment_type === 'openpay_store') {
                 $tipo_pago_nombre = 'Pago en Efectivo / Tienda (Paynet)';
+            } elseif ($mp_payment_type === 'credit_card' || $mp_payment_type === 'mercadopago_credit_card') {
+                $tipo_pago_nombre = 'Tarjeta de Crédito (Mercado Pago)';
+            } elseif ($mp_payment_type === 'debit_card') {
+                $tipo_pago_nombre = 'Tarjeta de Débito (Mercado Pago)';
             }
         @endphp
 
         <h3>Detalles de la Transacción</h3>
         <ul style="list-style: none; padding: 0;">
-            <li><strong>Tipo:</strong> <span class="highlight">{{ (isset($orden->status_accion) && $orden->status_accion === 'confirma_pedido') ? 'Orden en Promoción' : 'Orden en Tienda en Línea' }}</span></li> 
+            <li><strong>Tipo de Compra:</strong> <span class="highlight" style="background: {{ $esPromo ? '#fef3c7' : '#e0f2fe' }}; color: {{ $esPromo ? '#b45309' : '#0369a1' }}; padding: 3px 8px; border-radius: 4px; font-weight: bold;">{{ $esPromo ? '🔥 COMPRA DESDE EL APARTADO DE PROMOCIONES' : '🛒 TIENDA EN LÍNEA' }}</span></li> 
             <li><strong>ID de Orden:</strong> <span class="highlight">#{{ $orden->id_orden }}</span></li>
             <li><strong>Pasarela de Pago:</strong> <strong>{{ $pasarela_nombre }}</strong></li>
             @if ($es_openpay)
