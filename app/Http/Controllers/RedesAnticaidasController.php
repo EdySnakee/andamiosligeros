@@ -23,16 +23,10 @@ class RedesAnticaidasController extends Controller{
     public function showVistaGeneral()
     {
         if (!empty(\Auth::User()->tipo_usuario) and \Auth::User()->estatus == 1) {
-            # code...
-            $coti_redes_anti = Cotizaciones::where("giro_empresa", "ra")->get();
-            $coti_redes_peri = Cotizaciones::where("giro_empresa", "rp")->get();
-            $coti_scoregol = Cotizaciones::where("giro_empresa", "sg")->get();
-            $coti_anda_lige = Cotizaciones::where("giro_empresa", "al")->get();
-
-            $cant_re_anti = count($coti_redes_anti);
-            $cant_re_peri = count($coti_redes_peri);
-            $cant_sgol = count($coti_scoregol);
-            $cant_anda_lig = count($coti_anda_lige);
+            $cant_re_anti = Cotizaciones::where("giro_empresa", "ra")->count();
+            $cant_re_peri = Cotizaciones::where("giro_empresa", "rp")->count();
+            $cant_sgol    = Cotizaciones::where("giro_empresa", "sg")->count();
+            $cant_anda_lig = Cotizaciones::where("giro_empresa", "al")->count();
 
             return view('app_redes/modulos/dashboard/dashboard', compact('cant_re_anti', 'cant_re_peri', 'cant_sgol', 'cant_anda_lig'));
         }else{
