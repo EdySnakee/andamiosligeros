@@ -107,6 +107,10 @@ class AuthController extends Controller
             'user_agent' => $request->server('HTTP_USER_AGENT'),
         ]);
 
+        if ($user->isTaller()) {
+            return redirect('sb-admin/ordenes-taller');
+        }
+
         return redirect()->intended($this->redirectPath());
     }
 

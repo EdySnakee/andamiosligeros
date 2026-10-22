@@ -408,6 +408,20 @@
       }
   });
   </script>
+
+  @if(session('error_permiso'))
+  <script>
+    $(document).ready(function() {
+      swal({
+        title: "Acceso Restringido",
+        text: "{{ session('error_permiso') }}",
+        icon: "warning",
+        button: "Entendido",
+      });
+    });
+  </script>
+  @endif
+
   @yield('js')
 
 

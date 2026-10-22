@@ -25,7 +25,7 @@
                             <button class="btn btn-sm btn-info rounded-pill" title="Editar Orden" onclick="editarOrden({{ $orden->id }}, '{{ $orden->estado }}')">
                                 <i class="fas fa-eye mr-1"></i> Ver
                             </button>
-                            @if (!empty(\Auth::user()->tipo_usuario) && (\Auth::user()->tipo_usuario == 'admin' || \Auth::user()->tipo_usuario == 'g1'))
+                            @if (!empty(\Auth::user()->tipo_usuario) && (\Auth::user()->isAdmin() || \Auth::user()->isTaller() || \Auth::user()->tipo_usuario == 'g1'))
                                 @if ($orden->estado === 'autorizada')
                                     <button class="btn btn-sm btn-warning" title="Pasar a Tránsito" onclick="pasarAtransito({{ $orden->id }})">
                                         <i class="fas fa-arrow-right mr-1"></i> Tránsito

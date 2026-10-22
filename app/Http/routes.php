@@ -237,6 +237,9 @@ Route::group(['middleware' => ['web']], function () {
 
     Route::get('/', function () {
         if (!empty(Auth::User()->email)) {
+            if (Auth::user()->isTaller()) {
+                return Redirect::to('sb-admin/ordenes-taller');
+            }
             return Redirect::to('sb-admin/dashboard');
         } else {
 
