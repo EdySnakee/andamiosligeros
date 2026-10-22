@@ -241,12 +241,30 @@ def test_connection(config):
         return False
 
 
+def clear_remote_views(ftp, core_dir):
+    """Elimina vistas Blade compiladas en el servidor remoto para evitar desincronizaciones"""
+    views_dir = f"{core_dir.rstrip('/')}/storage/framework/views"
+    try:
+        files = [f for f in ftp.nlst(views_dir) if f.endswith(".php")]
+        if files:
+            print(f"\n{CYAN}Limpiando {len(files)} vistas cacheadas en {views_dir}...{RESET}")
+            for f in files:
+                try:
+                    ftp.delete(f)
+                except Exception:
+                    pass
+            print(f"{GREEN}✓ Vistas cacheadas eliminadas exitosamente.{RESET}")
+    except Exception as e:
+        print(f"{YELLOW}Aviso: No se pudo limpiar la caché de vistas: {e}{RESET}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Despliegue FTP inteligente para Andamios Ligeros")
     parser.add_argument("--test", action="store_true", help="Probar conexión FTP con el servidor")
     parser.add_argument("--dry-run", action="store_true", help="Simular subida sin transferir archivos")
     parser.add_argument("--yes", "-y", action="store_true", help="Confirmar subida sin preguntar")
     parser.add_argument("--all-changed", action="store_true", help="Subir todos los cambios entre main y la rama actual")
+    parser.add_argument("--clear-views", action="store_true", help="Limpiar caché de vistas Blade compiladas en el servidor")
     parser.add_argument("--files", nargs="+", help="Subir archivos específicos manualmente")
     args = parser.parse_args()
 
@@ -332,6 +350,10 @@ def main():
         except Exception as e:
             print(f"  [{idx}/{total}] {RED}✗ Error en {loc}:{RESET} {e}")
             error_count += 1
+
+    # Limpiar caché de vistas si se subieron plantillas Blade o se solicitó explícitamente
+    if args.clear_views or any(f.endswith(".blade.php") for f in files):
+        clear_remote_views(ftp, config["REMOTE_CORE_DIR"])
 
     try:
         ftp.quit()
