@@ -95,6 +95,7 @@
                     if (result.success) {
                         // 1. Actualizar KPIs Comerciales
                         $('#numCotizaciones').text(Number(result.numCotizaciones || 0).toLocaleString());
+                        $('#totalCotizaciones').text('$' + result.totalCotizaciones);
                         $('#numeroVentas').text(Number(result.numeroVentas || 0).toLocaleString());
                         $('#tasaConversion').text((result.tasaConversion || 0) + '%');
                         $('#promedioVentas').text('$' + result.promedioVentas);
