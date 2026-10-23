@@ -526,9 +526,9 @@
                         <span class="stat-accent"></span>
                         <div class="card-body">
                             <div class="stat-meta">
-                                <p class="stat-label">Impuesto IVA (16%)</p>
+                                <p class="stat-label">Impuesto IVA</p>
                                 <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
-                                <p class="stat-sublabel">Débito fiscal transferido</p>
+                                <p class="stat-sublabel">Acumulado en ventas facturadas</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-file-invoice-dollar"></i>
@@ -683,7 +683,7 @@
                         </span>
                         <span class="d-flex align-items-center mb-1">
                             <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #ef4444;"></span>
-                            IVA 16% (<span id="txtPctIva">{{ $pctIva }}%</span>)
+                            IVA Facturado (<span id="txtPctIva">{{ $pctIva }}%</span>)
                         </span>
                         <span class="d-flex align-items-center mb-1">
                             <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #f59e0b;"></span>
@@ -708,7 +708,7 @@
                                     <td class="text-right font-weight-bold text-primary" id="tblTotalVentas">${{ $totalVentas }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Menos: Impuesto al Valor Agregado (IVA 16%)</td>
+                                    <td>Menos: Impuesto al Valor Agregado (IVA cobrado en facturas)</td>
                                     <td><span class="badge badge-danger">Deducción Fiscal</span></td>
                                     <td class="text-right text-danger" id="tblTotalIVA">-${{ $totalIVA }}</td>
                                 </tr>
