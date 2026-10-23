@@ -297,7 +297,7 @@
 						<h2><span class="tyc-num">10.</span> Cancelaciones y devoluciones</h2>
 						<p>Las cancelaciones y devoluciones estarán sujetas a las condiciones establecidas en las políticas correspondientes de Andamios Ligeros y a la legislación aplicable.</p>
 						<p>Cuando un producto haya sido fabricado especialmente bajo especificaciones particulares del cliente, podrán existir condiciones especiales de cancelación o devolución, las cuales serán informadas previamente cuando correspondan.</p>
-						<p>Para conocer las condiciones específicas aplicables, el cliente deberá consultar nuestra Política de Cancelaciones o comunicarse con nuestro equipo de atención.</p>
+						<p>Para conocer las condiciones específicas aplicables, el cliente deberá consultar nuestra <a href="{{ url('/politicas-cancelaciones') }}">Política de Cancelaciones</a> o comunicarse con nuestro equipo de atención.</p>
 					</section>
  
 					<section class="tyc-section" id="garantias">
