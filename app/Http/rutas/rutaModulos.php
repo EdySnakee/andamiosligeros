@@ -224,10 +224,6 @@ Route::group(['middleware' => ['auth', 'role:admin,vendedor']], function () {
         'uses' => 'ClientesController@muestraClientes',
         'as'   => 'app_redes_clientesweb',
     ]);
-    Route::post('sb-admin/ajax_clientes_web', [
-        'uses' => 'ClientesController@ajax_clientes_web',
-        'as'   => 'ajax_clientesweb_path',
-    ]);
 });
 
 /*
@@ -264,6 +260,12 @@ Route::group(['middleware' => ['auth', 'role:admin,taller']], function () {
 |--------------------------------------------------------------------------
 */
 Route::group(['middleware' => ['auth', 'role:admin,vendedor,taller']], function () {
+
+    /* OPERACIONES AJAX DE CLIENTES (Creación/edición desde cotizador y pedidos) */
+    Route::post('sb-admin/ajax_clientes_web', [
+        'uses' => 'ClientesController@ajax_clientes_web',
+        'as'   => 'ajax_clientesweb_path',
+    ]);
 
     /* COTIZADOR */
     Route::get('sb-admin/cotizaciones', [
