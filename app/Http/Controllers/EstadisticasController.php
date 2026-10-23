@@ -15,60 +15,168 @@ use App\User;
 
 class EstadisticasController extends Controller
 {
-    // ESTADISTICAS VENTAS -> 
-    public function showEstVentas()
+    public function __construct()
     {
-        $ventas = new Ventas();
-        $cotizaciones = new Cotizaciones();
+        $this->middleware('auth');
+    }
 
-        // Estadísticas generales
-        $totalVentas = $ventas->sum('total');
-        $numeroVentas = $ventas->count();
-        $promedioVentas = $ventas->avg('total');
-        $numCotizaciones = $cotizaciones->count();
-        $totalCotizaciones = $cotizaciones->sum('total');
-
-        $totalIVA = $ventas->sum('iva');
-        $totalEnvios = $ventas->sum('envio') + (float) ($ventas->sum('envio_2') ?? 0);
-        $totalEnviosPaqueteria = $ventas->sum('envio_paqueteria') + (float) ($ventas->sum('envio_paqueteria_2') ?? 0);
-
-        $totalNeto = $totalVentas - $totalIVA - $totalEnvios;
-
-        // Formatear
-        $totalVentas = number_format($totalVentas, 2);
-        $totalCotizaciones = number_format($totalCotizaciones, 2);
-        $promedioVentas = number_format($promedioVentas, 2);
-        $totalIVA = number_format($totalIVA, 2);
-        $totalEnvios = number_format($totalEnvios, 0);
-        $totalEnviosPaqueteria = number_format($totalEnviosPaqueteria, 0);
-        $totalNeto = number_format($totalNeto, 2);
-
-
-        // Estadísticas vendedores
+    /*
+    |--------------------------------------------------------------------------
+    | 1. ESTADÍSTICAS DE VENTAS
+    |--------------------------------------------------------------------------
+    */
+    public function showEstVentas(Request $request)
+    {
+        $metricas = $this->getMetricasVentas();
         $vendedoresPrin = $this->getVendedoresPrin();
-
-        //Estadisticas productos mas vendido
         $productosMasVendidos = $this->getProductosMasVendidos();
 
         return view(
             'app_redes/modulos/estadisticas/ventas/view/est_ventas',
-            compact(
-                'totalVentas',
-                'numeroVentas',
-                'totalNeto',
-                'totalCotizaciones',
-                'numCotizaciones',
-                'promedioVentas',
-                'vendedoresPrin',
-                'totalIVA',
-                'totalEnvios',
-                'totalEnviosPaqueteria',
-                'productosMasVendidos'
-            )
+            array_merge($metricas, compact('vendedoresPrin', 'productosMasVendidos'))
         );
     }
 
-    private function getProductosMasVendidos($fechaInicio = null, $fechaFin = null, $limit = 8)
+    /**
+     * Calcula métricas agregadas de ventas y cotizaciones en 2 consultas optimizadas.
+     */
+    public function getMetricasVentas($fechaInicio = null, $fechaFin = null)
+    {
+        $qVentas = DB::table('ventas');
+        $qCotizaciones = DB::table('cotizaciones');
+
+        if ($fechaInicio && $fechaFin) {
+            $qVentas->whereBetween('fecha_venta', [$fechaInicio, $fechaFin]);
+            $qCotizaciones->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+        }
+
+        $ventasAgg = $qVentas->selectRaw('
+            COALESCE(SUM(total), 0) as total_ventas,
+            COUNT(*) as numero_ventas,
+            COALESCE(AVG(total), 0) as promedio_ventas,
+            COALESCE(SUM(iva), 0) as total_iva,
+            COALESCE(SUM(envio), 0) + COALESCE(SUM(envio_2), 0) as total_envios,
+            COALESCE(SUM(envio_paqueteria), 0) + COALESCE(SUM(envio_paqueteria_2), 0) as total_envios_paqueteria
+        ')->first();
+
+        $cotisAgg = $qCotizaciones->selectRaw('
+            COUNT(*) as num_cotizaciones,
+            COALESCE(SUM(total), 0) as total_cotizaciones
+        ')->first();
+
+        $totalVentas           = (float) ($ventasAgg->total_ventas ?? 0);
+        $numeroVentas          = (int) ($ventasAgg->numero_ventas ?? 0);
+        $promedioVentas        = (float) ($ventasAgg->promedio_ventas ?? 0);
+        $totalIVA              = (float) ($ventasAgg->total_iva ?? 0);
+        $totalEnvios           = (float) ($ventasAgg->total_envios ?? 0);
+        $totalEnviosPaqueteria = (float) ($ventasAgg->total_envios_paqueteria ?? 0);
+
+        $numCotizaciones   = (int) ($cotisAgg->num_cotizaciones ?? 0);
+        $totalCotizaciones = (float) ($cotisAgg->total_cotizaciones ?? 0);
+
+        $tasaConversion = $numCotizaciones > 0 ? round(($numeroVentas / $numCotizaciones) * 100, 2) : 0;
+        $totalNeto = $totalVentas - $totalIVA - $totalEnvios - $totalEnviosPaqueteria;
+
+        return [
+            'totalVentas'           => number_format($totalVentas, 2),
+            'totalCotizaciones'     => number_format($totalCotizaciones, 2),
+            'promedioVentas'        => number_format($promedioVentas, 2),
+            'totalIVA'              => number_format($totalIVA, 2),
+            'totalEnvios'           => number_format($totalEnvios, 2),
+            'totalEnviosPaqueteria' => number_format($totalEnviosPaqueteria, 2),
+            'totalNeto'             => number_format($totalNeto, 2),
+            'numeroVentas'          => $numeroVentas,
+            'numCotizaciones'       => $numCotizaciones,
+            'tasaConversion'        => $tasaConversion,
+        ];
+    }
+
+    /**
+     * Ranking de vendedores sin problema N+1 (3 consultas agrupadas en vez de 128+).
+     */
+    public function getVendedoresPrin($fechaInicio = null, $fechaFin = null)
+    {
+        // 1. Resumen de ventas por vendedor
+        $vendedoresQuery = DB::table('ventas')
+            ->leftJoin('users', 'users.id', '=', 'ventas.id_usuario_genera')
+            ->select(
+                'ventas.id_usuario_genera',
+                DB::raw('COALESCE(users.name, "Desconocido") as nombre'),
+                DB::raw('COUNT(*) as numero_ventas'),
+                DB::raw('SUM(ventas.total) as total_generado')
+            );
+
+        if ($fechaInicio && $fechaFin) {
+            $vendedoresQuery->whereBetween('ventas.fecha_venta', [$fechaInicio, $fechaFin]);
+        }
+
+        $vendedores = collect($vendedoresQuery
+            ->groupBy('ventas.id_usuario_genera', 'users.name')
+            ->orderBy('total_generado', 'desc')
+            ->get());
+
+        // 2. Resumen de cotizaciones por vendedor
+        $cotisQuery = DB::table('cotizaciones')
+            ->select(
+                'id_usuario_genera',
+                DB::raw('COUNT(*) as numero_cotizaciones'),
+                DB::raw('SUM(total) as total_cotizado')
+            );
+
+        if ($fechaInicio && $fechaFin) {
+            $cotisQuery->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+        }
+
+        $cotisPorVendedor = collect($cotisQuery
+            ->groupBy('id_usuario_genera')
+            ->get())
+            ->keyBy('id_usuario_genera');
+
+        // 3. Cliente estrella por vendedor (mayor venta)
+        $sellerIds = $vendedores->pluck('id_usuario_genera')->filter()->all();
+        $clientesEstrella = [];
+        if (!empty($sellerIds)) {
+            $topVentasQuery = DB::table('ventas as v1')
+                ->join('clientes', 'clientes.idcl', '=', 'v1.id_cliente')
+                ->select('v1.id_usuario_genera', 'clientes.nombrecl', 'v1.total')
+                ->whereIn('v1.id_usuario_genera', $sellerIds);
+
+            if ($fechaInicio && $fechaFin) {
+                $topVentasQuery->whereBetween('v1.fecha_venta', [$fechaInicio, $fechaFin]);
+            }
+
+            $topVentas = $topVentasQuery->orderBy('v1.total', 'desc')->get();
+
+            foreach ($topVentas as $tv) {
+                if (!isset($clientesEstrella[$tv->id_usuario_genera])) {
+                    $clientesEstrella[$tv->id_usuario_genera] = $tv->nombrecl;
+                }
+            }
+        }
+
+        // 4. Mapeo final
+        return $vendedores->map(function ($v) use ($cotisPorVendedor, $clientesEstrella) {
+            $id = $v->id_usuario_genera;
+            $cotiInfo = $cotisPorVendedor->get($id);
+
+            $numCot = $cotiInfo ? (int) $cotiInfo->numero_cotizaciones : 0;
+            $totCot = $cotiInfo ? (float) $cotiInfo->total_cotizado : 0;
+            $numVentas = (int) $v->numero_ventas;
+
+            $v->numero_cotizaciones = $numCot;
+            $v->total_cotizado = number_format($totCot, 2);
+            $v->promedio_exito = $numCot > 0 ? round(($numVentas / $numCot) * 100, 2) : 0;
+            $v->cliente_estrella = $clientesEstrella[$id] ?? 'N/A';
+            $v->total_generado = number_format((float) $v->total_generado, 2);
+
+            return $v;
+        });
+    }
+
+    /**
+     * Productos más vendidos ordenados por cantidad e importe.
+     */
+    public function getProductosMasVendidos($fechaInicio = null, $fechaFin = null, $limit = 8)
     {
         $query = DB::table('ventas')
             ->join('detalle_cotizaciones', 'ventas.id_cotizacion', '=', 'detalle_cotizaciones.id_cotizacion')
@@ -84,6 +192,8 @@ class EstadisticasController extends Controller
         }
 
         $productos = $query
+            ->whereNotNull('detalle_cotizaciones.nombre_producto')
+            ->where('detalle_cotizaciones.nombre_producto', '!=', '')
             ->groupBy('detalle_cotizaciones.id_producto', 'detalle_cotizaciones.nombre_producto')
             ->orderBy('cantidad_vendida', 'desc')
             ->limit($limit)
@@ -101,300 +211,277 @@ class EstadisticasController extends Controller
             $producto->porcentaje = $maxCantidad > 0
                 ? round(($producto->cantidad_vendida / $maxCantidad) * 100, 1)
                 : 0;
-            $producto->total_vendido = number_format($producto->total_vendido, 2);
+            $producto->total_vendido = number_format((float) $producto->total_vendido, 2);
             return $producto;
         });
     }
 
-    public function showEstCotizaciones()
-    {
-        // Regresar la vista
-        return view('app_redes/modulos/estadisticas/cotizaciones/view/est_cotizaciones');
-    }
-
-
-    public function getVendedoresPrin($fechaInicio = null, $fechaFin = null)
-    {
-        $ventas = new Ventas();
-        $cotizaciones = new Cotizaciones(); // Modelo de cotizaciones
-
-        // Si se proporcionan fechas, aplicar el filtro
-        if ($fechaInicio && $fechaFin) {
-            $ventas = $ventas->whereBetween('fecha_venta', [$fechaInicio, $fechaFin]);
-            $cotizaciones = $cotizaciones->whereBetween('fecha', [$fechaInicio, $fechaFin]);
-        }
-
-        $vendedores = $ventas
-            ->select(
-                'id_usuario_genera',
-                DB::raw('COUNT(*) as numero_ventas'),
-                DB::raw('SUM(total) as total_generado')
-            )
-            ->groupBy('id_usuario_genera')
-            ->orderBy('total_generado', 'desc')
-            ->get();
-
-        // Calcular datos adicionales
-        $vendedores = $vendedores->map(function ($vendedor) use ($cotizaciones, $fechaInicio, $fechaFin) {
-            // Datos de cotizaciones
-            $cotis = (clone $cotizaciones)
-                ->where('id_usuario_genera', $vendedor->id_usuario_genera)
-                ->get();
-
-            $vendedor->numero_cotizaciones = $cotis->count(); // Número de cotizaciones
-            $vendedor->total_cotizado = $cotis->sum('total'); // Total cotizado
-
-            // Calcular promedio de éxito
-            $vendedor->promedio_exito = $vendedor->numero_cotizaciones > 0
-                ? round(($vendedor->numero_ventas / $vendedor->numero_cotizaciones) * 100, 2)
-                : 0;
-
-            // Cliente estrella: Venta con el total más alto dentro del rango de fechas
-            $clienteEstrella = Ventas::where('id_usuario_genera', $vendedor->id_usuario_genera)
-                ->when($fechaInicio && $fechaFin, function ($query) use ($fechaInicio, $fechaFin) {
-                    return $query->whereBetween('fecha_venta', [$fechaInicio, $fechaFin]);
-                })
-                ->orderBy('total', 'desc')
-                ->first();
-
-            if ($clienteEstrella && $clienteEstrella->id_cliente) {
-                $cliente = DB::table('clientes')->where('idcl', $clienteEstrella->id_cliente)->first();
-                $vendedor->cliente_estrella = $cliente ? $cliente->nombrecl : 'N/A';
-            } else {
-                $vendedor->cliente_estrella = 'N/A';
-            }
-
-            // Obtener nombre del vendedor
-            $usuario = DB::table('users')->where('id', $vendedor->id_usuario_genera)->first();
-            $vendedor->nombre = $usuario ? $usuario->name : 'Desconocido';
-
-            // Formatear totales
-            $vendedor->total_generado = number_format($vendedor->total_generado, 2);
-            $vendedor->total_cotizado = number_format($vendedor->total_cotizado, 2);
-
-            return $vendedor;
-        });
-
-        return $vendedores;
-    }
-
-    // Traer USUARIOS
-    public function getUsuarios()
-    {
-        // Traer usuarios
-        $usuario = new User();
-
-        $usuarios = $usuario
-            ->select("*")
-            ->get();
-
-        return $usuarios;
-    }
-
-    // Traer USUARIOS
-    public function getSucursales()
-    {
-        // Traer usuarios
-        $sucursal = new Sucursales();
-
-        $sucursales = $sucursal
-            ->select("*")
-            ->get();
-
-        return $sucursales;
-    }
-
+    /**
+     * Controlador AJAX para Estadísticas de Ventas.
+     */
     public function ajax_est_ventas(Request $request)
     {
         if ($request->ajax()) {
-            $data_post = new \stdClass();
-            if (!empty($request->datos)) {
-                $data_post = json_decode(json_encode($request->datos));
+            $accion = $request->input('accion');
+            $datos = $request->input('datos', []);
+            if (is_string($datos)) {
+                $datos = json_decode($datos, true) ?: [];
+            } elseif (is_object($datos)) {
+                $datos = (array) $datos;
             }
 
-            if (!empty($request->accion)) {
-                switch ($request->accion) {
-                    case 'estVentas':
-                        $fechaInicio = $data_post->fecha_inicio ?? null;
-                        $fechaFin = $data_post->fecha_fin ?? null;
+            switch ($accion) {
+                case 'estVentas':
+                    $fechaInicio = !empty($datos['fecha_inicio']) ? $datos['fecha_inicio'] : null;
+                    $fechaFin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
 
-                        if (!$fechaInicio || !$fechaFin) {
-                            return response()->json(['error' => 'Fechas requeridas'], 400);
-                        }
+                    $metricas = $this->getMetricasVentas($fechaInicio, $fechaFin);
+                    $vendedoresPrin = $this->getVendedoresPrin($fechaInicio, $fechaFin);
+                    $productosMasVendidos = $this->getProductosMasVendidos($fechaInicio, $fechaFin);
 
-                        // Query base (una sola vez)
-                        $qVentas = Ventas::query()->whereBetween('fecha_venta', [$fechaInicio, $fechaFin]);
-                        $qCotizaciones = Cotizaciones::query()->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+                    return response()->json(array_merge([
+                        'success'              => true,
+                        'vendedoresPrin'       => $vendedoresPrin,
+                        'productosMasVendidos' => $productosMasVendidos,
+                    ], $metricas));
 
-                        // Agregados
-                        $totalVentas = (float) $qVentas->sum('total');
-                        $numeroVentas = (int) $qVentas->count();
-                        $promedioVentas = (float) $qVentas->avg('total');
+                case 'getVentasPorMes':
+                    $fecha_inicio = !empty($datos['fecha_inicio']) ? date('Y-m-01', strtotime($datos['fecha_inicio'])) : date('Y-m-01', strtotime('-11 months'));
+                    $fecha_fin    = !empty($datos['fecha_fin']) ? date('Y-m-t', strtotime($datos['fecha_fin'])) : date('Y-m-t');
 
-                        // Nuevos agregados
-                        $totalIVA = (float) $qVentas->sum('iva');
-                        $totalEnvios = (float) $qVentas->sum('envio') + (float) ($qVentas->sum('envio_2') ?? 0);
-                        $totalEnviosPaqueteria = (float) $qVentas->sum('envio_paqueteria') + (float) ($qVentas->sum('envio_paqueteria_2') ?? 0);
-                        $numCotizaciones = (int) $qCotizaciones->count();
-                        $totalCotizaciones = (float) $qCotizaciones->sum('total');
-
-                        // Neto = total - iva - envio
-                        $totalNeto = $totalVentas - $totalIVA - $totalEnvios - $totalEnviosPaqueteria;
-
-                        // Vendedores filtrados
-                        $vendedoresPrin = $this->getVendedoresPrin($fechaInicio, $fechaFin);
-
-                        // Productos más vendidos filtrados
-                        $productosMasVendidos = $this->getProductosMasVendidos($fechaInicio, $fechaFin);
-
-                        return response()->json([
-                            'success' => true,
-
-                            'totalVentas' => number_format($totalVentas, 2),
-                            'totalCotizaciones' => number_format($totalCotizaciones, 2),
-
-                            'numCotizaciones' => $numCotizaciones,
-                            'numeroVentas' => $numeroVentas,
-
-                            'promedioVentas' => number_format($promedioVentas, 2),
-
-                            'totalIVA' => number_format($totalIVA, 2),
-                            'totalEnvios' => number_format($totalEnvios, 2),
-                            'totalEnviosPaqueteria' => number_format($totalEnviosPaqueteria, 2),
-                            'totalNeto' => number_format($totalNeto, 2),
-
-                            'vendedoresPrin' => $vendedoresPrin,
-                            'productosMasVendidos' => $productosMasVendidos,
-                        ]);
-                    default:
-                        break;
-                    case 'getVentasPorMes':
-                        $objCotizaciones = new Cotizaciones();
-                        $usuario_id = \Auth::User()->id;
-                        $tipo_usuario = \Auth::User()->tipo_usuario;
-
-                        // Ajustar las fechas al primer y último día del mes respectivamente
-                        $fecha_inicio = !empty($data_post->fecha_inicio) ? date('Y-m-01', strtotime($data_post->fecha_inicio)) : date('Y-m-01', strtotime('-11 months'));
-                        $fecha_fin = !empty($data_post->fecha_fin) ? date('Y-m-t', strtotime($data_post->fecha_fin)) : date('Y-m-t');
-
-                        $query = $objCotizaciones->select(
-                            \DB::raw('DATE_FORMAT(fecha, "%Y-%m") as mes'),
-                            \DB::raw('COUNT(*) as cantidad_cotizaciones'),
-                            \DB::raw('SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as cantidad_ventas'),
-                            \DB::raw('SUM(CASE WHEN status = 3 THEN total ELSE 0 END) as importe_ventas')
+                    $query = DB::table('cotizaciones')
+                        ->select(
+                            DB::raw('DATE_FORMAT(fecha, "%Y-%m") as mes'),
+                            DB::raw('COUNT(*) as cantidad_cotizaciones'),
+                            DB::raw('SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as cantidad_ventas'),
+                            DB::raw('SUM(CASE WHEN status = 3 THEN total ELSE 0 END) as importe_ventas')
                         )
-                            ->where('giro_empresa', 'al')
-                            ->where('fecha', '>=', $fecha_inicio)
-                            ->where('fecha', '<=', $fecha_fin);
+                        ->where('fecha', '>=', $fecha_inicio)
+                        ->where('fecha', '<=', $fecha_fin);
 
-                        if ($tipo_usuario == 'f1' || $tipo_usuario == 'n2') {
-                            $query->where('id_usuario_genera', $usuario_id);
-                        }
+                    $user = Auth::user();
+                    if ($user && !$user->isAdmin()) {
+                        $query->where('id_usuario_genera', $user->id);
+                    }
 
-                        $datos_por_mes = $query->groupBy(\DB::raw('DATE_FORMAT(fecha, "%Y-%m")'))
-                            ->orderBy('mes', 'ASC')
-                            ->get();
+                    $datos_por_mes = $query->groupBy(DB::raw('DATE_FORMAT(fecha, "%Y-%m")'))
+                        ->orderBy('mes', 'ASC')
+                        ->get();
 
-                        return response()->json([
-                            'success' => true,
-                            'datos' => $datos_por_mes,
-                            'fecha_inicio' => $fecha_inicio,
-                            'fecha_fin' => $fecha_fin
-                        ]);
-                        break;
-                }
+                    return response()->json([
+                        'success'      => true,
+                        'datos'        => $datos_por_mes,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin'    => $fecha_fin
+                    ]);
+
+                default:
+                    break;
             }
         }
         return response()->json(['error' => 'Solicitud no válida'], 400);
     }
 
-    // FIN - VENTAS <-
+    /*
+    |--------------------------------------------------------------------------
+    | 2. ESTADÍSTICAS DE COTIZACIONES
+    |--------------------------------------------------------------------------
+    */
+    public function showEstCotizaciones()
+    {
+        $metricas = $this->getMetricasCotizaciones();
+        $giros = $this->getCotizacionesPorGiro();
+        $sucursales = $this->getSucursales();
+
+        return view(
+            'app_redes/modulos/estadisticas/cotizaciones/view/est_cotizaciones',
+            compact('metricas', 'giros', 'sucursales')
+        );
+    }
+
+    /**
+     * Traer todas las sucursales para filtros.
+     */
+    public function getSucursales()
+    {
+        return Sucursales::select('id', 'nombre')->orderBy('nombre', 'asc')->get();
+    }
+
+    /**
+     * Métricas agregadas de cotizaciones.
+     */
+    public function getMetricasCotizaciones($fechaInicio = null, $fechaFin = null)
+    {
+        $q = DB::table('cotizaciones');
+        if ($fechaInicio && $fechaFin) {
+            $q->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+        }
+
+        $agg = $q->selectRaw('
+            COUNT(*) as total_cotizaciones,
+            COALESCE(SUM(total), 0) as total_importe,
+            COALESCE(AVG(total), 0) as promedio_importe,
+            COUNT(DISTINCT DATE(fecha)) as dias_activos
+        ')->first();
+
+        $totalCotizaciones = (int) ($agg->total_cotizaciones ?? 0);
+        $totalImporte      = (float) ($agg->total_importe ?? 0);
+        $promedioImporte   = (float) ($agg->promedio_importe ?? 0);
+        $diasActivos       = max(1, (int) ($agg->dias_activos ?? 1));
+        $promedioPorDia    = round($totalCotizaciones / $diasActivos, 1);
+
+        return [
+            'totalCotizaciones' => $totalCotizaciones,
+            'totalImporte'      => number_format($totalImporte, 2),
+            'promedioImporte'   => number_format($promedioImporte, 2),
+            'promedioPorDia'    => $promedioPorDia,
+            'diasActivos'       => $diasActivos,
+        ];
+    }
+
+    /**
+     * Desglose de cotizaciones por division comercial (giro de empresa).
+     */
+    public function getCotizacionesPorGiro($fechaInicio = null, $fechaFin = null)
+    {
+        $q = DB::table('cotizaciones');
+        if ($fechaInicio && $fechaFin) {
+            $q->whereBetween('fecha', [$fechaInicio, $fechaFin]);
+        }
+
+        $girosRaw = $q->select('giro_empresa', DB::raw('COUNT(*) as total'), DB::raw('COALESCE(SUM(total), 0) as importe'))
+            ->groupBy('giro_empresa')
+            ->get();
+
+        $nombresGiro = [
+            'al' => 'Andamios Ligeros',
+            'ra' => 'Redes Anticaídas',
+            'rp' => 'Redes Perimetrales',
+            'sg' => 'Scoregol'
+        ];
+
+        $coloresGiro = [
+            'al' => ['bg' => '#0848af', 'class' => 'border-left-primary'],
+            'ra' => ['bg' => '#1cc88a', 'class' => 'border-left-success'],
+            'rp' => ['bg' => '#f6c23e', 'class' => 'border-left-warning'],
+            'sg' => ['bg' => '#36b9cc', 'class' => 'border-left-info']
+        ];
+
+        $resultado = [];
+        foreach ($girosRaw as $g) {
+            $key = strtolower(trim($g->giro_empresa));
+            $resultado[$key] = [
+                'clave'   => $key,
+                'nombre'  => $nombresGiro[$key] ?? strtoupper($key),
+                'total'   => (int) $g->total,
+                'importe' => number_format((float) $g->importe, 2),
+                'color'   => $coloresGiro[$key] ?? ['bg' => '#4e73df', 'class' => 'border-left-primary']
+            ];
+        }
+
+        foreach ($nombresGiro as $k => $nombre) {
+            if (!isset($resultado[$k])) {
+                $resultado[$k] = [
+                    'clave'   => $k,
+                    'nombre'  => $nombre,
+                    'total'   => 0,
+                    'importe' => '0.00',
+                    'color'   => $coloresGiro[$k]
+                ];
+            }
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * Controlador AJAX para Estadísticas de Cotizaciones.
+     */
     public function ajax_est_cotizaciones(Request $request)
     {
         if ($request->ajax()) {
-            $data_post = new \stdClass();
-            if (!empty($request->datos)) {
-                $data_post = json_decode(json_encode($request->datos));
+            $accion = $request->input('accion');
+            $datos = $request->input('datos', []);
+            if (is_string($datos)) {
+                $datos = json_decode($datos, true) ?: [];
+            } elseif (is_object($datos)) {
+                $datos = (array) $datos;
             }
 
-            if (!empty($request->accion)) {
-                switch ($request->accion) {
-                    case 'getCotizacionesPorDia':
-                        $objCotizaciones = new Cotizaciones();
-                        $usuario_id = \Auth::User()->id;
-                        $tipo_usuario = \Auth::User()->tipo_usuario;
+            switch ($accion) {
+                case 'getCotizacionesPorDia':
+                    $tieneSucursales = !empty($datos['sucursales']) && is_array($datos['sucursales']) && count($datos['sucursales']) <= 3;
+                    $diasPeriodo = $tieneSucursales ? 15 : 30;
 
-                        // Determinar el período basado en si hay sucursales seleccionadas
-                        $tiene_sucursales = !empty($data_post->sucursales) && is_array($data_post->sucursales) && count($data_post->sucursales) <= 3;
+                    $fecha_inicio = !empty($datos['fecha_inicio'])
+                        ? date('Y-m-d', strtotime($datos['fecha_inicio']))
+                        : date('Y-m-d', strtotime("-{$diasPeriodo} days"));
+                    $fecha_fin = !empty($datos['fecha_fin'])
+                        ? date('Y-m-d', strtotime($datos['fecha_fin']))
+                        : date('Y-m-d');
 
-                        // Ajustar las fechas según si hay sucursales seleccionadas (15 días) o no (30 días)
-                        $dias_periodo = $tiene_sucursales ? 15 : 30;
+                    $todasLasCotizaciones = [];
 
-                        $fecha_inicio = !empty($data_post->fecha_inicio)
-                            ? date('Y-m-d', strtotime($data_post->fecha_inicio))
-                            : date('Y-m-d', strtotime("-{$dias_periodo} days"));
-                        $fecha_fin = !empty($data_post->fecha_fin)
-                            ? date('Y-m-d', strtotime($data_post->fecha_fin))
-                            : date('Y-m-d');
+                    if ($tieneSucursales) {
+                        $sucursalesMap = DB::table('sucursales')
+                            ->whereIn('id', $datos['sucursales'])
+                            ->pluck('nombre', 'id');
 
-                        // Array para almacenar todas las series de datos
-                        $todas_las_cotizaciones = [];
+                        foreach ($datos['sucursales'] as $sucursalId) {
+                            $nombreSucursal = $sucursalesMap[$sucursalId] ?? 'Sucursal ' . $sucursalId;
 
-                        // Si se proporcionaron sucursales específicas
-                        if ($tiene_sucursales) {
-                            foreach ($data_post->sucursales as $sucursal_id) {
-                                $query = $objCotizaciones->select(
-                                    \DB::raw('DATE(fecha) as dia'),
-                                    \DB::raw('COUNT(*) as total'),
-                                    \DB::raw("'" . Sucursales::find($sucursal_id)->nombre . "' as nombre_sucursal")
-                                )
-                                    ->where('fecha', '>=', $fecha_inicio)
-                                    ->where('fecha', '<=', $fecha_fin)
-                                    ->where('id_sucursal', $sucursal_id)
-                                    ->groupBy(\DB::raw('DATE(fecha)'))
-                                    ->orderBy('dia', 'ASC')
-                                    ->get();
-
-                                $todas_las_cotizaciones[] = [
-                                    'sucursal_id' => $sucursal_id,
-                                    'nombre_sucursal' => Sucursales::find($sucursal_id)->nombre,
-                                    'datos' => $query
-                                ];
-                            }
-                            $tipo_grafica = 'bar';
-                        } else {
-                            // Consulta para todas las cotizaciones
-                            $query = $objCotizaciones->select(
-                                \DB::raw('DATE(fecha) as dia'),
-                                \DB::raw('COUNT(*) as total')
-                            )
+                            $query = DB::table('cotizaciones')
+                                ->select(DB::raw('DATE(fecha) as dia'), DB::raw('COUNT(*) as total'))
                                 ->where('fecha', '>=', $fecha_inicio)
-                                ->where('fecha', '<=', $fecha_fin);
-
-                            if ($tipo_usuario == 'f1' || $tipo_usuario == 'n2') {
-                                $query->where('id_usuario_genera', $usuario_id);
-                            }
-
-                            $cotizaciones_por_dia = $query->groupBy(\DB::raw('DATE(fecha)'))
+                                ->where('fecha', '<=', $fecha_fin)
+                                ->where('id_sucursal', $sucursalId)
+                                ->groupBy(DB::raw('DATE(fecha)'))
                                 ->orderBy('dia', 'ASC')
                                 ->get();
 
-                            $todas_las_cotizaciones[] = [
-                                'sucursal_id' => null,
-                                'nombre_sucursal' => 'Todas las sucursales',
-                                'datos' => $cotizaciones_por_dia
+                            $todasLasCotizaciones[] = [
+                                'sucursal_id'     => $sucursalId,
+                                'nombre_sucursal' => $nombreSucursal,
+                                'datos'           => $query
                             ];
-                            $tipo_grafica = 'bar';
+                        }
+                    } else {
+                        $q = DB::table('cotizaciones')
+                            ->select(DB::raw('DATE(fecha) as dia'), DB::raw('COUNT(*) as total'))
+                            ->where('fecha', '>=', $fecha_inicio)
+                            ->where('fecha', '<=', $fecha_fin);
+
+                        $user = Auth::user();
+                        if ($user && !$user->isAdmin()) {
+                            $q->where('id_usuario_genera', $user->id);
                         }
 
-                        return response()->json([
-                            'cotizaciones' => $todas_las_cotizaciones,
-                            'fecha_inicio' => $fecha_inicio,
-                            'fecha_fin' => $fecha_fin,
-                            'tipo_grafica' => $tipo_grafica
-                        ]);
-                        break;
-                }
+                        $cotizacionesPorDia = $q->groupBy(DB::raw('DATE(fecha)'))
+                            ->orderBy('dia', 'ASC')
+                            ->get();
+
+                        $todasLasCotizaciones[] = [
+                            'sucursal_id'     => null,
+                            'nombre_sucursal' => 'Todas las sucursales',
+                            'datos'           => $cotizacionesPorDia
+                        ];
+                    }
+
+                    $metricas = $this->getMetricasCotizaciones($fecha_inicio, $fecha_fin);
+                    $giros = $this->getCotizacionesPorGiro($fecha_inicio, $fecha_fin);
+
+                    return response()->json([
+                        'success'      => true,
+                        'cotizaciones' => $todasLasCotizaciones,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin'    => $fecha_fin,
+                        'tipo_grafica' => 'bar',
+                        'metricas'     => $metricas,
+                        'giros'        => $giros,
+                    ]);
+
+                default:
+                    break;
             }
         }
         return response()->json(['error' => 'Solicitud no válida'], 400);

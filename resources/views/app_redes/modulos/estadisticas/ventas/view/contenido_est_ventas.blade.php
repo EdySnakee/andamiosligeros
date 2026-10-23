@@ -1,554 +1,789 @@
 <style>
-    /* Dashboard stats cards (más pro) */
-    .stats-grid {
-        margin-bottom: 1rem;
+    :root {
+        --color-primary: #0848af;
+        --color-primary-light: #e8f0fe;
+        --color-success: #10b981;
+        --color-success-light: #ecfdf5;
+        --color-warning: #f59e0b;
+        --color-warning-light: #fffbeb;
+        --color-danger: #ef4444;
+        --color-danger-light: #fef2f2;
+        --color-purple: #8b5cf6;
+        --color-purple-light: #f5f3ff;
     }
 
+    /* Pestañas de Navegación Modernas */
+    .ventas-nav-container {
+        margin-bottom: 24px;
+    }
+
+    .custom-pills {
+        background: #ffffff;
+        padding: 6px;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .custom-pills .nav-item {
+        margin: 0;
+    }
+
+    .custom-pills .nav-link {
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 13.5px;
+        color: #64748b;
+        padding: 10px 22px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .custom-pills .nav-link:hover {
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .custom-pills .nav-link.active {
+        background: #0848af;
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(8, 72, 175, 0.25);
+    }
+
+    /* Tarjetas de Estadísticas Espaciosas */
     .stat-card {
         border: 0 !important;
-        border-radius: 14px !important;
+        border-radius: 16px !important;
         overflow: hidden;
-        background: #fff;
-        box-shadow: 0 10px 26px rgba(15, 23, 42, .08) !important;
-        transition: transform .15s ease, box-shadow .15s ease;
+        background: #ffffff;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
     }
 
     .stat-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 14px 34px rgba(15, 23, 42, .12) !important;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1) !important;
     }
 
     .stat-card .card-body {
-        padding: 16px 16px 14px !important;
+        padding: 22px 24px !important;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 16px;
     }
 
-    .stat-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 0;
+    .stat-card-hero {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25) !important;
     }
 
-    .stat-label {
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: #6b7280;
-        margin: 0;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    }
-
-    .stat-value {
-        font-size: 22px;
-        font-weight: 600;
-        color: #111827;
-        margin: 0;
-        line-height: 1.1;
-        letter-spacing: -.02em;
-    }
-
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
-        flex: 0 0 auto;
-        background: rgba(59, 130, 246, .10);
-        color: #2563eb;
-    }
-
-    .stat-icon svg {
-        width: 18px;
-        height: 18px;
-    }
+    .stat-card-hero .stat-label { color: rgba(255, 255, 255, 0.85) !important; }
+    .stat-card-hero .stat-value { color: #ffffff !important; font-weight: 700; }
+    .stat-card-hero .stat-icon { background: rgba(255, 255, 255, 0.2) !important; color: #ffffff !important; }
 
     .stat-accent {
         position: absolute;
         left: 0;
         top: 0;
         bottom: 0;
-        width: 6px;
-        background: #2563eb;
+        width: 5px;
+        background: var(--color-primary);
     }
 
-    /* Variantes por tipo */
-    .stat-success .stat-accent {
-        background: #16a34a;
+    .stat-card-primary .stat-accent { background: var(--color-primary); }
+    .stat-card-success .stat-accent { background: var(--color-success); }
+    .stat-card-warning .stat-accent { background: var(--color-warning); }
+    .stat-card-danger .stat-accent  { background: var(--color-danger); }
+    .stat-card-purple .stat-accent  { background: var(--color-purple); }
+
+    .stat-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
     }
 
-    .stat-success .stat-icon {
-        background: rgba(22, 163, 74, .12);
-        color: #16a34a;
-    }
-
-    .stat-primary .stat-accent {
-        background: #2563eb;
-    }
-
-    .stat-primary .stat-icon {
-        background: rgba(37, 99, 235, .12);
-        color: #2563eb;
-    }
-
-    .stat-warning .stat-accent {
-        background: #f59e0b;
-    }
-
-    .stat-warning .stat-icon {
-        background: rgba(245, 158, 11, .14);
-        color: #b45309;
-    }
-
-    .stat-danger .stat-accent {
-        background: #ef4444;
-    }
-
-    .stat-danger .stat-icon {
-        background: rgba(239, 68, 68, .14);
-        color: #ef4444;
-    }
-
-    /* Responsivo: separación más limpia */
-    @media (max-width: 575px) {
-        .stat-value {
-            font-size: 20px;
-        }
-
-        .stat-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-        }
-    }
-
-    /* Cards de Productos Más Vendidos */
-    .producto-card {
-        border: 0 !important;
-        border-radius: 14px !important;
-        background: #fff;
-        box-shadow: 0 10px 26px rgba(15, 23, 42, .08) !important;
-        transition: transform .15s ease, box-shadow .15s ease;
-        overflow: hidden;
-    }
-
-    .producto-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 34px rgba(15, 23, 42, .12) !important;
-    }
-
-    .producto-card .card-body {
-        padding: 18px 16px 16px !important;
-    }
-
-    .producto-rank-badge {
-        position: absolute;
-        top: 12px;
-        right: 12px;
+    .stat-label {
         font-size: 11px;
-        font-weight: 800;
-        letter-spacing: .04em;
-        padding: 3px 9px;
-        border-radius: 999px;
-        color: #fff;
-        background: #94a3b8;
-        z-index: 1;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin: 0;
     }
 
-    .producto-rank-badge.rank-1 {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
     }
 
-    .producto-rank-badge.rank-2 {
-        background: linear-gradient(135deg, #94a3b8, #64748b);
+    .stat-sublabel {
+        font-size: 11.5px;
+        color: #94a3b8;
+        margin: 0;
     }
 
-    .producto-rank-badge.rank-3 {
-        background: linear-gradient(135deg, #c2703d, #9a5227);
-    }
-
-    .producto-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
         display: grid;
         place-items: center;
-        background: rgba(37, 99, 235, .10);
-        color: #2563eb;
-        margin-bottom: 12px;
+        flex: 0 0 auto;
+        font-size: 20px;
     }
 
-    .producto-icon svg {
-        width: 18px;
-        height: 18px;
+    .stat-card-primary .stat-icon { background: var(--color-primary-light); color: var(--color-primary); }
+    .stat-card-success .stat-icon { background: var(--color-success-light); color: var(--color-success); }
+    .stat-card-warning .stat-icon { background: var(--color-warning-light); color: var(--color-warning); }
+    .stat-card-danger .stat-icon  { background: var(--color-danger-light); color: var(--color-danger); }
+    .stat-card-purple .stat-icon  { background: var(--color-purple-light); color: var(--color-purple); }
+
+    /* Barra de Filtros */
+    .filter-card {
+        border: 0;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        border: 1px solid #f1f5f9;
     }
 
-    .producto-nombre {
-        font-size: 14px;
+    .preset-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .preset-pill {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 30px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: #475569;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .preset-pill:hover { background: #e2e8f0; color: #1e293b; }
+    .preset-pill.active {
+        background: #0848af;
+        color: #ffffff;
+        border-color: #0848af;
+        box-shadow: 0 2px 8px rgba(8, 72, 175, 0.25);
+    }
+
+    /* Leaderboard de Productos Más Vendidos (Compacto y Elegante) */
+    .leaderboard-item {
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+    }
+
+    .leaderboard-item:last-child {
+        border-bottom: none;
+    }
+
+    .leaderboard-item:hover {
+        background: #f8fafc;
+    }
+
+    .leaderboard-rank {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 800;
+        flex: 0 0 auto;
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .leaderboard-rank.rank-1 { background: #fef3c7; color: #d97706; }
+    .leaderboard-rank.rank-2 { background: #f1f5f9; color: #64748b; }
+    .leaderboard-rank.rank-3 { background: #ffedd5; color: #c2410c; }
+
+    .leaderboard-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .leaderboard-name {
+        font-size: 13.5px;
         font-weight: 700;
-        color: #111827;
-        margin: 0 0 12px;
-        line-height: 1.3;
+        color: #1e293b;
+        margin: 0 0 4px 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .producto-stats {
-        display: flex;
-        gap: 18px;
-        border-top: 1px solid #f1f5f9;
-        padding-top: 10px;
+    .leaderboard-progress {
+        height: 5px;
+        background: #f1f5f9;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-bottom: 4px;
     }
 
-    .producto-stat {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+    .leaderboard-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #0848af, #3b82f6);
+        border-radius: 999px;
     }
 
-    .producto-stat-value {
-        font-size: 16px;
-        font-weight: 600;
-        color: #111827;
-        letter-spacing: -.01em;
+    .leaderboard-meta {
+        font-size: 11px;
+        color: #94a3b8;
     }
 
-    .producto-stat-label {
-        font-size: 10px;
+    .leaderboard-total {
+        text-align: right;
+        flex: 0 0 auto;
+    }
+
+    .leaderboard-total-value {
+        font-size: 14.5px;
         font-weight: 700;
-        letter-spacing: .08em;
+        color: #0848af;
+    }
+
+    /* Tabla de Vendedores */
+    .table-vendedores thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
-        color: #9ca3af;
+        letter-spacing: 0.06em;
+        border-bottom: 2px solid #e2e8f0;
+        padding: 14px 16px;
+        vertical-align: middle;
     }
 
-    @media (max-width: 575px) {
-        .producto-nombre {
-            font-size: 13px;
-        }
-
-        .producto-stat-value {
-            font-size: 15px;
-        }
+    .table-vendedores tbody td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        font-size: 13.5px;
+        color: #334155;
     }
+
+    .vendedor-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e0e7ff;
+        color: #4338ca;
+        font-weight: 700;
+        font-size: 12px;
+        display: inline-grid;
+        place-items: center;
+        margin-right: 8px;
+    }
+
+    .badge-tasa {
+        font-weight: 700;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+    }
+
+    /* Barra Visual Financiera */
+    .finance-bar-container {
+        height: 12px;
+        border-radius: 999px;
+        display: flex;
+        overflow: hidden;
+        background: #f1f5f9;
+        margin-bottom: 12px;
+    }
+
+    .finance-segment-neto { background: #10b981; }
+    .finance-segment-iva { background: #ef4444; }
+    .finance-segment-log { background: #f59e0b; }
 </style>
 
-
-
-<div class="container-fluid">
-    <!-- Título Principal -->
-    <div class="row mb-4">
-        <div class="col text-center">
-            <h2 class="font-weight-bold text-primary">Estadísticas de Ventas</h2>
+<div class="container-fluid py-2">
+    <!-- Encabezado de Página -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap">
+        <div>
+            <h2 class="font-weight-bold text-gray-800 mb-1" style="font-size: 1.65rem;">
+                <i class="fas fa-chart-line text-primary mr-2"></i>Estadísticas de Ventas
+            </h2>
+            <p class="text-muted mb-0 small">Métricas de desempeño comercial, volumen facturado e ingresos netos.</p>
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <span class="badge badge-light border text-secondary px-3 py-2 font-weight-normal">
+                <i class="fas fa-sync-alt mr-1 text-primary"></i> Sincronización en tiempo real
+            </span>
         </div>
     </div>
 
-
-    <!-- Filtros -->
-    <div class="row mb-4 mt-5">
-        <div class="col-lg-3">
-            <label for="fecha_inicio" class="form-label">Fecha Inicio:</label>
-            <input type="date" id="fecha_inicio" class="form-control">
+    <!-- Barra de Filtros Inteligente -->
+    <div class="filter-card">
+        <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap">
+            <label class="font-weight-bold text-gray-700 small mb-0 text-uppercase">
+                <i class="fas fa-calendar-alt text-primary mr-1"></i> Período de Análisis:
+            </label>
+            <div class="preset-pills">
+                <button type="button" class="preset-pill active" onclick="setPreset('todo', this)">Todo el Historial</button>
+                <button type="button" class="preset-pill" onclick="setPreset('este_mes', this)">Este Mes</button>
+                <button type="button" class="preset-pill" onclick="setPreset('mes_pasado', this)">Mes Anterior</button>
+                <button type="button" class="preset-pill" onclick="setPreset('30_dias', this)">Últimos 30 días</button>
+                <button type="button" class="preset-pill" onclick="setPreset('este_ano', this)">Año en Curso</button>
+            </div>
         </div>
-        <div class="col-lg-3">
-            <label for="fecha_fin" class="form-label">Fecha Fin:</label>
-            <input type="date" id="fecha_fin" class="form-control">
-        </div>
-        <div class="col-lg-4 d-flex align-items-end">
-            <button class="btn btn-primary ml-3 rounded-pill px-4 py-2 font-weight-bold"
-                onclick="filtrarEstadisticas()">
-                <i class="fas fa-filter mr-2"></i>Filtrar</button>
+        <div class="row align-items-end">
+            <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                <label for="fecha_inicio" class="small text-muted font-weight-bold mb-1">Fecha Inicio:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-white border-right-0"><i class="far fa-calendar-alt text-muted"></i></span>
+                    </div>
+                    <input type="date" id="fecha_inicio" class="form-control border-left-0">
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
+                <label for="fecha_fin" class="small text-muted font-weight-bold mb-1">Fecha Fin:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-white border-right-0"><i class="far fa-calendar-alt text-muted"></i></span>
+                    </div>
+                    <input type="date" id="fecha_fin" class="form-control border-left-0">
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-12 d-flex">
+                <button class="btn btn-primary rounded-pill px-4 py-2 font-weight-bold flex-grow-1 shadow-sm"
+                    id="btnFiltrarVentas" onclick="filtrarEstadisticas()">
+                    <i class="fas fa-filter mr-1"></i> Filtrar
+                </button>
+                <button class="btn btn-outline-secondary rounded-pill px-3 py-2 font-weight-bold ml-2"
+                    onclick="resetFiltros()" title="Restablecer">
+                    <i class="fas fa-redo-alt"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Resumen de Estadísticas (pro) -->
-    <div class="row stats-grid">
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-success h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Cotizaciones</p>
-                        <p id="numCotizaciones" class="stat-value">{{ $numCotizaciones }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: doc -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-success h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Ventas</p>
-                        <p id="numeroVentas" class="stat-value">{{ $numeroVentas }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: cart -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M7 4h-2l-1 2v2h2l3.6 7.59-1.35 2.44A1 1 0 0 0 9.12 22H19v-2H9.42a.25.25 0 0 1-.22-.37L10 18h7a1 1 0 0 0 .9-.55L21 9H6.21L5.27 7H7V4z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-primary h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Total cotizado</p>
-                        <p id="totalCotizaciones" class="stat-value">${{ $totalCotizaciones }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: chart -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M4 19h16v2H2V3h2v16zm3-2V9h3v8H7zm5 0V5h3v12h-3zm5 0v-6h3v6h-3z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-primary h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Total vendido</p>
-                        <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: money -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M3 6h18a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm0 2v8h18V8H3zm9 1a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-danger h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Impuesto (IVA)</p>
-                        <p id="totalIVA" class="stat-value">${{ $totalIVA }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: receipt -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 2h10v20l-2-1-2 1-2-1-2 1-2-1-2 1V2zm2 4h6v2H9V6zm0 4h6v2H9v-2zm0 4h5v2H9v-2z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-danger h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Envíos</p>
-                        <p id="totalEnvios" class="stat-value">${{ $totalEnvios }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: truck -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M3 6h11v9H3V6zm12 3h3l3 3v3h-6V9zm-9 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-danger h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Paquetería</p>
-                        <p id="totalEnviosPaqueteria" class="stat-value">${{ $totalEnviosPaqueteria }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: truck -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M3 6h11v9H3V6zm12 3h3l3 3v3h-6V9zm-9 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-warning h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Ticket promedio</p>
-                        <p id="promedioVentas" class="stat-value">${{ $promedioVentas }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: target -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-            <div class="card stat-card stat-success h-100 position-relative">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Total Neto</p>
-                        <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
-                    </div>
-                    <div class="stat-icon" aria-hidden="true">
-                        <!-- icon: shield/check -->
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 2l8 4v6c0 5-3.4 9.4-8 10-4.6-.6-8-5-8-10V6l8-4zm-1 13l6-6-1.4-1.4L11 12.2 8.4 9.6 7 11l4 4z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
+    <!-- Pestañas Principales (Organización Limpia y Espaciosa) -->
+    <div class="ventas-nav-container">
+        <ul class="nav nav-pills custom-pills" id="ventasTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-comercial-link" data-toggle="pill" href="#tab-comercial" role="tab" aria-controls="tab-comercial" aria-selected="true">
+                    <i class="fas fa-chart-line"></i> Rendimiento Comercial
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-financiero-link" data-toggle="pill" href="#tab-financiero" role="tab" aria-controls="tab-financiero" aria-selected="false">
+                    <i class="fas fa-wallet"></i> Resumen Financiero
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-vendedores-link" data-toggle="pill" href="#tab-vendedores" role="tab" aria-controls="tab-vendedores" aria-selected="false">
+                    <i class="fas fa-users"></i> Detalle de Vendedores
+                </a>
+            </li>
+        </ul>
     </div>
 
-    {{-- Productos Más Vendidos --}}
-    <div class="row">
-        <div class="col">
-            <h6 class="text-primary font-weight-bold mb-3">Productos Más Vendidos</h6>
-        </div>
-    </div>
+    <!-- Contenido de Pestañas -->
+    <div class="tab-content" id="ventasTabsContent">
 
-    <div class="row producto-cards-grid mb-4" id="productosMasVendidos">
-        @foreach ($productosMasVendidos as $index => $producto)
-            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
-                <div class="card producto-card h-100 position-relative">
-                    <span class="producto-rank-badge rank-{{ $index + 1 }}">#{{ $index + 1 }}</span>
-                    <div class="card-body">
-                        <p class="producto-nombre">{{ $producto->nombre }}</p>
-                        <div class="producto-stats">
-                            <div class="producto-stat">
-                                <span class="producto-stat-value">{{ $producto->cantidad_vendida }}</span>
-                                <span class="producto-stat-label">Unidades</span>
+        <!-- ========================================== -->
+        <!-- PESTAÑA 1: RENDIMIENTO COMERCIAL           -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade show active" id="tab-comercial" role="tabpanel" aria-labelledby="tab-comercial-link">
+            <!-- 4 Tarjetas Comerciales -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-primary h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Cotizaciones Creadas</p>
+                                <p id="numCotizaciones" class="stat-value">{{ number_format($numCotizaciones) }}</p>
+                                <p class="stat-sublabel">
+                                    <span class="text-primary font-weight-bold">${{ $totalCotizaciones }}</span> cotizado
+                                </p>
                             </div>
-                            <div class="producto-stat">
-                                <span class="producto-stat-value">${{ $producto->total_vendido }}</span>
-                                <span class="producto-stat-label">Total</span>
+                            <div class="stat-icon">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-success h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ventas Concretadas</p>
+                                <p id="numeroVentas" class="stat-value">{{ number_format($numeroVentas) }}</p>
+                                <p class="stat-sublabel text-success font-weight-bold">
+                                    <i class="fas fa-check-circle"></i> Estatus 3 (Cerradas)
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-purple h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Tasa de Conversión</p>
+                                <p id="tasaConversion" class="stat-value">{{ $tasaConversion }}%</p>
+                                <p class="stat-sublabel">Efectividad de cierre</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-warning h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ticket Promedio</p>
+                                <p id="promedioVentas" class="stat-value">${{ $promedioVentas }}</p>
+                                <p class="stat-sublabel">Promedio por venta</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-receipt"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        @endforeach
-    </div>
 
-    <!-- Vendedores Principales -->
-    <div class="row mb-4">
-        <div class="col">
-            <div class="card shadow">
-                <div class="card-header text-center">
-                    <h5 class="text-uppercase text-primary font-weight-bold">Estadisticas Vendedores</h5>
+            <!-- Gráfica Mensual y Top Productos en 2 Columnas Equilibradas -->
+            <div class="row mb-4">
+                <!-- Columna Izquierda (7 columnas): Gráfica Mensual -->
+                <div class="col-lg-7 col-xl-8 mb-4 mb-lg-0">
+                    <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
+                        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
+                            <h6 class="m-0 font-weight-bold text-gray-800">
+                                <i class="fas fa-chart-area text-primary mr-2"></i>Evolución Mensual (Ventas vs Cotizaciones)
+                            </h6>
+                            <span class="small text-muted">Doble eje: Volumen y Monto ($)</span>
+                        </div>
+                        <div class="card-body">
+                            <div style="position: relative; min-height: 400px; width: 100%;">
+                                <canvas id="ventasChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th class="estadisticas-titulos">Vendedor</th>
-                                <th class="estadisticas-titulos"># Cotizaciones</th>
-                                <th class="estadisticas-titulos"># Ventas</th>
-                                <th class="estadisticas-titulos">Total Cotizado</th>
-                                <th class="estadisticas-titulos">Total Vendido</th>
-                                <th class="estadisticas-titulos">Promedio de exito</th>
-                                <th class="estadisticas-titulos">Cliente estrella⭐</th>
-                            </tr>
-                        </thead>
-                        <tbody id="vendedoresPrincipales">
-                            @foreach ($vendedoresPrin as $vendedor)
+
+                <!-- Columna Derecha (5 columnas): Leaderboard de Productos Más Vendidos -->
+                <div class="col-lg-5 col-xl-4">
+                    <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
+                        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-gray-800">
+                                <i class="fas fa-trophy text-warning mr-2"></i>Top Productos
+                            </h6>
+                            <span class="badge badge-light border text-muted small">Más vendidos</span>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 450px; overflow-y: auto;">
+                            <div id="productosMasVendidos">
+                                @forelse ($productosMasVendidos as $index => $producto)
+                                    @php
+                                        $rank = $index + 1;
+                                        $rankClass = $rank <= 3 ? 'rank-' . $rank : '';
+                                        $medal = $rank === 1 ? '🥇' : ($rank === 2 ? '🥈' : ($rank === 3 ? '🥉' : '#' . $rank));
+                                    @endphp
+                                    <div class="leaderboard-item">
+                                        <div class="leaderboard-rank {{ $rankClass }}">{{ $medal }}</div>
+                                        <div class="leaderboard-info">
+                                            <p class="leaderboard-name" title="{{ $producto->nombre }}">{{ $producto->nombre }}</p>
+                                            <div class="leaderboard-progress">
+                                                <div class="leaderboard-progress-bar" style="width: {{ $producto->porcentaje }}%;"></div>
+                                            </div>
+                                            <span class="leaderboard-meta">
+                                                <strong>{{ number_format($producto->cantidad_vendida) }}</strong> unidades vendidas
+                                            </span>
+                                        </div>
+                                        <div class="leaderboard-total">
+                                            <div class="leaderboard-total-value">${{ $producto->total_vendido }}</div>
+                                            <span class="small text-muted">Total</span>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="p-4 text-center text-muted">
+                                        <i class="fas fa-box-open fa-2x mb-2 text-gray-300"></i>
+                                        <p class="small mb-0">No hay productos registrados en este período.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 2: RESUMEN FINANCIERO              -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-financiero" role="tabpanel" aria-labelledby="tab-financiero-link">
+            <!-- 4 Tarjetas Financieras -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-primary h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ventas Brutas</p>
+                                <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
+                                <p class="stat-sublabel">Facturación total acumulada</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-danger h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Impuesto IVA (16%)</p>
+                                <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
+                                <p class="stat-sublabel">Débito fiscal transferido</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-warning h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Gastos Logística</p>
+                                <p id="totalLogistica" class="stat-value">
+                                    ${{ number_format((float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria), 2) }}
+                                </p>
+                                <p class="stat-sublabel">
+                                    Envío: <span id="totalEnvios" class="font-weight-bold">${{ $totalEnvios }}</span> |
+                                    Paq: <span id="totalEnviosPaqueteria" class="font-weight-bold">${{ $totalEnviosPaqueteria }}</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-hero h-100">
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="badge badge-light text-success font-weight-bold small px-2 py-1">
+                                        <i class="fas fa-shield-alt mr-1"></i>Ingreso Efectivo
+                                    </span>
+                                </div>
+                                <p class="stat-label">Venta Neta</p>
+                                <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
+                                <p class="stat-sublabel text-white-50">Ventas - IVA - Logística</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desglose Financiero Auditoría -->
+            <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 font-weight-bold text-gray-800">
+                        <i class="fas fa-balance-scale text-primary mr-2"></i>Estructura y Composición del Ingreso
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-3">
+                        Visualización porcentual de deducciones (IVA y gastos logísticos) respecto a la facturación bruta total:
+                    </p>
+
+                    @php
+                        $brutoNum = max(0.01, (float) str_replace(',', '', $totalVentas));
+                        $netoNum  = max(0, (float) str_replace(',', '', $totalNeto));
+                        $ivaNum   = max(0, (float) str_replace(',', '', $totalIVA));
+                        $logNum   = max(0, (float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria));
+
+                        $pctNeto = round(($netoNum / $brutoNum) * 100, 1);
+                        $pctIva  = round(($ivaNum / $brutoNum) * 100, 1);
+                        $pctLog  = round(($logNum / $brutoNum) * 100, 1);
+                    @endphp
+
+                    <!-- Barra de Composición Visual -->
+                    <div class="finance-bar-container" id="financeBarContainer">
+                        <div class="finance-segment-neto" id="barPctNeto" style="width: {{ $pctNeto }}%;" title="Venta Neta: {{ $pctNeto }}%"></div>
+                        <div class="finance-segment-iva" id="barPctIva" style="width: {{ $pctIva }}%;" title="IVA: {{ $pctIva }}%"></div>
+                        <div class="finance-segment-log" id="barPctLog" style="width: {{ $pctLog }}%;" title="Logística: {{ $pctLog }}%"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between flex-wrap text-muted small mb-4">
+                        <span class="d-flex align-items-center mb-1">
+                            <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #10b981;"></span>
+                            Venta Neta (<span id="txtPctNeto">{{ $pctNeto }}%</span>)
+                        </span>
+                        <span class="d-flex align-items-center mb-1">
+                            <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #ef4444;"></span>
+                            IVA 16% (<span id="txtPctIva">{{ $pctIva }}%</span>)
+                        </span>
+                        <span class="d-flex align-items-center mb-1">
+                            <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #f59e0b;"></span>
+                            Logística y Paquetería (<span id="txtPctLog">{{ $pctLog }}%</span>)
+                        </span>
+                    </div>
+
+                    <!-- Tabla de Auditoría Contable -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <td>{{ $vendedor->nombre }}</td>
-                                    <td>{{ $vendedor->numero_cotizaciones }}</td>
-                                    <td>{{ $vendedor->numero_ventas }}</td>
-                                    <td>${{ $vendedor->total_cotizado }}</td>
-                                    <td>${{ $vendedor->total_generado }}</td>
-                                    <td>{{ $vendedor->promedio_exito }}%</td>
-                                    <td>{{ $vendedor->cliente_estrella }}</td>
+                                    <th>Concepto Financiero</th>
+                                    <th>Naturaleza</th>
+                                    <th class="text-right">Monto</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-weight-bold">Facturación Bruta (Total Ventas)</td>
+                                    <td><span class="badge badge-primary">Ingreso Bruto</span></td>
+                                    <td class="text-right font-weight-bold text-primary" id="tblTotalVentas">${{ $totalVentas }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Menos: Impuesto al Valor Agregado (IVA 16%)</td>
+                                    <td><span class="badge badge-danger">Deducción Fiscal</span></td>
+                                    <td class="text-right text-danger" id="tblTotalIVA">-${{ $totalIVA }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Menos: Fletes Locales y Logística Directa</td>
+                                    <td><span class="badge badge-warning">Costo Operativo</span></td>
+                                    <td class="text-right text-warning" id="tblTotalEnvios">-${{ $totalEnvios }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Menos: Envíos por Paquetería Foránea</td>
+                                    <td><span class="badge badge-warning">Costo Operativo</span></td>
+                                    <td class="text-right text-warning" id="tblTotalPaq">-${{ $totalEnviosPaqueteria }}</td>
+                                </tr>
+                                <tr class="bg-light font-weight-bold">
+                                    <td class="text-success h6 mb-0">Total Venta Neta Disponible</td>
+                                    <td><span class="badge badge-success">Utilidad Bruta Efectiva</span></td>
+                                    <td class="text-right text-success h6 mb-0" id="tblTotalNeto">${{ $totalNeto }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-
-    {{-- Grafica ventas por mes --}}
-    <h6 class="text-primary font-weight-bold">Ventas por mes</h6>
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="chart_fecha_inicio">Fecha inicio:</label>
-                <input type="date" id="chart_fecha_inicio" class="form-control">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label for="chart_fecha_fin">Fecha fin:</label>
-                <input type="date" id="chart_fecha_fin" class="form-control">
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="form-group">
-                <label>&nbsp;</label>
-                <div class="d-flex flex-wrap">
-                    <button id="aplicar_filtro_fechas"
-                        class="btn btn-primary rounded-pill px-4 py-2 font-weight-bold mb-2">
-                        <i class="fas fa-filter mr-2"></i>Filtrar
-                    </button>
-                    <button id="limpiar_filtros"
-                        class="btn btn-secondary rounded-pill px-4 py-2 font-weight-bold mb-2">
-                        <i class="fas fa-broom mr-2"></i>Limpiar
-                    </button>
+        <!-- ========================================== -->
+        <!-- PESTAÑA 3: DETALLE DE VENDEDORES           -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-vendedores" role="tabpanel" aria-labelledby="tab-vendedores-link">
+            <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
+                    <h6 class="m-0 font-weight-bold text-gray-800">
+                        <i class="fas fa-users text-primary mr-2"></i>Rendimiento por Vendedor
+                    </h6>
+                    <span class="badge badge-light border text-muted">Ordenados por monto facturado</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-vendedores table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Vendedor</th>
+                                    <th class="text-center"># Cotizaciones</th>
+                                    <th class="text-center"># Ventas</th>
+                                    <th class="text-right">Total Cotizado</th>
+                                    <th class="text-right">Total Vendido</th>
+                                    <th class="text-center">Tasa Éxito</th>
+                                    <th>Cliente Estrella ⭐</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendedoresPrincipales">
+                                @forelse ($vendedoresPrin as $vendedor)
+                                    @php
+                                        $inicial = strtoupper(substr($vendedor->nombre, 0, 1));
+                                        $tasa = (float) $vendedor->promedio_exito;
+                                        $tasaClass = $tasa >= 25 ? 'badge-success' : ($tasa >= 15 ? 'badge-warning' : 'badge-secondary');
+                                    @endphp
+                                    <tr>
+                                        <td class="font-weight-bold">
+                                            <span class="vendedor-avatar">{{ $inicial }}</span>
+                                            {{ $vendedor->nombre }}
+                                        </td>
+                                        <td class="text-center">{{ number_format($vendedor->numero_cotizaciones) }}</td>
+                                        <td class="text-center font-weight-bold text-success">{{ number_format($vendedor->numero_ventas) }}</td>
+                                        <td class="text-right text-muted">${{ $vendedor->total_cotizado }}</td>
+                                        <td class="text-right font-weight-bold text-primary">${{ $vendedor->total_generado }}</td>
+                                        <td class="text-center">
+                                            <span class="badge {{ $tasaClass }} badge-tasa">{{ $vendedor->promedio_exito }}%</span>
+                                        </td>
+                                        <td>
+                                            @if ($vendedor->cliente_estrella !== 'N/A')
+                                                <i class="fas fa-star text-warning mr-1"></i><strong>{{ $vendedor->cliente_estrella }}</strong>
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            No hay registros de vendedores para el período seleccionado.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="graficas-ventas-container">
-        <canvas id="ventasChart"></canvas>
-    </div>
 
+    </div>
 </div>
