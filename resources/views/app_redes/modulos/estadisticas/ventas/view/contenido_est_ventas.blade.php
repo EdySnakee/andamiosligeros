@@ -12,7 +12,7 @@
         --color-purple-light: #f5f3ff;
     }
 
-    /* Pestañas de Navegación Modernas */
+    /* Pestañas de Navegación */
     .ventas-nav-container {
         margin-bottom: 24px;
     }
@@ -37,7 +37,7 @@
         font-weight: 700;
         font-size: 13.5px;
         color: #64748b;
-        padding: 10px 22px;
+        padding: 10px 24px;
         transition: all 0.2s ease;
         border: 1px solid transparent;
         display: flex;
@@ -56,34 +56,35 @@
         box-shadow: 0 4px 14px rgba(8, 72, 175, 0.25);
     }
 
-    /* Tarjetas de Estadísticas Espaciosas */
+    /* Tarjetas de Estadísticas */
     .stat-card {
-        border: 0 !important;
+        border: 1px solid #f1f5f9 !important;
         border-radius: 16px !important;
         overflow: hidden;
         background: #ffffff;
-        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05) !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         position: relative;
     }
 
     .stat-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1) !important;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
     }
 
     .stat-card .card-body {
-        padding: 22px 24px !important;
+        padding: 18px 20px !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 14px;
     }
 
     .stat-card-hero {
         background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
         color: #ffffff !important;
-        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25) !important;
+        border: 0 !important;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.22) !important;
     }
 
     .stat-card-hero .stat-label { color: rgba(255, 255, 255, 0.85) !important; }
@@ -95,7 +96,7 @@
         left: 0;
         top: 0;
         bottom: 0;
-        width: 5px;
+        width: 4px;
         background: var(--color-primary);
     }
 
@@ -108,7 +109,7 @@
     .stat-meta {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
         min-width: 0;
     }
 
@@ -122,7 +123,7 @@
     }
 
     .stat-value {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
         color: #0f172a;
         margin: 0;
@@ -131,19 +132,19 @@
     }
 
     .stat-sublabel {
-        font-size: 11.5px;
+        font-size: 11px;
         color: #94a3b8;
         margin: 0;
     }
 
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
         display: grid;
         place-items: center;
         flex: 0 0 auto;
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .stat-card-primary .stat-icon { background: var(--color-primary-light); color: var(--color-primary); }
@@ -190,12 +191,12 @@
         box-shadow: 0 2px 8px rgba(8, 72, 175, 0.25);
     }
 
-    /* Leaderboard de Productos Más Vendidos (Compacto y Elegante) */
+    /* Leaderboard de Productos Más Vendidos */
     .leaderboard-item {
-        padding: 14px 18px;
+        padding: 12px 16px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         border-bottom: 1px solid #f1f5f9;
         transition: background 0.15s ease;
     }
@@ -209,8 +210,8 @@
     }
 
     .leaderboard-rank {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         display: grid;
         place-items: center;
@@ -231,7 +232,7 @@
     }
 
     .leaderboard-name {
-        font-size: 13.5px;
+        font-size: 13px;
         font-weight: 700;
         color: #1e293b;
         margin: 0 0 4px 0;
@@ -265,7 +266,7 @@
     }
 
     .leaderboard-total-value {
-        font-size: 14.5px;
+        font-size: 14px;
         font-weight: 700;
         color: #0848af;
     }
@@ -321,8 +322,8 @@
     }
 
     .finance-segment-neto { background: #10b981; }
-    .finance-segment-iva { background: #ef4444; }
-    .finance-segment-log { background: #f59e0b; }
+    .finance-segment-iva  { background: #ef4444; }
+    .finance-segment-log  { background: #f59e0b; }
 </style>
 
 <div class="container-fluid py-2">
@@ -332,7 +333,7 @@
             <h2 class="font-weight-bold text-gray-800 mb-1" style="font-size: 1.65rem;">
                 <i class="fas fa-chart-line text-primary mr-2"></i>Estadísticas de Ventas
             </h2>
-            <p class="text-muted mb-0 small">Métricas de desempeño comercial, volumen facturado e ingresos netos.</p>
+            <p class="text-muted mb-0 small">Métricas de prospección comercial, ventas facturadas, finanzas y rendimiento de equipo.</p>
         </div>
         <div class="mt-2 mt-sm-0">
             <span class="badge badge-light border text-secondary px-3 py-2 font-weight-normal">
@@ -387,17 +388,12 @@
         </div>
     </div>
 
-    <!-- Pestañas Principales (Organización Limpia y Espaciosa) -->
+    <!-- Pestañas Principales (Comercial + Financiero unificados / Detalle Vendedores) -->
     <div class="ventas-nav-container">
         <ul class="nav nav-pills custom-pills" id="ventasTabs" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" id="tab-comercial-link" data-toggle="pill" href="#tab-comercial" role="tab" aria-controls="tab-comercial" aria-selected="true">
-                    <i class="fas fa-chart-line"></i> Rendimiento Comercial
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="tab-financiero-link" data-toggle="pill" href="#tab-financiero" role="tab" aria-controls="tab-financiero" aria-selected="false">
-                    <i class="fas fa-wallet"></i> Resumen Financiero
+                <a class="nav-link active" id="tab-general-link" data-toggle="pill" href="#tab-general" role="tab" aria-controls="tab-general" aria-selected="true">
+                    <i class="fas fa-chart-pie"></i> Resumen Comercial y Financiero
                 </a>
             </li>
             <li class="nav-item">
@@ -411,12 +407,21 @@
     <!-- Contenido de Pestañas -->
     <div class="tab-content" id="ventasTabsContent">
 
-        <!-- ========================================== -->
-        <!-- PESTAÑA 1: RENDIMIENTO COMERCIAL           -->
-        <!-- ========================================== -->
-        <div class="tab-pane fade show active" id="tab-comercial" role="tabpanel" aria-labelledby="tab-comercial-link">
-            <!-- 4 Tarjetas Comerciales -->
+        <!-- ============================================================== -->
+        <!-- PESTAÑA UNIFICADA: RESUMEN COMERCIAL Y FINANCIERO               -->
+        <!-- ============================================================== -->
+        <div class="tab-pane fade show active" id="tab-general" role="tabpanel" aria-labelledby="tab-general-link">
+
+            <!-- 1. BLOQUE DE DESEMPEÑO COMERCIAL -->
+            <div class="d-flex align-items-center mb-3 mt-1">
+                <span class="badge badge-primary px-3 py-1 font-weight-bold" style="font-size: 11.5px; border-radius: 20px;">
+                    <i class="fas fa-bullseye mr-1"></i> Desempeño Comercial
+                </span>
+                <div class="flex-grow-1 border-bottom ml-3"></div>
+            </div>
+
             <div class="row mb-4">
+                <!-- Cotizaciones -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-primary h-100">
                         <span class="stat-accent"></span>
@@ -435,6 +440,7 @@
                     </div>
                 </div>
 
+                <!-- Ventas Concretadas -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-success h-100">
                         <span class="stat-accent"></span>
@@ -453,6 +459,7 @@
                     </div>
                 </div>
 
+                <!-- Tasa de Conversión -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-purple h-100">
                         <span class="stat-accent"></span>
@@ -469,6 +476,7 @@
                     </div>
                 </div>
 
+                <!-- Ticket Promedio -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-warning h-100">
                         <span class="stat-accent"></span>
@@ -476,7 +484,7 @@
                             <div class="stat-meta">
                                 <p class="stat-label">Ticket Promedio</p>
                                 <p id="promedioVentas" class="stat-value">${{ $promedioVentas }}</p>
-                                <p class="stat-sublabel">Promedio por venta</p>
+                                <p class="stat-sublabel">Importe medio por venta</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-receipt"></i>
@@ -486,35 +494,122 @@
                 </div>
             </div>
 
-            <!-- Gráfica Mensual y Top Productos en 2 Columnas Equilibradas -->
+            <!-- 2. BLOQUE DE RESUMEN FINANCIERO -->
+            <div class="d-flex align-items-center mb-3 mt-1">
+                <span class="badge text-white px-3 py-1 font-weight-bold" style="font-size: 11.5px; border-radius: 20px; background: #059669;">
+                    <i class="fas fa-wallet mr-1"></i> Balance Financiero
+                </span>
+                <div class="flex-grow-1 border-bottom ml-3"></div>
+            </div>
+
             <div class="row mb-4">
-                <!-- Columna Izquierda (7 columnas): Gráfica Mensual -->
+                <!-- Ventas Brutas -->
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-primary h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ventas Brutas</p>
+                                <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
+                                <p class="stat-sublabel">Facturación total acumulada</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Impuesto IVA -->
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-danger h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Impuesto IVA</p>
+                                <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
+                                <p class="stat-sublabel">Acumulado en ventas facturadas</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gastos Logística -->
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-warning h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Gastos Logística</p>
+                                <p id="totalLogistica" class="stat-value">
+                                    ${{ number_format((float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria), 2) }}
+                                </p>
+                                <p class="stat-sublabel">
+                                    Envío: <span id="totalEnvios" class="font-weight-bold">${{ $totalEnvios }}</span> |
+                                    Paq: <span id="totalEnviosPaqueteria" class="font-weight-bold">${{ $totalEnviosPaqueteria }}</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HERO CARD: Venta Neta -->
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-hero h-100">
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="badge badge-light text-success font-weight-bold small px-2 py-1">
+                                        <i class="fas fa-shield-alt mr-1"></i>Ingreso Efectivo
+                                    </span>
+                                </div>
+                                <p class="stat-label">Venta Neta</p>
+                                <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
+                                <p class="stat-sublabel text-white-50">Ventas - IVA - Logística</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. BLOQUE GRÁFICA MENSUAL Y TOP PRODUCTOS -->
+            <div class="row mb-4">
+                <!-- Columna Izquierda (7-8 cols): Gráfica Mensual -->
                 <div class="col-lg-7 col-xl-8 mb-4 mb-lg-0">
                     <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
                         <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
                             <h6 class="m-0 font-weight-bold text-gray-800">
-                                <i class="fas fa-chart-area text-primary mr-2"></i>Evolución Mensual (Ventas vs Cotizaciones)
+                                <i class="fas fa-chart-area text-primary mr-2"></i>Evolución Mensual de Ventas vs Cotizaciones
                             </h6>
-                            <span class="small text-muted">Doble eje: Volumen y Monto ($)</span>
+                            <span class="small text-muted">Doble eje: Volumen y Monto facturado ($)</span>
                         </div>
                         <div class="card-body">
-                            <div style="position: relative; min-height: 400px; width: 100%;">
+                            <div style="position: relative; min-height: 380px; width: 100%;">
                                 <canvas id="ventasChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Columna Derecha (5 columnas): Leaderboard de Productos Más Vendidos -->
+                <!-- Columna Derecha (4-5 cols): Leaderboard de Productos Más Vendidos -->
                 <div class="col-lg-5 col-xl-4">
                     <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
                         <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
                             <h6 class="m-0 font-weight-bold text-gray-800">
-                                <i class="fas fa-trophy text-warning mr-2"></i>Top Productos
+                                <i class="fas fa-trophy text-warning mr-2"></i>Top Productos Más Vendidos
                             </h6>
-                            <span class="badge badge-light border text-muted small">Más vendidos</span>
+                            <span class="badge badge-light border text-muted small">Por volumen e importe</span>
                         </div>
-                        <div class="card-body p-0" style="max-height: 450px; overflow-y: auto;">
+                        <div class="card-body p-0" style="max-height: 440px; overflow-y: auto;">
                             <div id="productosMasVendidos">
                                 @forelse ($productosMasVendidos as $index => $producto)
                                     @php
@@ -549,98 +644,18 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ========================================== -->
-        <!-- PESTAÑA 2: RESUMEN FINANCIERO              -->
-        <!-- ========================================== -->
-        <div class="tab-pane fade" id="tab-financiero" role="tabpanel" aria-labelledby="tab-financiero-link">
-            <!-- 4 Tarjetas Financieras -->
-            <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stat-card stat-card-primary h-100">
-                        <span class="stat-accent"></span>
-                        <div class="card-body">
-                            <div class="stat-meta">
-                                <p class="stat-label">Ventas Brutas</p>
-                                <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
-                                <p class="stat-sublabel">Facturación total acumulada</p>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stat-card stat-card-danger h-100">
-                        <span class="stat-accent"></span>
-                        <div class="card-body">
-                            <div class="stat-meta">
-                                <p class="stat-label">Impuesto IVA (16%)</p>
-                                <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
-                                <p class="stat-sublabel">Débito fiscal transferido</p>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="fas fa-file-invoice-dollar"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stat-card stat-card-warning h-100">
-                        <span class="stat-accent"></span>
-                        <div class="card-body">
-                            <div class="stat-meta">
-                                <p class="stat-label">Gastos Logística</p>
-                                <p id="totalLogistica" class="stat-value">
-                                    ${{ number_format((float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria), 2) }}
-                                </p>
-                                <p class="stat-sublabel">
-                                    Envío: <span id="totalEnvios" class="font-weight-bold">${{ $totalEnvios }}</span> |
-                                    Paq: <span id="totalEnviosPaqueteria" class="font-weight-bold">${{ $totalEnviosPaqueteria }}</span>
-                                </p>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="fas fa-shipping-fast"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stat-card stat-card-hero h-100">
-                        <div class="card-body">
-                            <div class="stat-meta">
-                                <div class="d-flex align-items-center mb-1">
-                                    <span class="badge badge-light text-success font-weight-bold small px-2 py-1">
-                                        <i class="fas fa-shield-alt mr-1"></i>Ingreso Efectivo
-                                    </span>
-                                </div>
-                                <p class="stat-label">Venta Neta</p>
-                                <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
-                                <p class="stat-sublabel text-white-50">Ventas - IVA - Logística</p>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="fas fa-wallet"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Desglose Financiero Auditoría -->
+            <!-- 4. BLOQUE DE DESGLOSE Y AUDITORÍA FINANCIERA -->
             <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
-                <div class="card-header bg-white py-3 border-bottom">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-gray-800">
-                        <i class="fas fa-balance-scale text-primary mr-2"></i>Estructura y Composición del Ingreso
+                        <i class="fas fa-balance-scale text-primary mr-2"></i>Estructura del Ingreso y Auditoría Contable
                     </h6>
+                    <span class="small text-muted">Desglose de deducciones sobre el ingreso bruto</span>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small mb-3">
-                        Visualización porcentual de deducciones (IVA y gastos logísticos) respecto a la facturación bruta total:
+                        Composición porcentual de deducciones (IVA y logística) respecto al total bruto facturado:
                     </p>
 
                     @php
@@ -668,7 +683,7 @@
                         </span>
                         <span class="d-flex align-items-center mb-1">
                             <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #ef4444;"></span>
-                            IVA 16% (<span id="txtPctIva">{{ $pctIva }}%</span>)
+                            IVA Facturado (<span id="txtPctIva">{{ $pctIva }}%</span>)
                         </span>
                         <span class="d-flex align-items-center mb-1">
                             <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #f59e0b;"></span>
@@ -693,7 +708,7 @@
                                     <td class="text-right font-weight-bold text-primary" id="tblTotalVentas">${{ $totalVentas }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Menos: Impuesto al Valor Agregado (IVA 16%)</td>
+                                    <td>Menos: Impuesto al Valor Agregado (IVA cobrado en facturas)</td>
                                     <td><span class="badge badge-danger">Deducción Fiscal</span></td>
                                     <td class="text-right text-danger" id="tblTotalIVA">-${{ $totalIVA }}</td>
                                 </tr>
@@ -717,11 +732,12 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
-        <!-- ========================================== -->
-        <!-- PESTAÑA 3: DETALLE DE VENDEDORES           -->
-        <!-- ========================================== -->
+        <!-- ============================================================== -->
+        <!-- PESTAÑA 2: DETALLE DE VENDEDORES                               -->
+        <!-- ============================================================== -->
         <div class="tab-pane fade" id="tab-vendedores" role="tabpanel" aria-labelledby="tab-vendedores-link">
             <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
