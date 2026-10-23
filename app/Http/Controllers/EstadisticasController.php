@@ -75,7 +75,7 @@ class EstadisticasController extends Controller
         $totalCotizaciones = (float) ($cotisAgg->total_cotizaciones ?? 0);
 
         $tasaConversion = $numCotizaciones > 0 ? round(($numeroVentas / $numCotizaciones) * 100, 2) : 0;
-        $totalNeto = $totalVentas - $totalIVA - $totalEnvios - $totalEnviosPaqueteria;
+        $totalNeto = $totalVentas + $totalEnvios - $totalIVA - $totalEnviosPaqueteria;
 
         return [
             'totalVentas'           => number_format($totalVentas, 2),

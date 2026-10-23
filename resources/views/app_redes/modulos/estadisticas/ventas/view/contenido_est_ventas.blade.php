@@ -449,7 +449,7 @@
                                 <p class="stat-label">Ventas Concretadas</p>
                                 <p id="numeroVentas" class="stat-value">{{ number_format($numeroVentas) }}</p>
                                 <p class="stat-sublabel text-success font-weight-bold">
-                                    <i class="fas fa-check-circle"></i> Estatus 3 (Cerradas)
+                                    <i class="fas fa-check-circle mr-1"></i><span id="tasaConversionCard">{{ $tasaConversion }}%</span> tasa de conversión
                                 </p>
                             </div>
                             <div class="stat-icon">
@@ -494,10 +494,10 @@
                 </div>
             </div>
 
-            <!-- 2. BLOQUE DE DEDUCCIONES Y VENTA NETA -->
+            <!-- 2. BLOQUE DE BALANCE FINANCIERO Y VENTA NETA -->
             <div class="d-flex align-items-center mb-3 mt-1">
                 <span class="badge text-white px-3 py-1 font-weight-bold" style="font-size: 11.5px; border-radius: 20px; background: #059669;">
-                    <i class="fas fa-wallet mr-1"></i> Deducciones y Venta Neta
+                    <i class="fas fa-wallet mr-1"></i> Balance Financiero y Venta Neta
                 </span>
                 <div class="flex-grow-1 border-bottom ml-3"></div>
             </div>
@@ -510,8 +510,8 @@
                         <div class="card-body">
                             <div class="stat-meta">
                                 <p class="stat-label">Impuesto IVA</p>
-                                <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
-                                <p class="stat-sublabel">Acumulado en ventas facturadas</p>
+                                <p id="totalIVA" class="stat-value text-danger">-${{ $totalIVA }}</p>
+                                <p class="stat-sublabel">Deducción fiscal acumulada</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-file-invoice-dollar"></i>
@@ -520,32 +520,32 @@
                     </div>
                 </div>
 
-                <!-- 2. Envíos (Flete Local) -->
+                <!-- 2. Cobro de Envíos al Cliente -->
                 <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stat-card stat-card-warning h-100">
+                    <div class="card stat-card stat-card-primary h-100">
                         <span class="stat-accent"></span>
                         <div class="card-body">
                             <div class="stat-meta">
-                                <p class="stat-label">Envíos (Flete Local)</p>
-                                <p id="totalEnvios" class="stat-value text-warning">${{ $totalEnvios }}</p>
-                                <p class="stat-sublabel">Entregas y traslados directos</p>
+                                <p class="stat-label">Cobro de Envíos</p>
+                                <p id="totalEnvios" class="stat-value text-primary">+${{ $totalEnvios }}</p>
+                                <p class="stat-sublabel">Pagado por clientes para flete</p>
                             </div>
                             <div class="stat-icon">
-                                <i class="fas fa-truck"></i>
+                                <i class="fas fa-truck-loading"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. Paquetería Foránea -->
+                <!-- 3. Costo de Paquetería -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-warning h-100">
                         <span class="stat-accent"></span>
                         <div class="card-body">
                             <div class="stat-meta">
-                                <p class="stat-label">Paquetería Foránea</p>
-                                <p id="totalEnviosPaqueteria" class="stat-value text-warning">${{ $totalEnviosPaqueteria }}</p>
-                                <p class="stat-sublabel">Envíos nacionales externos</p>
+                                <p class="stat-label">Gasto en Paquetería</p>
+                                <p id="totalEnviosPaqueteria" class="stat-value text-warning">-${{ $totalEnviosPaqueteria }}</p>
+                                <p class="stat-sublabel">Pago a empresas de paquetería</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-boxes"></i>
@@ -566,7 +566,7 @@
                                 </div>
                                 <p class="stat-label">Venta Neta</p>
                                 <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
-                                <p class="stat-sublabel text-white-50">Ventas - IVA - Envíos - Paq</p>
+                                <p class="stat-sublabel text-white-50">Ventas + Envíos - IVA - Paquetería</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-coins"></i>
@@ -665,29 +665,31 @@
                     <h6 class="m-0 font-weight-bold text-gray-800">
                         <i class="fas fa-balance-scale text-primary mr-2"></i>Estructura del Ingreso y Auditoría Contable
                     </h6>
-                    <span class="small text-muted">Desglose de deducciones sobre el ingreso bruto</span>
+                    <span class="small text-muted">Desglose de ingresos, deducciones y costo de paquetería</span>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small mb-3">
-                        Composición porcentual de deducciones (IVA y logística) respecto al total bruto facturado:
+                        Composición porcentual de ingresos brutos totales (Ventas de Productos + Cobro de Envíos) y sus deducciones:
                     </p>
 
                     @php
-                        $brutoNum = max(0.01, (float) str_replace(',', '', $totalVentas));
-                        $netoNum  = max(0, (float) str_replace(',', '', $totalNeto));
-                        $ivaNum   = max(0, (float) str_replace(',', '', $totalIVA));
-                        $logNum   = max(0, (float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria));
+                        $ventasNum     = max(0, (float) str_replace(',', '', $totalVentas));
+                        $enviosNum     = max(0, (float) str_replace(',', '', $totalEnvios));
+                        $totalIngresos = max(0.01, $ventasNum + $enviosNum);
+                        $netoNum       = max(0, (float) str_replace(',', '', $totalNeto));
+                        $ivaNum        = max(0, (float) str_replace(',', '', $totalIVA));
+                        $paqNum        = max(0, (float) str_replace(',', '', $totalEnviosPaqueteria));
 
-                        $pctNeto = round(($netoNum / $brutoNum) * 100, 1);
-                        $pctIva  = round(($ivaNum / $brutoNum) * 100, 1);
-                        $pctLog  = round(($logNum / $brutoNum) * 100, 1);
+                        $pctNeto = round(($netoNum / $totalIngresos) * 100, 1);
+                        $pctIva  = round(($ivaNum / $totalIngresos) * 100, 1);
+                        $pctPaq  = round(($paqNum / $totalIngresos) * 100, 1);
                     @endphp
 
                     <!-- Barra de Composición Visual -->
                     <div class="finance-bar-container" id="financeBarContainer">
                         <div class="finance-segment-neto" id="barPctNeto" style="width: {{ $pctNeto }}%;" title="Venta Neta: {{ $pctNeto }}%"></div>
                         <div class="finance-segment-iva" id="barPctIva" style="width: {{ $pctIva }}%;" title="IVA: {{ $pctIva }}%"></div>
-                        <div class="finance-segment-log" id="barPctLog" style="width: {{ $pctLog }}%;" title="Logística: {{ $pctLog }}%"></div>
+                        <div class="finance-segment-log" id="barPctLog" style="width: {{ $pctPaq }}%;" title="Costo Paquetería: {{ $pctPaq }}%"></div>
                     </div>
 
                     <div class="d-flex justify-content-between flex-wrap text-muted small mb-4">
@@ -701,7 +703,7 @@
                         </span>
                         <span class="d-flex align-items-center mb-1">
                             <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #f59e0b;"></span>
-                            Logística y Paquetería (<span id="txtPctLog">{{ $pctLog }}%</span>)
+                            Costo de Paquetería (<span id="txtPctLog">{{ $pctPaq }}%</span>)
                         </span>
                     </div>
 
@@ -717,9 +719,14 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="font-weight-bold">Facturación Bruta (Total Ventas)</td>
+                                    <td class="font-weight-bold">Facturación Bruta (Ventas de Productos)</td>
                                     <td><span class="badge badge-primary">Ingreso Bruto</span></td>
                                     <td class="text-right font-weight-bold text-primary" id="tblTotalVentas">${{ $totalVentas }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Más: Cobro de Envíos al Cliente (Flete)</td>
+                                    <td><span class="badge badge-info">Ingreso por Envío</span></td>
+                                    <td class="text-right font-weight-bold text-info" id="tblTotalEnvios">+${{ $totalEnvios }}</td>
                                 </tr>
                                 <tr>
                                     <td>Menos: Impuesto al Valor Agregado (IVA cobrado en facturas)</td>
@@ -727,18 +734,13 @@
                                     <td class="text-right text-danger" id="tblTotalIVA">-${{ $totalIVA }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Menos: Fletes Locales y Logística Directa</td>
-                                    <td><span class="badge badge-warning">Costo Operativo</span></td>
-                                    <td class="text-right text-warning" id="tblTotalEnvios">-${{ $totalEnvios }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Menos: Envíos por Paquetería Foránea</td>
+                                    <td>Menos: Costo de Paquetería Externa (Pago a transportistas)</td>
                                     <td><span class="badge badge-warning">Costo Operativo</span></td>
                                     <td class="text-right text-warning" id="tblTotalPaq">-${{ $totalEnviosPaqueteria }}</td>
                                 </tr>
                                 <tr class="bg-light font-weight-bold">
                                     <td class="text-success h6 mb-0">Total Venta Neta Disponible</td>
-                                    <td><span class="badge badge-success">Utilidad Bruta Efectiva</span></td>
+                                    <td><span class="badge badge-success">Ingreso Neto Efectivo</span></td>
                                     <td class="text-right text-success h6 mb-0" id="tblTotalNeto">${{ $totalNeto }}</td>
                                 </tr>
                             </tbody>

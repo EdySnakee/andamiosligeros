@@ -98,43 +98,42 @@
                         $('#totalCotizaciones').text('$' + result.totalCotizaciones);
                         $('#numeroVentas').text(Number(result.numeroVentas || 0).toLocaleString());
                         $('#tasaConversion').text((result.tasaConversion || 0) + '%');
+                        $('#tasaConversionCard').text((result.tasaConversion || 0) + '%');
                         $('#promedioVentas').text('$' + result.promedioVentas);
 
                         // 2. Actualizar KPIs Financieros
                         $('#totalVentas').text('$' + result.totalVentas);
-                        $('#totalIVA').text('$' + result.totalIVA);
-                        $('#totalEnvios').text('$' + result.totalEnvios);
-                        $('#totalEnviosPaqueteria').text('$' + result.totalEnviosPaqueteria);
+                        $('#totalIVA').text('-$' + result.totalIVA);
+                        $('#totalEnvios').text('+$' + result.totalEnvios);
+                        $('#totalEnviosPaqueteria').text('-$' + result.totalEnviosPaqueteria);
                         $('#totalNeto').text('$' + result.totalNeto);
 
-                        // Logística calculada
-                        const brutoVal = parseFloat(String(result.totalVentas).replace(/,/g, '')) || 0.01;
+                        // Ingreso total para cálculo de porcentajes
+                        const ventasVal = parseFloat(String(result.totalVentas).replace(/,/g, '')) || 0;
+                        const enviosVal = parseFloat(String(result.totalEnvios).replace(/,/g, '')) || 0;
+                        const totalIngresos = Math.max(0.01, ventasVal + enviosVal);
                         const netoVal = parseFloat(String(result.totalNeto).replace(/,/g, '')) || 0;
                         const ivaVal = parseFloat(String(result.totalIVA).replace(/,/g, '')) || 0;
-                        const enviosVal = parseFloat(String(result.totalEnvios).replace(/,/g, '')) || 0;
                         const paqVal = parseFloat(String(result.totalEnviosPaqueteria).replace(/,/g, '')) || 0;
-                        const logVal = enviosVal + paqVal;
-
-                        $('#totalLogistica').text('$' + logVal.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
                         // Actualizar Tabla y Barra Financiera
                         $('#tblTotalVentas').text('$' + result.totalVentas);
+                        $('#tblTotalEnvios').text('+$' + result.totalEnvios);
                         $('#tblTotalIVA').text('-$' + result.totalIVA);
-                        $('#tblTotalEnvios').text('-$' + result.totalEnvios);
                         $('#tblTotalPaq').text('-$' + result.totalEnviosPaqueteria);
                         $('#tblTotalNeto').text('$' + result.totalNeto);
 
-                        const pctNeto = Math.max(0, Math.min(100, ((netoVal / brutoVal) * 100).toFixed(1)));
-                        const pctIva = Math.max(0, Math.min(100, ((ivaVal / brutoVal) * 100).toFixed(1)));
-                        const pctLog = Math.max(0, Math.min(100, ((logVal / brutoVal) * 100).toFixed(1)));
+                        const pctNeto = Math.max(0, Math.min(100, ((netoVal / totalIngresos) * 100).toFixed(1)));
+                        const pctIva = Math.max(0, Math.min(100, ((ivaVal / totalIngresos) * 100).toFixed(1)));
+                        const pctPaq = Math.max(0, Math.min(100, ((paqVal / totalIngresos) * 100).toFixed(1)));
 
                         $('#barPctNeto').css('width', pctNeto + '%').attr('title', 'Venta Neta: ' + pctNeto + '%');
                         $('#barPctIva').css('width', pctIva + '%').attr('title', 'IVA: ' + pctIva + '%');
-                        $('#barPctLog').css('width', pctLog + '%').attr('title', 'Logística: ' + pctLog + '%');
+                        $('#barPctLog').css('width', pctPaq + '%').attr('title', 'Costo Paquetería: ' + pctPaq + '%');
 
                         $('#txtPctNeto').text(pctNeto + '%');
                         $('#txtPctIva').text(pctIva + '%');
-                        $('#txtPctLog').text(pctLog + '%');
+                        $('#txtPctLog').text(pctPaq + '%');
 
                         // 3. Renderizar Top Productos en Leaderboard
                         renderProductos(result.productosMasVendidos);
