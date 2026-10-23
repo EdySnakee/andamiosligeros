@@ -77,7 +77,7 @@
             const fecha_fin = $('#fecha_fin').val();
             const $btn = $('#btnFiltrarVentas');
 
-            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Actualizando...');
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Filtrando...');
 
             $.ajax({
                 url: '{{ route('ajax_est_ventas') }}',
@@ -107,11 +107,35 @@
                         $('#totalNeto').text('$' + result.totalNeto);
 
                         // Logística calculada
+                        const brutoVal = parseFloat(String(result.totalVentas).replace(/,/g, '')) || 0.01;
+                        const netoVal = parseFloat(String(result.totalNeto).replace(/,/g, '')) || 0;
+                        const ivaVal = parseFloat(String(result.totalIVA).replace(/,/g, '')) || 0;
                         const enviosVal = parseFloat(String(result.totalEnvios).replace(/,/g, '')) || 0;
                         const paqVal = parseFloat(String(result.totalEnviosPaqueteria).replace(/,/g, '')) || 0;
-                        $('#totalLogistica').text('$' + (enviosVal + paqVal).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        const logVal = enviosVal + paqVal;
 
-                        // 3. Renderizar Top Productos
+                        $('#totalLogistica').text('$' + logVal.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                        // Actualizar Tabla y Barra Financiera
+                        $('#tblTotalVentas').text('$' + result.totalVentas);
+                        $('#tblTotalIVA').text('-$' + result.totalIVA);
+                        $('#tblTotalEnvios').text('-$' + result.totalEnvios);
+                        $('#tblTotalPaq').text('-$' + result.totalEnviosPaqueteria);
+                        $('#tblTotalNeto').text('$' + result.totalNeto);
+
+                        const pctNeto = Math.max(0, Math.min(100, ((netoVal / brutoVal) * 100).toFixed(1)));
+                        const pctIva = Math.max(0, Math.min(100, ((ivaVal / brutoVal) * 100).toFixed(1)));
+                        const pctLog = Math.max(0, Math.min(100, ((logVal / brutoVal) * 100).toFixed(1)));
+
+                        $('#barPctNeto').css('width', pctNeto + '%').attr('title', 'Venta Neta: ' + pctNeto + '%');
+                        $('#barPctIva').css('width', pctIva + '%').attr('title', 'IVA: ' + pctIva + '%');
+                        $('#barPctLog').css('width', pctLog + '%').attr('title', 'Logística: ' + pctLog + '%');
+
+                        $('#txtPctNeto').text(pctNeto + '%');
+                        $('#txtPctIva').text(pctIva + '%');
+                        $('#txtPctLog').text(pctLog + '%');
+
+                        // 3. Renderizar Top Productos en Leaderboard
                         renderProductos(result.productosMasVendidos);
 
                         // 4. Renderizar Vendedores
@@ -132,18 +156,16 @@
             });
         }
 
-        // Renderizado dinámico de Productos Más Vendidos
+        // Renderizado dinámico de Productos Más Vendidos (Leaderboard)
         function renderProductos(productos) {
             const container = $('#productosMasVendidos');
             container.empty();
 
             if (!productos || productos.length === 0) {
                 container.html(`
-                    <div class="col-12">
-                        <div class="alert alert-light text-center border py-4 text-muted">
-                            <i class="fas fa-box-open fa-2x mb-2 text-gray-400"></i>
-                            <p class="mb-0">No se registraron ventas de productos en este período.</p>
-                        </div>
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-box-open fa-2x mb-2 text-gray-300"></i>
+                        <p class="small mb-0">No hay productos registrados en este período.</p>
                     </div>
                 `);
                 return;
@@ -153,30 +175,25 @@
                 const rank = index + 1;
                 let rankClass = '';
                 let rankMedal = `#${rank}`;
-                if (rank === 1) { rankClass = 'rank-1'; rankMedal = '🥇 #1'; }
-                else if (rank === 2) { rankClass = 'rank-2'; rankMedal = '🥈 #2'; }
-                else if (rank === 3) { rankClass = 'rank-3'; rankMedal = '🥉 #3'; }
+                if (rank === 1) { rankClass = 'rank-1'; rankMedal = '🥇'; }
+                else if (rank === 2) { rankClass = 'rank-2'; rankMedal = '🥈'; }
+                else if (rank === 3) { rankClass = 'rank-3'; rankMedal = '🥉'; }
 
                 container.append(`
-                    <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                        <div class="card producto-card h-100">
-                            <div class="card-body">
-                                <span class="producto-rank-badge ${rankClass}">${rankMedal}</span>
-                                <p class="producto-nombre" title="${p.nombre}">${p.nombre}</p>
-                                <div class="producto-progress-container">
-                                    <div class="producto-progress-bar" style="width: ${p.porcentaje}%;"></div>
-                                </div>
-                                <div class="producto-stats">
-                                    <div>
-                                        <span class="producto-stat-value">${Number(p.cantidad_vendida).toLocaleString()}</span>
-                                        <div class="producto-stat-label">Unidades</div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="producto-stat-value text-primary">$${p.total_vendido}</span>
-                                        <div class="producto-stat-label">Total Vendido</div>
-                                    </div>
-                                </div>
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank ${rankClass}">${rankMedal}</div>
+                        <div class="leaderboard-info">
+                            <p class="leaderboard-name" title="${p.nombre}">${p.nombre}</p>
+                            <div class="leaderboard-progress">
+                                <div class="leaderboard-progress-bar" style="width: ${p.porcentaje}%;"></div>
                             </div>
+                            <span class="leaderboard-meta">
+                                <strong>${Number(p.cantidad_vendida).toLocaleString()}</strong> unidades vendidas
+                            </span>
+                        </div>
+                        <div class="leaderboard-total">
+                            <div class="leaderboard-total-value">$${p.total_vendido}</div>
+                            <span class="small text-muted">Total</span>
                         </div>
                     </div>
                 `);
@@ -392,6 +409,13 @@
 
         $(document).ready(function() {
             actualizarGrafico();
+
+            // Reajustar tamaño de la gráfica al cambiar de pestaña
+            $('a[data-toggle="pill"], a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if (ventasChart) {
+                    ventasChart.resize();
+                }
+            });
         });
     </script>
 @stop

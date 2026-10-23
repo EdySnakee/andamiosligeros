@@ -1,5 +1,4 @@
 <style>
-    /* Estilos Premium para Dashboard de Ventas */
     :root {
         --color-primary: #0848af;
         --color-primary-light: #e8f0fe;
@@ -13,23 +12,68 @@
         --color-purple-light: #f5f3ff;
     }
 
+    /* Pestañas de Navegación Modernas */
+    .ventas-nav-container {
+        margin-bottom: 24px;
+    }
+
+    .custom-pills {
+        background: #ffffff;
+        padding: 6px;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .custom-pills .nav-item {
+        margin: 0;
+    }
+
+    .custom-pills .nav-link {
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 13.5px;
+        color: #64748b;
+        padding: 10px 22px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .custom-pills .nav-link:hover {
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .custom-pills .nav-link.active {
+        background: #0848af;
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(8, 72, 175, 0.25);
+    }
+
+    /* Tarjetas de Estadísticas Espaciosas */
     .stat-card {
         border: 0 !important;
         border-radius: 16px !important;
         overflow: hidden;
         background: #ffffff;
-        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06) !important;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05) !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         position: relative;
     }
 
     .stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1) !important;
     }
 
     .stat-card .card-body {
-        padding: 20px 22px !important;
+        padding: 22px 24px !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -39,22 +83,12 @@
     .stat-card-hero {
         background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
         color: #ffffff !important;
-        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.28) !important;
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25) !important;
     }
 
-    .stat-card-hero .stat-label {
-        color: rgba(255, 255, 255, 0.85) !important;
-    }
-
-    .stat-card-hero .stat-value {
-        color: #ffffff !important;
-        font-weight: 700;
-    }
-
-    .stat-card-hero .stat-icon {
-        background: rgba(255, 255, 255, 0.2) !important;
-        color: #ffffff !important;
-    }
+    .stat-card-hero .stat-label { color: rgba(255, 255, 255, 0.85) !important; }
+    .stat-card-hero .stat-value { color: #ffffff !important; font-weight: 700; }
+    .stat-card-hero .stat-icon { background: rgba(255, 255, 255, 0.2) !important; color: #ffffff !important; }
 
     .stat-accent {
         position: absolute;
@@ -65,6 +99,7 @@
         background: var(--color-primary);
     }
 
+    .stat-card-primary .stat-accent { background: var(--color-primary); }
     .stat-card-success .stat-accent { background: var(--color-success); }
     .stat-card-warning .stat-accent { background: var(--color-warning); }
     .stat-card-danger .stat-accent  { background: var(--color-danger); }
@@ -96,12 +131,9 @@
     }
 
     .stat-sublabel {
-        font-size: 11px;
+        font-size: 11.5px;
         color: #94a3b8;
         margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 4px;
     }
 
     .stat-icon {
@@ -120,7 +152,7 @@
     .stat-card-danger .stat-icon  { background: var(--color-danger-light); color: var(--color-danger); }
     .stat-card-purple .stat-icon  { background: var(--color-purple-light); color: var(--color-purple); }
 
-    /* Barra de Filtros Premium */
+    /* Barra de Filtros */
     .filter-card {
         border: 0;
         border-radius: 16px;
@@ -128,6 +160,7 @@
         box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
         padding: 20px 24px;
         margin-bottom: 24px;
+        border: 1px solid #f1f5f9;
     }
 
     .preset-pills {
@@ -149,11 +182,7 @@
         transition: all 0.15s ease;
     }
 
-    .preset-pill:hover {
-        background: #e2e8f0;
-        color: #1e293b;
-    }
-
+    .preset-pill:hover { background: #e2e8f0; color: #1e293b; }
     .preset-pill.active {
         background: #0848af;
         color: #ffffff;
@@ -161,90 +190,84 @@
         box-shadow: 0 2px 8px rgba(8, 72, 175, 0.25);
     }
 
-    /* Cards de Productos Más Vendidos */
-    .producto-card {
-        border: 0 !important;
-        border-radius: 14px !important;
-        background: #ffffff;
-        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        overflow: hidden;
+    /* Leaderboard de Productos Más Vendidos (Compacto y Elegante) */
+    .leaderboard-item {
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
     }
 
-    .producto-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1) !important;
+    .leaderboard-item:last-child {
+        border-bottom: none;
     }
 
-    .producto-card .card-body {
-        padding: 16px !important;
-        position: relative;
+    .leaderboard-item:hover {
+        background: #f8fafc;
     }
 
-    .producto-rank-badge {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        font-size: 11px;
+    .leaderboard-rank {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
         font-weight: 800;
-        padding: 3px 9px;
-        border-radius: 999px;
-        color: #ffffff;
-        background: #94a3b8;
+        flex: 0 0 auto;
+        background: #e2e8f0;
+        color: #475569;
     }
 
-    .producto-rank-badge.rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .producto-rank-badge.rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
-    .producto-rank-badge.rank-3 { background: linear-gradient(135deg, #c2703d, #9a5227); }
+    .leaderboard-rank.rank-1 { background: #fef3c7; color: #d97706; }
+    .leaderboard-rank.rank-2 { background: #f1f5f9; color: #64748b; }
+    .leaderboard-rank.rank-3 { background: #ffedd5; color: #c2410c; }
 
-    .producto-nombre {
+    .leaderboard-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .leaderboard-name {
         font-size: 13.5px;
         font-weight: 700;
         color: #1e293b;
-        margin: 0 0 10px 0;
-        padding-right: 40px;
-        line-height: 1.35;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        margin: 0 0 4px 0;
+        white-space: nowrap;
         overflow: hidden;
-        min-height: 36px;
+        text-overflow: ellipsis;
     }
 
-    .producto-progress-container {
-        height: 6px;
+    .leaderboard-progress {
+        height: 5px;
         background: #f1f5f9;
         border-radius: 999px;
         overflow: hidden;
-        margin-bottom: 12px;
+        margin-bottom: 4px;
     }
 
-    .producto-progress-bar {
+    .leaderboard-progress-bar {
         height: 100%;
         background: linear-gradient(90deg, #0848af, #3b82f6);
         border-radius: 999px;
     }
 
-    .producto-stats {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #f1f5f9;
-        padding-top: 10px;
-    }
-
-    .producto-stat-value {
-        font-size: 15px;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .producto-stat-label {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+    .leaderboard-meta {
+        font-size: 11px;
         color: #94a3b8;
+    }
+
+    .leaderboard-total {
+        text-align: right;
+        flex: 0 0 auto;
+    }
+
+    .leaderboard-total-value {
+        font-size: 14.5px;
+        font-weight: 700;
+        color: #0848af;
     }
 
     /* Tabla de Vendedores */
@@ -256,12 +279,12 @@
         text-transform: uppercase;
         letter-spacing: 0.06em;
         border-bottom: 2px solid #e2e8f0;
-        padding: 12px 14px;
+        padding: 14px 16px;
         vertical-align: middle;
     }
 
     .table-vendedores tbody td {
-        padding: 12px 14px;
+        padding: 14px 16px;
         vertical-align: middle;
         font-size: 13.5px;
         color: #334155;
@@ -286,6 +309,20 @@
         padding: 4px 10px;
         border-radius: 999px;
     }
+
+    /* Barra Visual Financiera */
+    .finance-bar-container {
+        height: 12px;
+        border-radius: 999px;
+        display: flex;
+        overflow: hidden;
+        background: #f1f5f9;
+        margin-bottom: 12px;
+    }
+
+    .finance-segment-neto { background: #10b981; }
+    .finance-segment-iva { background: #ef4444; }
+    .finance-segment-log { background: #f59e0b; }
 </style>
 
 <div class="container-fluid py-2">
@@ -299,7 +336,7 @@
         </div>
         <div class="mt-2 mt-sm-0">
             <span class="badge badge-light border text-secondary px-3 py-2 font-weight-normal">
-                <i class="fas fa-sync-alt mr-1 text-primary"></i> Datos sincronizados en tiempo real
+                <i class="fas fa-sync-alt mr-1 text-primary"></i> Sincronización en tiempo real
             </span>
         </div>
     </div>
@@ -337,7 +374,7 @@
                     <input type="date" id="fecha_fin" class="form-control border-left-0">
                 </div>
             </div>
-            <div class="col-md-4 col-sm-12 d-flex gap-2">
+            <div class="col-md-4 col-sm-12 d-flex">
                 <button class="btn btn-primary rounded-pill px-4 py-2 font-weight-bold flex-grow-1 shadow-sm"
                     id="btnFiltrarVentas" onclick="filtrarEstadisticas()">
                     <i class="fas fa-filter mr-1"></i> Filtrar
@@ -350,296 +387,403 @@
         </div>
     </div>
 
-    <!-- SECCIÓN 1: Desempeño Comercial (4 Tarjetas Equilibradas) -->
-    <div class="d-flex align-items-center mb-3">
-        <h6 class="font-weight-bold text-uppercase text-secondary small mb-0 tracking-wider">
-            <i class="fas fa-bullseye text-primary mr-1"></i> Desempeño Comercial
-        </h6>
-        <div class="flex-grow-1 border-bottom ml-3"></div>
+    <!-- Pestañas Principales (Organización Limpia y Espaciosa) -->
+    <div class="ventas-nav-container">
+        <ul class="nav nav-pills custom-pills" id="ventasTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-comercial-link" data-toggle="pill" href="#tab-comercial" role="tab" aria-controls="tab-comercial" aria-selected="true">
+                    <i class="fas fa-chart-line"></i> Rendimiento Comercial
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-financiero-link" data-toggle="pill" href="#tab-financiero" role="tab" aria-controls="tab-financiero" aria-selected="false">
+                    <i class="fas fa-wallet"></i> Resumen Financiero
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-vendedores-link" data-toggle="pill" href="#tab-vendedores" role="tab" aria-controls="tab-vendedores" aria-selected="false">
+                    <i class="fas fa-users"></i> Detalle de Vendedores
+                </a>
+            </li>
+        </ul>
     </div>
 
-    <div class="row mb-4">
-        <!-- Cotizaciones -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-primary h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Cotizaciones Creadas</p>
-                        <p id="numCotizaciones" class="stat-value">{{ number_format($numCotizaciones) }}</p>
-                        <p class="stat-sublabel">
-                            <span class="text-primary font-weight-bold">${{ $totalCotizaciones }}</span> cotizado
-                        </p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Contenido de Pestañas -->
+    <div class="tab-content" id="ventasTabsContent">
 
-        <!-- Ventas Concretadas -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-success h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Ventas Concretadas</p>
-                        <p id="numeroVentas" class="stat-value">{{ number_format($numeroVentas) }}</p>
-                        <p class="stat-sublabel text-success font-weight-bold">
-                            <i class="fas fa-check-circle"></i> Estatus 3 (Cerradas)
-                        </p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tasa de Conversión -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-purple h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Tasa de Conversión</p>
-                        <p id="tasaConversion" class="stat-value">{{ $tasaConversion }}%</p>
-                        <p class="stat-sublabel">Éxito cotización a venta</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ticket Promedio -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-warning h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Ticket Promedio</p>
-                        <p id="promedioVentas" class="stat-value">${{ $promedioVentas }}</p>
-                        <p class="stat-sublabel">Importe medio por venta</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SECCIÓN 2: Métricas Financieras (4 Tarjetas con Hero Card) -->
-    <div class="d-flex align-items-center mb-3">
-        <h6 class="font-weight-bold text-uppercase text-secondary small mb-0 tracking-wider">
-            <i class="fas fa-wallet text-success mr-1"></i> Resumen Financiero
-        </h6>
-        <div class="flex-grow-1 border-bottom ml-3"></div>
-    </div>
-
-    <div class="row mb-4">
-        <!-- Venta Bruta -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-primary h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Ventas Brutas Totales</p>
-                        <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
-                        <p class="stat-sublabel">Facturación total acumulada</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Impuesto IVA -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-danger h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Impuesto IVA (16%)</p>
-                        <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
-                        <p class="stat-sublabel">Carga tributaria acumulada</p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Logística y Envíos Combinados -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-warning h-100">
-                <span class="stat-accent"></span>
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <p class="stat-label">Envíos y Paquetería</p>
-                        <p id="totalLogistica" class="stat-value">
-                            ${{ number_format((float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria), 2) }}
-                        </p>
-                        <p class="stat-sublabel">
-                            Envío: <span id="totalEnvios" class="font-weight-bold">${{ $totalEnvios }}</span> |
-                            Paq: <span id="totalEnviosPaqueteria" class="font-weight-bold">${{ $totalEnviosPaqueteria }}</span>
-                        </p>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-shipping-fast"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- HERO CARD: Venta Neta -->
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="card stat-card stat-card-hero h-100">
-                <div class="card-body">
-                    <div class="stat-meta">
-                        <div class="d-flex align-items-center mb-1">
-                            <span class="badge badge-light text-success font-weight-bold small px-2 py-1 mr-2">
-                                <i class="fas fa-shield-alt"></i> Ingreso Efectivo
-                            </span>
+        <!-- ========================================== -->
+        <!-- PESTAÑA 1: RENDIMIENTO COMERCIAL           -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade show active" id="tab-comercial" role="tabpanel" aria-labelledby="tab-comercial-link">
+            <!-- 4 Tarjetas Comerciales -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-primary h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Cotizaciones Creadas</p>
+                                <p id="numCotizaciones" class="stat-value">{{ number_format($numCotizaciones) }}</p>
+                                <p class="stat-sublabel">
+                                    <span class="text-primary font-weight-bold">${{ $totalCotizaciones }}</span> cotizado
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
                         </div>
-                        <p class="stat-label">Venta Neta</p>
-                        <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
-                        <p class="stat-sublabel text-white-50">Venta - IVA - Logística</p>
                     </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-coins"></i>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-success h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ventas Concretadas</p>
+                                <p id="numeroVentas" class="stat-value">{{ number_format($numeroVentas) }}</p>
+                                <p class="stat-sublabel text-success font-weight-bold">
+                                    <i class="fas fa-check-circle"></i> Estatus 3 (Cerradas)
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-purple h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Tasa de Conversión</p>
+                                <p id="tasaConversion" class="stat-value">{{ $tasaConversion }}%</p>
+                                <p class="stat-sublabel">Efectividad de cierre</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-warning h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ticket Promedio</p>
+                                <p id="promedioVentas" class="stat-value">${{ $promedioVentas }}</p>
+                                <p class="stat-sublabel">Promedio por venta</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfica Mensual y Top Productos en 2 Columnas Equilibradas -->
+            <div class="row mb-4">
+                <!-- Columna Izquierda (7 columnas): Gráfica Mensual -->
+                <div class="col-lg-7 col-xl-8 mb-4 mb-lg-0">
+                    <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
+                        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
+                            <h6 class="m-0 font-weight-bold text-gray-800">
+                                <i class="fas fa-chart-area text-primary mr-2"></i>Evolución Mensual (Ventas vs Cotizaciones)
+                            </h6>
+                            <span class="small text-muted">Doble eje: Volumen y Monto ($)</span>
+                        </div>
+                        <div class="card-body">
+                            <div style="position: relative; min-height: 400px; width: 100%;">
+                                <canvas id="ventasChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha (5 columnas): Leaderboard de Productos Más Vendidos -->
+                <div class="col-lg-5 col-xl-4">
+                    <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
+                        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-gray-800">
+                                <i class="fas fa-trophy text-warning mr-2"></i>Top Productos
+                            </h6>
+                            <span class="badge badge-light border text-muted small">Más vendidos</span>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 450px; overflow-y: auto;">
+                            <div id="productosMasVendidos">
+                                @forelse ($productosMasVendidos as $index => $producto)
+                                    @php
+                                        $rank = $index + 1;
+                                        $rankClass = $rank <= 3 ? 'rank-' . $rank : '';
+                                        $medal = $rank === 1 ? '🥇' : ($rank === 2 ? '🥈' : ($rank === 3 ? '🥉' : '#' . $rank));
+                                    @endphp
+                                    <div class="leaderboard-item">
+                                        <div class="leaderboard-rank {{ $rankClass }}">{{ $medal }}</div>
+                                        <div class="leaderboard-info">
+                                            <p class="leaderboard-name" title="{{ $producto->nombre }}">{{ $producto->nombre }}</p>
+                                            <div class="leaderboard-progress">
+                                                <div class="leaderboard-progress-bar" style="width: {{ $producto->porcentaje }}%;"></div>
+                                            </div>
+                                            <span class="leaderboard-meta">
+                                                <strong>{{ number_format($producto->cantidad_vendida) }}</strong> unidades vendidas
+                                            </span>
+                                        </div>
+                                        <div class="leaderboard-total">
+                                            <div class="leaderboard-total-value">${{ $producto->total_vendido }}</div>
+                                            <span class="small text-muted">Total</span>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="p-4 text-center text-muted">
+                                        <i class="fas fa-box-open fa-2x mb-2 text-gray-300"></i>
+                                        <p class="small mb-0">No hay productos registrados en este período.</p>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- SECCIÓN 3: Productos Más Vendidos -->
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h6 class="font-weight-bold text-uppercase text-secondary small mb-0 tracking-wider">
-            <i class="fas fa-trophy text-warning mr-1"></i> Top Productos Más Vendidos
-        </h6>
-        <div class="flex-grow-1 border-bottom ml-3"></div>
-    </div>
+        <!-- ========================================== -->
+        <!-- PESTAÑA 2: RESUMEN FINANCIERO              -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-financiero" role="tabpanel" aria-labelledby="tab-financiero-link">
+            <!-- 4 Tarjetas Financieras -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-primary h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Ventas Brutas</p>
+                                <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
+                                <p class="stat-sublabel">Facturación total acumulada</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <div class="row producto-cards-grid mb-4" id="productosMasVendidos">
-        @forelse ($productosMasVendidos as $index => $producto)
-            @php
-                $rank = $index + 1;
-                $rankClass = $rank <= 3 ? 'rank-' . $rank : '';
-            @endphp
-            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-                <div class="card producto-card h-100">
-                    <div class="card-body">
-                        <span class="producto-rank-badge {{ $rankClass }}">
-                            @if ($rank === 1) 🥇 @elseif ($rank === 2) 🥈 @elseif ($rank === 3) 🥉 @endif#{{ $rank }}
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-danger h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Impuesto IVA (16%)</p>
+                                <p id="totalIVA" class="stat-value text-danger">${{ $totalIVA }}</p>
+                                <p class="stat-sublabel">Débito fiscal transferido</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-warning h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Gastos Logística</p>
+                                <p id="totalLogistica" class="stat-value">
+                                    ${{ number_format((float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria), 2) }}
+                                </p>
+                                <p class="stat-sublabel">
+                                    Envío: <span id="totalEnvios" class="font-weight-bold">${{ $totalEnvios }}</span> |
+                                    Paq: <span id="totalEnviosPaqueteria" class="font-weight-bold">${{ $totalEnviosPaqueteria }}</span>
+                                </p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-hero h-100">
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <div class="d-flex align-items-center mb-1">
+                                    <span class="badge badge-light text-success font-weight-bold small px-2 py-1">
+                                        <i class="fas fa-shield-alt mr-1"></i>Ingreso Efectivo
+                                    </span>
+                                </div>
+                                <p class="stat-label">Venta Neta</p>
+                                <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
+                                <p class="stat-sublabel text-white-50">Ventas - IVA - Logística</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desglose Financiero Auditoría -->
+            <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="m-0 font-weight-bold text-gray-800">
+                        <i class="fas fa-balance-scale text-primary mr-2"></i>Estructura y Composición del Ingreso
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-3">
+                        Visualización porcentual de deducciones (IVA y gastos logísticos) respecto a la facturación bruta total:
+                    </p>
+
+                    @php
+                        $brutoNum = max(0.01, (float) str_replace(',', '', $totalVentas));
+                        $netoNum  = max(0, (float) str_replace(',', '', $totalNeto));
+                        $ivaNum   = max(0, (float) str_replace(',', '', $totalIVA));
+                        $logNum   = max(0, (float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria));
+
+                        $pctNeto = round(($netoNum / $brutoNum) * 100, 1);
+                        $pctIva  = round(($ivaNum / $brutoNum) * 100, 1);
+                        $pctLog  = round(($logNum / $brutoNum) * 100, 1);
+                    @endphp
+
+                    <!-- Barra de Composición Visual -->
+                    <div class="finance-bar-container" id="financeBarContainer">
+                        <div class="finance-segment-neto" id="barPctNeto" style="width: {{ $pctNeto }}%;" title="Venta Neta: {{ $pctNeto }}%"></div>
+                        <div class="finance-segment-iva" id="barPctIva" style="width: {{ $pctIva }}%;" title="IVA: {{ $pctIva }}%"></div>
+                        <div class="finance-segment-log" id="barPctLog" style="width: {{ $pctLog }}%;" title="Logística: {{ $pctLog }}%"></div>
+                    </div>
+
+                    <div class="d-flex justify-content-between flex-wrap text-muted small mb-4">
+                        <span class="d-flex align-items-center mb-1">
+                            <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #10b981;"></span>
+                            Venta Neta (<span id="txtPctNeto">{{ $pctNeto }}%</span>)
                         </span>
-                        <p class="producto-nombre" title="{{ $producto->nombre }}">{{ $producto->nombre }}</p>
-                        <div class="producto-progress-container">
-                            <div class="producto-progress-bar" style="width: {{ $producto->porcentaje }}%;"></div>
-                        </div>
-                        <div class="producto-stats">
-                            <div>
-                                <span class="producto-stat-value">{{ number_format($producto->cantidad_vendida) }}</span>
-                                <div class="producto-stat-label">Unidades</div>
-                            </div>
-                            <div class="text-right">
-                                <span class="producto-stat-value text-primary">${{ $producto->total_vendido }}</span>
-                                <div class="producto-stat-label">Total Vendido</div>
-                            </div>
-                        </div>
+                        <span class="d-flex align-items-center mb-1">
+                            <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #ef4444;"></span>
+                            IVA 16% (<span id="txtPctIva">{{ $pctIva }}%</span>)
+                        </span>
+                        <span class="d-flex align-items-center mb-1">
+                            <span class="d-inline-block rounded-circle mr-1" style="width: 10px; height: 10px; background: #f59e0b;"></span>
+                            Logística y Paquetería (<span id="txtPctLog">{{ $pctLog }}%</span>)
+                        </span>
+                    </div>
+
+                    <!-- Tabla de Auditoría Contable -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Concepto Financiero</th>
+                                    <th>Naturaleza</th>
+                                    <th class="text-right">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-weight-bold">Facturación Bruta (Total Ventas)</td>
+                                    <td><span class="badge badge-primary">Ingreso Bruto</span></td>
+                                    <td class="text-right font-weight-bold text-primary" id="tblTotalVentas">${{ $totalVentas }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Menos: Impuesto al Valor Agregado (IVA 16%)</td>
+                                    <td><span class="badge badge-danger">Deducción Fiscal</span></td>
+                                    <td class="text-right text-danger" id="tblTotalIVA">-${{ $totalIVA }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Menos: Fletes Locales y Logística Directa</td>
+                                    <td><span class="badge badge-warning">Costo Operativo</span></td>
+                                    <td class="text-right text-warning" id="tblTotalEnvios">-${{ $totalEnvios }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Menos: Envíos por Paquetería Foránea</td>
+                                    <td><span class="badge badge-warning">Costo Operativo</span></td>
+                                    <td class="text-right text-warning" id="tblTotalPaq">-${{ $totalEnviosPaqueteria }}</td>
+                                </tr>
+                                <tr class="bg-light font-weight-bold">
+                                    <td class="text-success h6 mb-0">Total Venta Neta Disponible</td>
+                                    <td><span class="badge badge-success">Utilidad Bruta Efectiva</span></td>
+                                    <td class="text-right text-success h6 mb-0" id="tblTotalNeto">${{ $totalNeto }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        @empty
-            <div class="col-12">
-                <div class="alert alert-light text-center border py-4 text-muted">
-                    <i class="fas fa-box-open fa-2x mb-2 text-gray-400"></i>
-                    <p class="mb-0">No se encontraron productos vendidos en este período.</p>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA 3: DETALLE DE VENDEDORES           -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-vendedores" role="tabpanel" aria-labelledby="tab-vendedores-link">
+            <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
+                    <h6 class="m-0 font-weight-bold text-gray-800">
+                        <i class="fas fa-users text-primary mr-2"></i>Rendimiento por Vendedor
+                    </h6>
+                    <span class="badge badge-light border text-muted">Ordenados por monto facturado</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-vendedores table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Vendedor</th>
+                                    <th class="text-center"># Cotizaciones</th>
+                                    <th class="text-center"># Ventas</th>
+                                    <th class="text-right">Total Cotizado</th>
+                                    <th class="text-right">Total Vendido</th>
+                                    <th class="text-center">Tasa Éxito</th>
+                                    <th>Cliente Estrella ⭐</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendedoresPrincipales">
+                                @forelse ($vendedoresPrin as $vendedor)
+                                    @php
+                                        $inicial = strtoupper(substr($vendedor->nombre, 0, 1));
+                                        $tasa = (float) $vendedor->promedio_exito;
+                                        $tasaClass = $tasa >= 25 ? 'badge-success' : ($tasa >= 15 ? 'badge-warning' : 'badge-secondary');
+                                    @endphp
+                                    <tr>
+                                        <td class="font-weight-bold">
+                                            <span class="vendedor-avatar">{{ $inicial }}</span>
+                                            {{ $vendedor->nombre }}
+                                        </td>
+                                        <td class="text-center">{{ number_format($vendedor->numero_cotizaciones) }}</td>
+                                        <td class="text-center font-weight-bold text-success">{{ number_format($vendedor->numero_ventas) }}</td>
+                                        <td class="text-right text-muted">${{ $vendedor->total_cotizado }}</td>
+                                        <td class="text-right font-weight-bold text-primary">${{ $vendedor->total_generado }}</td>
+                                        <td class="text-center">
+                                            <span class="badge {{ $tasaClass }} badge-tasa">{{ $vendedor->promedio_exito }}%</span>
+                                        </td>
+                                        <td>
+                                            @if ($vendedor->cliente_estrella !== 'N/A')
+                                                <i class="fas fa-star text-warning mr-1"></i><strong>{{ $vendedor->cliente_estrella }}</strong>
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            No hay registros de vendedores para el período seleccionado.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        @endforelse
-    </div>
+        </div>
 
-    <!-- SECCIÓN 4: Estadísticas de Vendedores -->
-    <div class="card shadow-sm border-0 rounded-lg mb-4 overflow-hidden" style="border-radius: 16px;">
-        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-gray-800">
-                <i class="fas fa-users text-primary mr-2"></i>Rendimiento por Vendedor
-            </h6>
-            <span class="badge badge-light border text-muted">Rankings ordenados por monto vendido</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-vendedores table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Vendedor</th>
-                            <th class="text-center"># Cotizaciones</th>
-                            <th class="text-center"># Ventas</th>
-                            <th class="text-right">Total Cotizado</th>
-                            <th class="text-right">Total Vendido</th>
-                            <th class="text-center">Tasa Éxito</th>
-                            <th>Cliente Estrella ⭐</th>
-                        </tr>
-                    </thead>
-                    <tbody id="vendedoresPrincipales">
-                        @forelse ($vendedoresPrin as $vendedor)
-                            @php
-                                $inicial = strtoupper(substr($vendedor->nombre, 0, 1));
-                                $tasa = (float) $vendedor->promedio_exito;
-                                $tasaClass = $tasa >= 25 ? 'badge-success' : ($tasa >= 15 ? 'badge-warning' : 'badge-secondary');
-                            @endphp
-                            <tr>
-                                <td class="font-weight-bold">
-                                    <span class="vendedor-avatar">{{ $inicial }}</span>
-                                    {{ $vendedor->nombre }}
-                                </td>
-                                <td class="text-center">{{ number_format($vendedor->numero_cotizaciones) }}</td>
-                                <td class="text-center font-weight-bold text-success">{{ number_format($vendedor->numero_ventas) }}</td>
-                                <td class="text-right text-muted">${{ $vendedor->total_cotizado }}</td>
-                                <td class="text-right font-weight-bold text-primary">${{ $vendedor->total_generado }}</td>
-                                <td class="text-center">
-                                    <span class="badge {{ $tasaClass }} badge-tasa">{{ $vendedor->promedio_exito }}%</span>
-                                </td>
-                                <td>
-                                    @if ($vendedor->cliente_estrella !== 'N/A')
-                                        <i class="fas fa-star text-warning mr-1"></i><strong>{{ $vendedor->cliente_estrella }}</strong>
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">
-                                    No hay registros de vendedores para el período seleccionado.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- SECCIÓN 5: Gráfica Histórica Mensual -->
-    <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
-        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
-            <h6 class="m-0 font-weight-bold text-gray-800">
-                <i class="fas fa-chart-area text-primary mr-2"></i>Evolución de Ventas vs Cotizaciones por Mes
-            </h6>
-            <span class="small text-muted">Doble eje Y: Volumen (barras) e Importe en pesos (línea dorada)</span>
-        </div>
-        <div class="card-body">
-            <div style="position: relative; min-height: 380px; max-height: 480px; width: 100%;">
-                <canvas id="ventasChart"></canvas>
-            </div>
-        </div>
     </div>
 </div>
