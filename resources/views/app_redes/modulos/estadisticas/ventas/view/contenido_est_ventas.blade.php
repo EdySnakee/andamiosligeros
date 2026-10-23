@@ -598,10 +598,10 @@
                 <!-- Columna Derecha (4-5 cols): Widget Conversión + Leaderboard de Productos -->
                 <div class="col-lg-5 col-xl-4 d-flex flex-column">
                     <!-- Widget Tasa de Conversión Comercial -->
-                    <div class="card stat-card mb-3" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid #ddd6fe !important;">
+                    <div class="card stat-card mb-3" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe !important;">
                         <div class="card-body py-3 px-3 d-flex align-items-center justify-content-between">
                             <div>
-                                <span class="text-uppercase small font-weight-bold" style="color: #6d28d9; letter-spacing: 0.05em; font-size: 11px;">
+                                <span class="text-uppercase small font-weight-bold" style="color: #0848af; letter-spacing: 0.05em; font-size: 11px;">
                                     <i class="fas fa-percentage mr-1"></i> Tasa de Conversión Comercial
                                 </span>
                                 <div class="d-flex align-items-baseline mt-1">
@@ -609,7 +609,7 @@
                                     <span class="small text-muted ml-2">éxito cotización a venta</span>
                                 </div>
                             </div>
-                            <div class="stat-icon" style="background: #ddd6fe; color: #7c3aed; width: 40px; height: 40px; border-radius: 12px; font-size: 16px;">
+                            <div class="stat-icon" style="background: #bfdbfe; color: #0848af; width: 40px; height: 40px; border-radius: 12px; font-size: 16px;">
                                 <i class="fas fa-bullseye"></i>
                             </div>
                         </div>
