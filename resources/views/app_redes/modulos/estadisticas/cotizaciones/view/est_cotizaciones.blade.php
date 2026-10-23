@@ -9,7 +9,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.js"></script>
 
 <script>
-    let cotizacionesChart = null; // Variable global para el gráfico
+    let cotizacionesChart = null;
+
     moment.locale('es', {
         months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
         monthsShort: 'Ene_Feb_Mar_Abr_May_Jun_Jul_Ago_Sep_Oct_Nov_Dic'.split('_'),
@@ -19,21 +20,82 @@
     });
     moment.locale('es');
 
-    // Función para cargar sucursales
+    // Configuración de Presets de Fecha
+    function setCotiPreset(tipo, el) {
+        $('.preset-pill').removeClass('active');
+        if (el) $(el).addClass('active');
+
+        const now = new Date();
+        const formatDate = (d) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        let start = '';
+        let end = formatDate(now);
+
+        switch (tipo) {
+            case '15_dias':
+                const past15 = new Date();
+                past15.setDate(past15.getDate() - 15);
+                start = formatDate(past15);
+                break;
+            case '30_dias':
+                const past30 = new Date();
+                past30.setDate(past30.getDate() - 30);
+                start = formatDate(past30);
+                break;
+            case 'este_mes':
+                const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                start = formatDate(firstDayMonth);
+                break;
+            case 'mes_pasado':
+                const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const lastDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                start = formatDate(firstDayLastMonth);
+                end = formatDate(lastDayLastMonth);
+                break;
+            case 'este_ano':
+                const firstDayYear = new Date(now.getFullYear(), 0, 1);
+                start = formatDate(firstDayYear);
+                break;
+            case 'todo':
+            default:
+                start = '';
+                end = '';
+                break;
+        }
+
+        $('#chart_fecha_inicio').val(start);
+        $('#chart_fecha_fin').val(end);
+        actualizarGrafico();
+    }
+
+    // Cargar Sucursales para usuarios administradores
     function cargarSucursales() {
+        const container = $('#sucursales_container');
+        if (!container.length) return;
+
         $.ajax({
             url: '/getSucursales',
             method: 'GET',
+            dataType: 'json',
             success: function(sucursales) {
-                const container = $('#sucursales_container');
                 container.empty();
-                
+
+                if (!sucursales || sucursales.length === 0) {
+                    container.html('<span class="text-muted small">No hay sucursales registradas.</span>');
+                    return;
+                }
+
                 sucursales.forEach(sucursal => {
                     container.append(`
                         <div class="custom-control custom-checkbox">
                             <input type="checkbox" class="custom-control-input sucursal-checkbox" 
                                 id="sucursal_${sucursal.id}" value="${sucursal.id}">
-                            <label class="custom-control-label" for="sucursal_${sucursal.id}">
+                            <label class="custom-control-label small font-weight-bold" for="sucursal_${sucursal.id}">
                                 ${sucursal.nombre}
                             </label>
                         </div>
@@ -45,14 +107,20 @@
                     const checkedBoxes = $('.sucursal-checkbox:checked');
                     if (checkedBoxes.length > 3) {
                         this.checked = false;
-                        alert('Solo puedes seleccionar hasta 3 sucursales.');
+                        alert('Solo puedes seleccionar hasta 3 sucursales simultáneamente para comparar.');
+                    } else {
+                        actualizarGrafico();
                     }
                 });
+            },
+            error: function(err) {
+                console.error('Error al cargar sucursales:', err);
+                container.html('<span class="text-danger small">Error al cargar sucursales.</span>');
             }
         });
     }
 
-    // Función para actualizar el gráfico
+    // Actualizar Gráfico y Métricas de Cotizaciones
     function actualizarGrafico() {
         const fecha_inicio = $('#chart_fecha_inicio').val();
         const fecha_fin = $('#chart_fecha_fin').val();
@@ -60,9 +128,13 @@
             return $(this).val();
         }).get();
 
+        const $btn = $('#aplicar_filtro_fechas');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Filtrando...');
+
         $.ajax({
             url: '{{ route('ajax_est_cotizaciones') }}',
             method: 'POST',
+            dataType: 'json',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
                 accion: 'getCotizacionesPorDia',
@@ -73,8 +145,28 @@
                 }
             },
             success: function(response) {
+                // 1. Actualizar KPIs Principales
+                if (response.metricas) {
+                    $('#coti_total_num').text(Number(response.metricas.totalCotizaciones || 0).toLocaleString());
+                    $('#coti_total_importe').text('$' + response.metricas.totalImporte);
+                    $('#coti_promedio_importe').text('$' + response.metricas.promedioImporte);
+                    $('#coti_promedio_dia').html(`${response.metricas.promedioPorDia} <span class="small font-weight-normal text-muted">/ día</span>`);
+                    $('#coti_dias_activos').text(Number(response.metricas.diasActivos || 0).toLocaleString());
+                }
+
+                // 2. Actualizar Tarjetas de Giros de Empresa
+                if (response.giros) {
+                    ['al', 'ra', 'rp', 'sg'].forEach(key => {
+                        if (response.giros[key]) {
+                            $(`#giro_total_${key}`).text(Number(response.giros[key].total || 0).toLocaleString());
+                            $(`#giro_importe_${key}`).text('$' + response.giros[key].importe);
+                        }
+                    });
+                }
+
+                // 3. Renderizar Gráfico
                 if (!response.cotizaciones || response.cotizaciones.length === 0) {
-                    alert('No hay datos disponibles para generar el gráfico.');
+                    if (cotizacionesChart) cotizacionesChart.destroy();
                     return;
                 }
 
@@ -84,94 +176,126 @@
 
                 const ctx = document.getElementById('cotizacionesChart').getContext('2d');
                 const datasets = [];
-                const colores = ['#0848af', '#ffbb00', '#F58702'];
+                const paletaColores = [
+                    { bg: 'rgba(8, 72, 175, 0.75)', border: '#0848af' },
+                    { bg: 'rgba(16, 185, 129, 0.75)', border: '#10b981' },
+                    { bg: 'rgba(245, 158, 11, 0.75)', border: '#f59e0b' },
+                    { bg: 'rgba(139, 92, 246, 0.75)', border: '#8b5cf6' }
+                ];
                 const labels = [];
 
-                // Construir lista única de días
+                // Extraer lista única de días ordenados
                 response.cotizaciones.forEach(serie => {
-                    serie.datos.forEach(cotizacion => {
+                    (serie.datos || []).forEach(cotizacion => {
                         if (!labels.includes(cotizacion.dia)) {
                             labels.push(cotizacion.dia);
                         }
                     });
                 });
 
-                // Ordenar los días cronológicamente
                 labels.sort((a, b) => new Date(a) - new Date(b));
 
-                // Crear datasets alineados con los días
+                // Construir datasets alineados
                 response.cotizaciones.forEach((serie, index) => {
                     const data = new Array(labels.length).fill(0);
+                    const colorScheme = paletaColores[index % paletaColores.length];
 
-                    serie.datos.forEach(cotizacion => {
-                        const labelIndex = labels.indexOf(cotizacion.dia);
-                        if (labelIndex !== -1) {
-                            data[labelIndex] = cotizacion.total;
+                    (serie.datos || []).forEach(coti => {
+                        const idx = labels.indexOf(coti.dia);
+                        if (idx !== -1) {
+                            data[idx] = parseInt(coti.total || 0);
                         }
                     });
 
                     datasets.push({
-                        label: serie.nombre_sucursal,
+                        label: serie.nombre_sucursal || 'Cotizaciones',
                         data: data,
-                        backgroundColor: response.tipo_grafica === 'bar' ? colores[index % colores.length] : 'transparent',
-                        borderColor: colores[index % colores.length],
-                        borderWidth: 2,
-                        pointRadius: 3,
-                        pointBackgroundColor: colores[index % colores.length],
-                        pointBorderColor: '#fff',
-                        pointHoverRadius: 5
+                        backgroundColor: colorScheme.bg,
+                        borderColor: colorScheme.border,
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        hoverBackgroundColor: colorScheme.border,
                     });
                 });
 
-                // Crear el gráfico
                 cotizacionesChart = new Chart(ctx, {
-                    type: response.tipo_grafica,
+                    type: 'bar',
                     data: {
-                        labels: labels.map(fecha => {
-                            return moment(fecha).format('D MMMM YYYY');
-                        }),
+                        labels: labels.map(f => moment(f).format('D MMM YYYY')),
                         datasets: datasets
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
                         scales: {
                             x: {
+                                grid: { display: false },
                                 ticks: {
                                     maxRotation: 45,
-                                    minRotation: 45
+                                    minRotation: 0,
+                                    autoSkip: true,
+                                    maxTicksLimit: 20
                                 }
                             },
                             y: {
                                 beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Número de Cotizaciones',
+                                    color: '#64748b',
+                                    font: { weight: 'bold', size: 12 }
+                                },
                                 ticks: {
                                     stepSize: 1
-                                }
+                                },
+                                grid: { color: 'rgba(226, 232, 240, 0.7)' }
                             }
                         },
                         plugins: {
                             legend: {
-                                position: 'top'
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 8,
+                                    padding: 16,
+                                    font: { weight: '600', size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 12,
+                                cornerRadius: 8
                             }
                         }
                     }
                 });
             },
-            error: function(error) {
-                console.error("Error al obtener los datos:", error);
+            error: function(err) {
+                console.error('Error al actualizar gráfico de cotizaciones:', err);
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-filter mr-1"></i> Filtrar');
             }
         });
     }
 
-    // Event listeners
     $(document).ready(function() {
         cargarSucursales();
         actualizarGrafico();
-        
+
         $('#aplicar_filtro_fechas').click(function() {
             actualizarGrafico();
         });
 
         $('#limpiar_filtros').click(function() {
+            $('.preset-pill').removeClass('active');
+            $('.preset-pill:first').addClass('active');
             $('#chart_fecha_inicio').val('');
             $('#chart_fecha_fin').val('');
             $('.sucursal-checkbox').prop('checked', false);
@@ -180,18 +304,3 @@
     });
 </script>
 @stop
-
-<style>
-.estadisticas-titulos {
-    background-color: #0848af;
-    color: white;
-}
-
-.graficas-cotizaciones-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    max-height: 700px;
-    width: 100%;
-}
-</style>
