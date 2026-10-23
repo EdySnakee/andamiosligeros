@@ -246,27 +246,58 @@ class EstadisticasController extends Controller
                     ], $metricas));
 
                 case 'getVentasPorMes':
-                    $fecha_inicio = !empty($datos['fecha_inicio']) ? date('Y-m-01', strtotime($datos['fecha_inicio'])) : date('Y-m-01', strtotime('-11 months'));
-                    $fecha_fin    = !empty($datos['fecha_fin']) ? date('Y-m-t', strtotime($datos['fecha_fin'])) : date('Y-m-t');
+                    $fecha_inicio = !empty($datos['fecha_inicio']) ? $datos['fecha_inicio'] : date('Y-m-01', strtotime('-11 months'));
+                    $fecha_fin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : date('Y-m-d');
 
-                    $query = DB::table('cotizaciones')
+                    $user = Auth::user();
+
+                    // 1. Cotizaciones creadas en el período agrupadas por mes
+                    $qCotis = DB::table('cotizaciones')
                         ->select(
                             DB::raw('DATE_FORMAT(fecha, "%Y-%m") as mes'),
-                            DB::raw('COUNT(*) as cantidad_cotizaciones'),
-                            DB::raw('SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as cantidad_ventas'),
-                            DB::raw('SUM(CASE WHEN status = 3 THEN total ELSE 0 END) as importe_ventas')
+                            DB::raw('COUNT(*) as cantidad_cotizaciones')
                         )
                         ->where('fecha', '>=', $fecha_inicio)
                         ->where('fecha', '<=', $fecha_fin);
 
-                    $user = Auth::user();
                     if ($user && !$user->isAdmin()) {
-                        $query->where('id_usuario_genera', $user->id);
+                        $qCotis->where('id_usuario_genera', $user->id);
                     }
 
-                    $datos_por_mes = $query->groupBy(DB::raw('DATE_FORMAT(fecha, "%Y-%m")'))
-                        ->orderBy('mes', 'ASC')
-                        ->get();
+                    $cotisPorMes = collect($qCotis->groupBy(DB::raw('DATE_FORMAT(fecha, "%Y-%m")'))->get())
+                        ->keyBy('mes');
+
+                    // 2. Ventas reales concretadas en el período agrupadas por mes (misma fuente que las cards)
+                    $qVentas = DB::table('ventas')
+                        ->select(
+                            DB::raw('DATE_FORMAT(fecha_venta, "%Y-%m") as mes'),
+                            DB::raw('COUNT(*) as cantidad_ventas'),
+                            DB::raw('COALESCE(SUM(total), 0) as importe_ventas')
+                        )
+                        ->where('fecha_venta', '>=', $fecha_inicio)
+                        ->where('fecha_venta', '<=', $fecha_fin);
+
+                    if ($user && !$user->isAdmin()) {
+                        $qVentas->where('id_usuario_genera', $user->id);
+                    }
+
+                    $ventasPorMes = collect($qVentas->groupBy(DB::raw('DATE_FORMAT(fecha_venta, "%Y-%m")'))->get())
+                        ->keyBy('mes');
+
+                    // 3. Unificar meses ordenados cronológicamente
+                    $todosLosMeses = $cotisPorMes->keys()->merge($ventasPorMes->keys())->unique()->sort()->values();
+
+                    $datos_por_mes = $todosLosMeses->map(function ($mes) use ($cotisPorMes, $ventasPorMes) {
+                        $c = $cotisPorMes->get($mes);
+                        $v = $ventasPorMes->get($mes);
+
+                        return (object) [
+                            'mes'                   => $mes,
+                            'cantidad_cotizaciones' => $c ? (int) $c->cantidad_cotizaciones : 0,
+                            'cantidad_ventas'       => $v ? (int) $v->cantidad_ventas : 0,
+                            'importe_ventas'        => $v ? (float) $v->importe_ventas : 0.0,
+                        ];
+                    });
 
                     return response()->json([
                         'success'      => true,
