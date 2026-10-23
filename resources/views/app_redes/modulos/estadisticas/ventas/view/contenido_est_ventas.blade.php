@@ -412,16 +412,16 @@
         <!-- ============================================================== -->
         <div class="tab-pane fade show active" id="tab-general" role="tabpanel" aria-labelledby="tab-general-link">
 
-            <!-- 1. BLOQUE DE DESEMPEÑO COMERCIAL -->
+            <!-- 1. BLOQUE DE GENERACIÓN COMERCIAL Y FACTURACIÓN -->
             <div class="d-flex align-items-center mb-3 mt-1">
                 <span class="badge badge-primary px-3 py-1 font-weight-bold" style="font-size: 11.5px; border-radius: 20px;">
-                    <i class="fas fa-bullseye mr-1"></i> Desempeño Comercial
+                    <i class="fas fa-bullseye mr-1"></i> Generación Comercial y Facturación
                 </span>
                 <div class="flex-grow-1 border-bottom ml-3"></div>
             </div>
 
             <div class="row mb-4">
-                <!-- Cotizaciones -->
+                <!-- 1. Cotizaciones Creadas -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-primary h-100">
                         <span class="stat-accent"></span>
@@ -440,7 +440,7 @@
                     </div>
                 </div>
 
-                <!-- Ventas Concretadas -->
+                <!-- 2. Ventas Concretadas -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-success h-100">
                         <span class="stat-accent"></span>
@@ -459,24 +459,7 @@
                     </div>
                 </div>
 
-                <!-- Tasa de Conversión -->
-                <div class="col-xl-3 col-md-6 mb-3">
-                    <div class="card stat-card stat-card-purple h-100">
-                        <span class="stat-accent"></span>
-                        <div class="card-body">
-                            <div class="stat-meta">
-                                <p class="stat-label">Tasa de Conversión</p>
-                                <p id="tasaConversion" class="stat-value">{{ $tasaConversion }}%</p>
-                                <p class="stat-sublabel">Efectividad de cierre</p>
-                            </div>
-                            <div class="stat-icon">
-                                <i class="fas fa-percentage"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ticket Promedio -->
+                <!-- 3. Ticket Promedio -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-warning h-100">
                         <span class="stat-accent"></span>
@@ -492,24 +475,14 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 2. BLOQUE DE RESUMEN FINANCIERO -->
-            <div class="d-flex align-items-center mb-3 mt-1">
-                <span class="badge text-white px-3 py-1 font-weight-bold" style="font-size: 11.5px; border-radius: 20px; background: #059669;">
-                    <i class="fas fa-wallet mr-1"></i> Balance Financiero
-                </span>
-                <div class="flex-grow-1 border-bottom ml-3"></div>
-            </div>
-
-            <div class="row mb-4">
-                <!-- Ventas Brutas -->
+                <!-- 4. Ventas Brutas Totales -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-primary h-100">
                         <span class="stat-accent"></span>
                         <div class="card-body">
                             <div class="stat-meta">
-                                <p class="stat-label">Ventas Brutas</p>
+                                <p class="stat-label">Ventas Brutas Totales</p>
                                 <p id="totalVentas" class="stat-value">${{ $totalVentas }}</p>
                                 <p class="stat-sublabel">Facturación total acumulada</p>
                             </div>
@@ -519,8 +492,18 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Impuesto IVA -->
+            <!-- 2. BLOQUE DE DEDUCCIONES Y VENTA NETA -->
+            <div class="d-flex align-items-center mb-3 mt-1">
+                <span class="badge text-white px-3 py-1 font-weight-bold" style="font-size: 11.5px; border-radius: 20px; background: #059669;">
+                    <i class="fas fa-wallet mr-1"></i> Deducciones y Venta Neta
+                </span>
+                <div class="flex-grow-1 border-bottom ml-3"></div>
+            </div>
+
+            <div class="row mb-4">
+                <!-- 1. Impuesto IVA -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-danger h-100">
                         <span class="stat-accent"></span>
@@ -537,29 +520,41 @@
                     </div>
                 </div>
 
-                <!-- Gastos Logística -->
+                <!-- 2. Envíos (Flete Local) -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-warning h-100">
                         <span class="stat-accent"></span>
                         <div class="card-body">
                             <div class="stat-meta">
-                                <p class="stat-label">Gastos Logística</p>
-                                <p id="totalLogistica" class="stat-value">
-                                    ${{ number_format((float) str_replace(',', '', $totalEnvios) + (float) str_replace(',', '', $totalEnviosPaqueteria), 2) }}
-                                </p>
-                                <p class="stat-sublabel">
-                                    Envío: <span id="totalEnvios" class="font-weight-bold">${{ $totalEnvios }}</span> |
-                                    Paq: <span id="totalEnviosPaqueteria" class="font-weight-bold">${{ $totalEnviosPaqueteria }}</span>
-                                </p>
+                                <p class="stat-label">Envíos (Flete Local)</p>
+                                <p id="totalEnvios" class="stat-value text-warning">${{ $totalEnvios }}</p>
+                                <p class="stat-sublabel">Entregas y traslados directos</p>
                             </div>
                             <div class="stat-icon">
-                                <i class="fas fa-shipping-fast"></i>
+                                <i class="fas fa-truck"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- HERO CARD: Venta Neta -->
+                <!-- 3. Paquetería Foránea -->
+                <div class="col-xl-3 col-md-6 mb-3">
+                    <div class="card stat-card stat-card-warning h-100">
+                        <span class="stat-accent"></span>
+                        <div class="card-body">
+                            <div class="stat-meta">
+                                <p class="stat-label">Paquetería Foránea</p>
+                                <p id="totalEnviosPaqueteria" class="stat-value text-warning">${{ $totalEnviosPaqueteria }}</p>
+                                <p class="stat-sublabel">Envíos nacionales externos</p>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. HERO CARD: Venta Neta -->
                 <div class="col-xl-3 col-md-6 mb-3">
                     <div class="card stat-card stat-card-hero h-100">
                         <div class="card-body">
@@ -571,7 +566,7 @@
                                 </div>
                                 <p class="stat-label">Venta Neta</p>
                                 <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
-                                <p class="stat-sublabel text-white-50">Ventas - IVA - Logística</p>
+                                <p class="stat-sublabel text-white-50">Ventas - IVA - Envíos - Paq</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-coins"></i>
@@ -581,7 +576,7 @@
                 </div>
             </div>
 
-            <!-- 3. BLOQUE GRÁFICA MENSUAL Y TOP PRODUCTOS -->
+            <!-- 3. BLOQUE GRÁFICA MENSUAL Y TOP PRODUCTOS (CON WIDGET DE CONVERSIÓN) -->
             <div class="row mb-4">
                 <!-- Columna Izquierda (7-8 cols): Gráfica Mensual -->
                 <div class="col-lg-7 col-xl-8 mb-4 mb-lg-0">
@@ -593,23 +588,42 @@
                             <span class="small text-muted">Doble eje: Volumen y Monto facturado ($)</span>
                         </div>
                         <div class="card-body">
-                            <div style="position: relative; min-height: 380px; width: 100%;">
+                            <div style="position: relative; min-height: 410px; width: 100%;">
                                 <canvas id="ventasChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Columna Derecha (4-5 cols): Leaderboard de Productos Más Vendidos -->
-                <div class="col-lg-5 col-xl-4">
-                    <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
+                <!-- Columna Derecha (4-5 cols): Widget Conversión + Leaderboard de Productos -->
+                <div class="col-lg-5 col-xl-4 d-flex flex-column">
+                    <!-- Widget Tasa de Conversión Comercial -->
+                    <div class="card stat-card mb-3" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid #ddd6fe !important;">
+                        <div class="card-body py-3 px-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-uppercase small font-weight-bold" style="color: #6d28d9; letter-spacing: 0.05em; font-size: 11px;">
+                                    <i class="fas fa-percentage mr-1"></i> Tasa de Conversión Comercial
+                                </span>
+                                <div class="d-flex align-items-baseline mt-1">
+                                    <span class="h4 font-weight-bold mb-0 text-gray-800" id="tasaConversion">{{ $tasaConversion }}%</span>
+                                    <span class="small text-muted ml-2">éxito cotización a venta</span>
+                                </div>
+                            </div>
+                            <div class="stat-icon" style="background: #ddd6fe; color: #7c3aed; width: 40px; height: 40px; border-radius: 12px; font-size: 16px;">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leaderboard de Productos Más Vendidos -->
+                    <div class="card shadow-sm border-0 rounded-lg flex-grow-1" style="border-radius: 16px;">
                         <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
                             <h6 class="m-0 font-weight-bold text-gray-800">
                                 <i class="fas fa-trophy text-warning mr-2"></i>Top Productos Más Vendidos
                             </h6>
                             <span class="badge badge-light border text-muted small">Por volumen e importe</span>
                         </div>
-                        <div class="card-body p-0" style="max-height: 440px; overflow-y: auto;">
+                        <div class="card-body p-0" style="max-height: 340px; overflow-y: auto;">
                             <div id="productosMasVendidos">
                                 @forelse ($productosMasVendidos as $index => $producto)
                                     @php
