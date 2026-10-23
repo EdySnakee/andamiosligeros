@@ -430,7 +430,7 @@
                                 <p class="stat-label">Cotizaciones Creadas</p>
                                 <p id="numCotizaciones" class="stat-value">{{ number_format($numCotizaciones) }}</p>
                                 <p class="stat-sublabel">
-                                    <span class="text-primary font-weight-bold">${{ $totalCotizaciones }}</span> cotizado
+                                    <span class="text-primary font-weight-bold" id="totalCotizaciones">${{ $totalCotizaciones }}</span> cotizado
                                 </p>
                             </div>
                             <div class="stat-icon">
