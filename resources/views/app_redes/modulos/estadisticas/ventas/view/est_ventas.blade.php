@@ -536,6 +536,16 @@
                 }
             });
 
+            // Aplicar automáticamente filtro "Este Mes" al abrir la pestaña de Análisis Comercial si está en historial completo
+            let analisisAutoFiltrado = false;
+            $('#tab-analisis-link').on('shown.bs.tab', function (e) {
+                if (!analisisAutoFiltrado && !$('#fecha_inicio').val()) {
+                    analisisAutoFiltrado = true;
+                    const pill = $('.preset-pill[data-preset="este_mes"]')[0];
+                    setPreset('este_mes', pill);
+                }
+            });
+
             // Botón de filtro rápido de mes en la card de proyección
             $(document).on('click', '#btnFiltrarEsteMesAnalisis', function(e) {
                 e.preventDefault();
