@@ -410,24 +410,62 @@
             });
         }
 
-        // Renderizado dinámico de la pestaña de Análisis Comercial (Fase 1)
+        // Renderizado dinámico de la pestaña de Análisis Comercial (Fases 1, 2 y 3)
         function renderAnalisis(an) {
             if (!an) return;
 
             // Días analizados
             $('#an_badgeDias').text(an.dias || 1);
 
+            // Alerta de Pipeline Abierto (Fase 3)
+            if (an.alertaPipeline) {
+                $('#an_alertaPipelineContainer').show();
+                $('#an_txtAlertPipelineVal').text('$' + (an.pipelineAbiertoValor || '0.00'));
+                $('#an_txtAlertRatio').text((an.ratioPipelineVentas || 0) + 'x');
+            } else {
+                $('#an_alertaPipelineContainer').hide();
+            }
+
             // 1. KPIs Fila 1
             $('#an_tasaConversion').text((an.tasaConversion || 0) + '%');
             $('#an_txtVentasNum').text(Number(an.numeroVentas || 0).toLocaleString());
             $('#an_txtCotisNum').text(Number(an.numCotizaciones || 0).toLocaleString());
+
+            // Semáforo Cotización -> Venta
+            const convCls = an.statusConversion === 'verde' ? 'badge-success' : (an.statusConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            $('#an_badgeSemConversion').attr('class', 'badge ' + convCls + ' font-weight-bold').text(an.badgeConversion || 'Meta');
+
             $('#an_ticketPromedio').text('$' + (an.ticketPromedio || '0.00'));
             $('#an_ventasPorDia').text(an.ventasPorDia || 0);
             $('#an_cotizacionesPorDia').text(an.cotizacionesPorDia || 0);
             $('#an_netoPorDia').text('$' + (an.netoPorDia || '0.00'));
             $('#an_netoPorVenta').text(an.netoPorVenta || '0.00');
 
-            // 2. Embudo Fila 2
+            // 2. Embudo Fila 2 (con Leads)
+            if (an.hasLeads) {
+                $('#an_funnelLeadsTxt').html(
+                    '<span id="an_funnelLeadsNum">' + Number(an.leads).toLocaleString() + '</span> prospectos ' +
+                    '<a href="#" class="text-primary ml-1" data-toggle="modal" data-target="#modalRegistroLeads" title="Editar leads"><i class="fas fa-edit"></i></a>'
+                );
+                $('#an_barLeadsTxt').text(Number(an.leads).toLocaleString() + ' Leads (Base de Prospección)');
+
+                const leadCol = an.statusLeadConversion === 'verde' ? '#10b981' : (an.statusLeadConversion === 'amarillo' ? '#f59e0b' : '#ef4444');
+                const leadCls = an.statusLeadConversion === 'verde' ? 'badge-success' : (an.statusLeadConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
+                $('#an_funnelLeadConvRate').text((an.leadToCotizacion || 0) + '%').css('color', leadCol);
+                $('#an_badgeLeadSem').attr('class', 'badge ' + leadCls).text(an.badgeLeadConversion || 'Prospección');
+                $('#an_funnelLeadVtaRate').text((an.leadToVenta || 0) + '%');
+            } else {
+                $('#an_funnelLeadsTxt').html(
+                    '<span class="text-muted font-weight-normal">No capturados en el mes</span> ' +
+                    '<button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 ml-1" data-toggle="modal" data-target="#modalRegistroLeads" style="font-size: 11px;">' +
+                    '<i class="fas fa-plus"></i> Registrar</button>'
+                );
+                $('#an_barLeadsTxt').text('Sin captura de leads');
+                $('#an_funnelLeadConvRate').text('-').css('color', '#64748b');
+                $('#an_badgeLeadSem').attr('class', 'badge badge-light text-muted border').text('Sin captura');
+                $('#an_funnelLeadVtaRate').text('-');
+            }
+
             $('#an_funnelCotisNum').text(Number(an.numCotizaciones || 0).toLocaleString());
             $('#an_funnelCotisVal').text('$' + (an.totalCotizaciones || '0.00'));
             $('#an_funnelConvRate').text((an.tasaConversion || 0) + '%');
@@ -463,11 +501,8 @@
             }
 
             $('#an_coberturaLog').text((an.coberturaLogistica || 0) + '%');
-            if (parseFloat(an.coberturaLogistica || 0) >= 100) {
-                $('#an_badgeCobertura').removeClass('badge-warning').addClass('badge-primary').text('Autosustentable');
-            } else {
-                $('#an_badgeCobertura').removeClass('badge-primary').addClass('badge-warning').text('Parcial');
-            }
+            const cobCls = an.statusCobertura === 'verde' ? 'badge-success' : (an.statusCobertura === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            $('#an_badgeCobertura').attr('class', 'badge ' + cobCls).text(an.badgeCobertura || 'Autosustentable');
 
             // 4. Proyección al Cierre de Mes
             if (an.mostrarProyeccion) {
@@ -491,13 +526,27 @@
                     .removeClass('text-white').addClass('badge-light text-muted border').css('background', '');
             }
 
-            // 5. Tabla Comparativa Histórica
+            // 5. Tabla Comparativa Histórica (con leads y semáforos)
             if (an.comparativa && an.comparativa.length > 0) {
                 let htmlComp = '';
                 an.comparativa.forEach(function(row) {
                     const trClass = row.es_mes_actual ? 'table-primary font-weight-bold' : '';
                     const badgeEnCurso = row.es_mes_actual ? ' <span class="badge badge-primary ml-1" style="font-size: 9.5px;">En curso</span>' : '';
-                    const convColor = parseFloat(row.conversion_pct) >= 30 ? 'text-success' : 'text-primary';
+
+                    const semConvCls = row.status_conversion === 'verde' ? 'text-success' : (row.status_conversion === 'amarillo' ? 'text-warning' : 'text-danger');
+
+                    let leadsTd = '<span class="text-muted small">-</span>';
+                    if (row.leads_count > 0) {
+                        leadsTd = '<span class="font-weight-bold text-info">' + Number(row.leads_count).toLocaleString() + '</span>' +
+                            (row.conv_leads_pct !== null ? '<small class="text-muted d-block">' + row.conv_leads_pct + '% cotizan</small>' : '');
+                    }
+
+                    let ticketSub = '';
+                    if (row.var_ticket !== null && row.var_ticket !== undefined) {
+                        const tickCls = row.status_ticket_var === 'verde' ? 'text-success' : (row.status_ticket_var === 'amarillo' ? 'text-warning' : 'text-danger');
+                        const sign = parseFloat(row.var_ticket) > 0 ? '+' : '';
+                        ticketSub = '<small class="d-block font-weight-bold ' + tickCls + '">' + sign + row.var_ticket + '%</small>';
+                    }
 
                     let varHtml = '<span class="text-muted small">-</span>';
                     if (row.var_neto !== null && row.var_neto !== undefined) {
@@ -512,10 +561,11 @@
 
                     htmlComp += '<tr class="' + trClass + '">' +
                         '<td><strong>' + row.nombre_mes + '</strong>' + badgeEnCurso + '</td>' +
+                        '<td class="text-center">' + leadsTd + '</td>' +
                         '<td class="text-center">' + Number(row.cotizaciones_count).toLocaleString() + '<small class="text-muted d-block">$' + row.total_cotizado + '</small></td>' +
                         '<td class="text-center"><span class="badge badge-success px-2 py-1">' + Number(row.ventas_count).toLocaleString() + '</span></td>' +
-                        '<td class="text-center"><span class="font-weight-bold ' + convColor + '">' + row.conversion_pct + '%</span></td>' +
-                        '<td class="text-right">$' + row.ticket_promedio + '</td>' +
+                        '<td class="text-center"><span class="font-weight-bold ' + semConvCls + '">' + row.conversion_pct + '%</span></td>' +
+                        '<td class="text-right">$' + row.ticket_promedio + ticketSub + '</td>' +
                         '<td class="text-right font-weight-bold text-gray-800">$' + row.total_bruto + '</td>' +
                         '<td class="text-right font-weight-bold text-success">$' + row.total_neto + '</td>' +
                         '<td class="text-right text-muted">$' + row.neto_por_dia + '</td>' +
@@ -524,6 +574,211 @@
                 });
                 $('#an_tbodyComparativa').html(htmlComp);
             }
+
+            // 6. Actualizar Historial de Leads en el Modal
+            if (an.listaLeads) {
+                let htmlLeads = '';
+                if (an.listaLeads.length > 0) {
+                    an.listaLeads.forEach(function(l) {
+                        htmlLeads += '<tr id="row_lead_' + l.id + '">' +
+                            '<td class="font-weight-bold">' + l.mes + '</td>' +
+                            '<td class="text-center font-weight-bold text-primary">' + Number(l.leads).toLocaleString() + '</td>' +
+                            '<td class="small text-muted">' + (l.notas || '-') + '</td>' +
+                            '<td class="text-right">' +
+                                '<button type="button" class="btn btn-xs btn-outline-danger py-0 px-2" onclick="eliminarLeadRegistro(' + l.id + ', \'' + l.mes + '\')" title="Eliminar registro">' +
+                                    '<i class="fas fa-trash"></i>' +
+                                '</button>' +
+                            '</td>' +
+                        '</tr>';
+                    });
+                } else {
+                    htmlLeads = '<tr id="row_leads_vacio"><td colspan="4" class="text-center py-3 text-muted small">No hay meses registrados aún. Captura el primero arriba.</td></tr>';
+                }
+                $('#tblHistorialLeads').html(htmlLeads);
+            }
+        }
+
+        // =====================================================================
+        // MANEJADORES DE ACCIONES FASE 3 (LEADS, UMBRALES, EXPORTACIÓN)
+        // =====================================================================
+
+        function guardarLeadsMensual(e) {
+            e.preventDefault();
+            const $btn = $('#btnGuardarLeads');
+            const mes = $('#lead_mes').val();
+            const leads = $('#lead_cantidad').val();
+            const notas = $('#lead_notas').val();
+            const fecha_inicio = $('#fecha_inicio').val();
+            const fecha_fin = $('#fecha_fin').val();
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+
+            $.ajax({
+                url: '{{ route('ajax_est_ventas') }}',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    accion: 'guardarLeads',
+                    datos: {
+                        mes: mes,
+                        leads: leads,
+                        notas: notas,
+                        fecha_inicio: fecha_inicio,
+                        fecha_fin: fecha_fin
+                    }
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#modalRegistroLeads').modal('hide');
+                        $('#lead_cantidad').val('');
+                        $('#lead_notas').val('');
+                        if (res.analisis) {
+                            renderAnalisis(res.analisis);
+                        }
+                    } else {
+                        alert(res.error || 'Error al guardar leads');
+                    }
+                },
+                error: function() {
+                    alert('Error de conexión al guardar los leads.');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Guardar Leads');
+                }
+            });
+        }
+
+        function eliminarLeadRegistro(id, mes) {
+            if (!confirm('¿Deseas eliminar el registro de leads del mes ' + mes + '?')) {
+                return;
+            }
+            const fecha_inicio = $('#fecha_inicio').val();
+            const fecha_fin = $('#fecha_fin').val();
+
+            $.ajax({
+                url: '{{ route('ajax_est_ventas') }}',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    accion: 'eliminarLeads',
+                    datos: {
+                        id: id,
+                        fecha_inicio: fecha_inicio,
+                        fecha_fin: fecha_fin
+                    }
+                },
+                success: function(res) {
+                    if (res.success && res.analisis) {
+                        renderAnalisis(res.analisis);
+                    }
+                }
+            });
+        }
+
+        function guardarUmbralesConfig(e) {
+            e.preventDefault();
+            const $btn = $('#btnGuardarUmbrales');
+            const fecha_inicio = $('#fecha_inicio').val();
+            const fecha_fin = $('#fecha_fin').val();
+
+            const umbrales = {
+                umb_conv_verde: $('#conf_conv_verde').val(),
+                umb_conv_amarillo: $('#conf_conv_amarillo').val(),
+                umb_cobertura_verde: $('#conf_cob_verde').val(),
+                umb_cobertura_amarillo: $('#conf_cob_amarillo').val(),
+                umb_lead_conv_verde: $('#conf_lead_verde').val(),
+                umb_lead_conv_amarillo: $('#conf_lead_amarillo').val(),
+                umb_pipeline_multiplicador: $('#conf_pipeline_mult').val()
+            };
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+
+            $.ajax({
+                url: '{{ route('ajax_est_ventas') }}',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    accion: 'guardarUmbrales',
+                    datos: {
+                        umbrales: umbrales,
+                        fecha_inicio: fecha_inicio,
+                        fecha_fin: fecha_fin
+                    }
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#modalConfigUmbrales').modal('hide');
+                        if (res.analisis) {
+                            renderAnalisis(res.analisis);
+                        }
+                    }
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Guardar Metas');
+                }
+            });
+        }
+
+        function restablecerUmbralesDefault() {
+            $('#conf_conv_verde').val(40);
+            $('#conf_conv_amarillo').val(30);
+            $('#conf_cob_verde').val(100);
+            $('#conf_cob_amarillo').val(90);
+            $('#conf_lead_verde').val(2.5);
+            $('#conf_lead_amarillo').val(1.8);
+            $('#conf_pipeline_mult').val(1.5);
+        }
+
+        // Exportación de reporte ejecutivo en formato CSV (compatible Excel con BOM)
+        function exportarAnalisisExcel() {
+            let csv = '\uFEFF'; // UTF-8 BOM
+            csv += 'REPORTE DE ANÁLISIS COMERCIAL - ANDAMIOS LIGEROS\n';
+            csv += 'Generado el: ' + new Date().toLocaleDateString('es-MX') + '\n';
+            csv += 'Período: ' + ($('#fecha_inicio').val() || 'Todo el historial') + ' al ' + ($('#fecha_fin').val() || 'Hoy') + '\n\n';
+
+            csv += '1. RESUMEN DE KPIs ESTRATÉGICOS\n';
+            csv += 'Métrica,Valor\n';
+            csv += 'Tasa de Conversión (Cotización a Venta),' + $('#an_tasaConversion').text() + '\n';
+            csv += 'Ticket Promedio,' + $('#an_ticketPromedio').text() + '\n';
+            csv += 'Ritmo de Ventas por Día,' + $('#an_ventasPorDia').text() + ' vtas/día\n';
+            csv += 'Cotizaciones por Día,' + $('#an_cotizacionesPorDia').text() + ' cotis/día\n';
+            csv += 'Generación Neta Diaria,' + $('#an_netoPorDia').text() + '\n';
+            csv += 'Ingreso Neto por Venta,' + $('#an_netoPorVenta').text() + '\n\n';
+
+            csv += '2. SALUD LOGÍSTICA\n';
+            csv += 'Concepto,Monto\n';
+            csv += 'Fletes Cobrados al Cliente,' + $('#an_logEnvios').text() + '\n';
+            csv += 'Paquetería Pagada a Transportistas,' + $('#an_logPaq').text() + '\n';
+            csv += 'Superávit Logístico Net,' + $('#an_superavitLog').text() + '\n';
+            csv += 'Cobertura Logística,' + $('#an_coberturaLog').text() + '\n\n';
+
+            csv += '3. COMPARATIVA MENSUAL HISTÓRICA\n';
+            csv += 'Mes,Leads,Cotizaciones,Ventas,Conversión %,Ticket Promedio,Facturación Bruta,Venta Neta,Neto por Día,Variación Neto\n';
+
+            $('#an_tbodyComparativa tr').each(function() {
+                const cols = [];
+                $(this).find('td').each(function() {
+                    let text = $(this).text().replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                    text = '"' + text.replace(/"/g, '""') + '"';
+                    cols.push(text);
+                });
+                if (cols.length > 0) {
+                    csv += cols.join(',') + '\n';
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analisis_comercial_' + (new Date().toISOString().slice(0, 10)) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         $(document).ready(function() {

@@ -1,8 +1,28 @@
 {{-- ========================================================================= --}}
-{{-- PESTAÑA: ANÁLISIS COMERCIAL (FASE 1)                                       --}}
+{{-- PESTAÑA: ANÁLISIS COMERCIAL (FASES 1, 2 Y 3)                              --}}
 {{-- ========================================================================= --}}
 
 <div class="mb-4">
+    {{-- ALERTA AUTOMÁTICA DE PIPELINE ABIERTO (FASE 3) --}}
+    <div id="an_alertaPipelineContainer" class="alert alert-warning border-left-warning shadow-sm mb-4" style="{{ $analisis['alertaPipeline'] ? '' : 'display: none;' }}; border-radius: 12px; border-left: 5px solid #f59e0b !important;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning mr-3"></i>
+                <div>
+                    <h6 class="font-weight-bold text-gray-800 mb-1">
+                        Atención Comercial: Pipeline Abierto Elevado
+                    </h6>
+                    <p class="mb-0 text-muted small">
+                        Existe un volumen de <strong class="text-dark" id="an_txtAlertPipelineVal">${{ $analisis['pipelineAbiertoValor'] }}</strong> en cotizaciones sin cerrar (<span id="an_txtAlertRatio" class="font-weight-bold text-warning">{{ $analisis['ratioPipelineVentas'] }}x</span> veces las ventas cerradas). Se recomienda reactivar el seguimiento comercial con los prospectos.
+                    </p>
+                </div>
+            </div>
+            <span class="badge badge-warning font-weight-bold px-3 py-2 mt-2 mt-md-0" style="font-size: 11px;">
+                <i class="fas fa-bullhorn mr-1"></i> Seguimiento Requerido
+            </span>
+        </div>
+    </div>
+
     {{-- 1. HEADER DE LA SECCIÓN DE ANÁLISIS --}}
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-4 pb-2 border-bottom">
         <div>
@@ -10,25 +30,45 @@
                 <i class="fas fa-chart-pie text-primary mr-2"></i>Análisis Comercial y Salud del Negocio
             </h5>
             <p class="text-muted small mb-0">
-                Embudo de conversión, rentabilidad logística, proyección al cierre y comparativa histórica de resultados.
+                Embudo de conversión, semáforos de metas, salud logística, proyección al cierre y comparativa histórica.
             </p>
         </div>
-        <div class="mt-2 mt-md-0">
-            <span class="badge badge-light border px-3 py-2 text-muted font-weight-bold small">
-                <i class="fas fa-calendar-alt text-primary mr-1"></i> Período: <span id="an_badgeDias">{{ $analisis['dias'] }}</span> días analizados
+        <div class="mt-2 mt-md-0 d-flex align-items-center flex-wrap" style="gap: 6px;">
+            <span class="badge badge-light border px-3 py-2 text-muted font-weight-bold small mr-1">
+                <i class="fas fa-calendar-alt text-primary mr-1"></i> Período: <span id="an_badgeDias">{{ $analisis['dias'] }}</span> días
             </span>
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 font-weight-bold mr-1" data-toggle="modal" data-target="#modalRegistroLeads">
+                <i class="fas fa-bullhorn mr-1"></i> Registrar Leads
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 font-weight-bold mr-1" data-toggle="modal" data-target="#modalConfigUmbrales" title="Configurar metas y umbrales de semáforos">
+                <i class="fas fa-sliders-h mr-1"></i> Metas
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 font-weight-bold mr-1" onclick="exportarAnalisisExcel()" title="Descargar reporte en Excel">
+                <i class="fas fa-file-excel mr-1"></i> Excel
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 font-weight-bold" onclick="window.print()" title="Imprimir reporte ejecutivo">
+                <i class="fas fa-print mr-1"></i> Imprimir
+            </button>
         </div>
     </div>
 
     {{-- 2. TARJETAS KPI ESTRATÉGICAS (FILA 1) --}}
     <div class="row mb-4">
-        {{-- KPI 1: Cotización -> Venta --}}
+        {{-- KPI 1: Cotización -> Venta con Semáforo --}}
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stat-card stat-card-primary h-100">
                 <span class="stat-accent"></span>
                 <div class="card-body">
                     <div class="stat-meta">
-                        <p class="stat-label">Cotización → Venta</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <p class="stat-label mb-0">Cotización → Venta</p>
+                            @php
+                                $badgeCls = $analisis['statusConversion'] == 'verde' ? 'badge-success' : ($analisis['statusConversion'] == 'amarillo' ? 'badge-warning' : 'badge-danger');
+                            @endphp
+                            <span class="badge {{ $badgeCls }} font-weight-bold" id="an_badgeSemConversion" style="font-size: 10px; border-radius: 999px;">
+                                {{ $analisis['badgeConversion'] }}
+                            </span>
+                        </div>
                         <p id="an_tasaConversion" class="stat-value text-primary">{{ $analisis['tasaConversion'] }}%</p>
                         <p class="stat-sublabel" id="an_subConversion">
                             <span class="font-weight-bold text-dark" id="an_txtVentasNum">{{ number_format($analisis['numeroVentas']) }}</span> cerradas de <span id="an_txtCotisNum">{{ number_format($analisis['numCotizaciones']) }}</span> cotizadas
@@ -118,6 +158,52 @@
                 </div>
                 <div class="card-body p-4 d-flex flex-column justify-content-between">
                     <div>
+                        {{-- Etapa 0: Leads / Conversaciones Recibidas (Fase 2 / Entrada inicial) --}}
+                        <div class="mb-3" id="an_secLeadsContainer">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="font-weight-bold text-gray-800 small">
+                                    <i class="fas fa-comments text-info mr-1"></i> 0. Leads / Conversaciones Iniciadas
+                                </span>
+                                <span class="small font-weight-bold text-dark" id="an_funnelLeadsTxt">
+                                    @if ($analisis['hasLeads'])
+                                        <span id="an_funnelLeadsNum">{{ number_format($analisis['leads']) }}</span> prospectos
+                                        <a href="#" class="text-primary ml-1" data-toggle="modal" data-target="#modalRegistroLeads" title="Editar leads"><i class="fas fa-edit"></i></a>
+                                    @else
+                                        <span class="text-muted font-weight-normal">No capturados en el mes</span>
+                                        <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 ml-1" data-toggle="modal" data-target="#modalRegistroLeads" style="font-size: 11px;">
+                                            <i class="fas fa-plus"></i> Registrar
+                                        </button>
+                                    @endif
+                                </span>
+                            </div>
+                            <div class="progress" style="height: 22px; border-radius: 8px; background-color: #f1f5f9;">
+                                <div class="progress-bar bg-info" id="an_barLeads" role="progressbar" style="width: 100%; font-size: 11px; font-weight: bold;">
+                                    <span id="an_barLeadsTxt">{{ $analisis['hasLeads'] ? number_format($analisis['leads']) . ' Leads (Base de Prospección)' : 'Sin captura de leads' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Tasa intermedia 0: Lead -> Cotización --}}
+                        <div class="d-flex align-items-center justify-content-center my-2 text-muted small flex-wrap" id="an_funnelLeadRates">
+                            <i class="fas fa-arrow-down text-info mr-1"></i>
+                            Conversión Lead → Cotización:
+                            @php
+                                $leadColor = $analisis['statusLeadConversion'] == 'verde' ? '#10b981' : ($analisis['statusLeadConversion'] == 'amarillo' ? '#f59e0b' : ($analisis['statusLeadConversion'] == 'rojo' ? '#ef4444' : '#64748b'));
+                                $leadBadgeCls = $analisis['statusLeadConversion'] == 'verde' ? 'badge-success' : ($analisis['statusLeadConversion'] == 'amarillo' ? 'badge-warning' : ($analisis['statusLeadConversion'] == 'rojo' ? 'badge-danger' : 'badge-light text-muted border'));
+                            @endphp
+                            <strong class="ml-1 mr-2" id="an_funnelLeadConvRate" style="color: {{ $leadColor }};">
+                                {{ $analisis['hasLeads'] ? $analisis['leadToCotizacion'] . '%' : '-' }}
+                            </strong>
+                            <span class="badge {{ $leadBadgeCls }}" id="an_badgeLeadSem" style="font-size: 9.5px; border-radius: 999px;">
+                                {{ $analisis['badgeLeadConversion'] }}
+                            </span>
+                            <span class="mx-2">·</span>
+                            Lead → Venta:
+                            <strong class="text-dark ml-1" id="an_funnelLeadVtaRate">
+                                {{ $analisis['hasLeads'] ? $analisis['leadToVenta'] . '%' : '-' }}
+                            </strong>
+                        </div>
+
                         {{-- Etapa 1: Cotizaciones --}}
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -130,13 +216,13 @@
                             </div>
                             <div class="progress" style="height: 22px; border-radius: 8px; background-color: #f1f5f9;">
                                 <div class="progress-bar bg-primary" role="progressbar" style="width: 100%; font-size: 11px; font-weight: bold;">
-                                    100% Volumen Base
+                                    100% Volumen Cotizado
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Tasa intermedia 1 --}}
-                        <div class="d-flex align-items-center justify-content-center my-2 text-muted small">
+                        {{-- Tasa intermedia 1: Cotización -> Venta --}}
+                        <div class="d-flex align-items-center justify-content-center my-2 text-muted small flex-wrap">
                             <i class="fas fa-arrow-down text-primary mr-1"></i>
                             Tasa de éxito comercial: <strong class="text-primary ml-1" id="an_funnelConvRate">{{ $analisis['tasaConversion'] }}%</strong>
                             <span class="mx-2">·</span>
@@ -163,8 +249,8 @@
                             </div>
                         </div>
 
-                        {{-- Tasa intermedia 2 --}}
-                        <div class="d-flex align-items-center justify-content-center my-2 text-muted small">
+                        {{-- Tasa intermedia 2: Margen Neto y Deducciones --}}
+                        <div class="d-flex align-items-center justify-content-center my-2 text-muted small flex-wrap">
                             <i class="fas fa-arrow-down text-success mr-1"></i>
                             Margen Neto de la Venta: <strong class="text-success ml-1" id="an_funnelMargenRate">{{ $analisis['margenNetoPct'] }}%</strong>
                             <span class="mx-2">·</span>
@@ -212,7 +298,7 @@
             </div>
         </div>
 
-        {{-- Columna Derecha: Control de Logística y Paquetería --}}
+        {{-- Columna Derecha: Control de Logística y Paquetería con Semáforos --}}
         <div class="col-lg-6">
             <div class="card shadow-sm border-0 rounded-lg h-100" style="border-radius: 16px;">
                 <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
@@ -230,7 +316,7 @@
                                     <i class="fas fa-user-check text-primary mr-1"></i> Cobrado al Cliente
                                 </span>
                                 <h5 class="font-weight-bold text-primary mb-0" id="an_logEnvios">${{ $analisis['totalEnvios'] }}</h5>
-                                <span class="text-muted" style="font-size: 0.75rem;">Flete pagado por cliente</span>
+                                <span class="text-muted" style="font-size: 0.75rem;">Flete facturado</span>
                             </div>
                         </div>
                         <div class="col-6">
@@ -264,27 +350,30 @@
                                     ${{ $analisis['superavitLogistico'] }}
                                 </h4>
                                 <small class="text-muted" style="font-size: 0.72rem;">
-                                    Diferencia entre lo cobrado al cliente y lo pagado a transportistas.
+                                    Diferencia neta entre lo cobrado al cliente y lo pagado a transportistas.
                                 </small>
                             </div>
                         </div>
 
-                        {{-- Cobertura Logística --}}
+                        {{-- Cobertura Logística con Semáforo (Fase 3) --}}
                         <div class="col-md-6">
                             <div class="p-3 rounded border h-100 d-flex flex-column justify-content-between" style="background: #eff6ff; border-color: #bfdbfe !important;">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span class="small font-weight-bold text-primary">
                                         <i class="fas fa-shield-alt mr-1"></i> Cobertura Logística
                                     </span>
-                                    <span class="badge {{ (float)$analisis['coberturaLogistica'] >= 100 ? 'badge-primary' : 'badge-warning' }}" id="an_badgeCobertura">
-                                        {{ (float)$analisis['coberturaLogistica'] >= 100 ? 'Autosustentable' : 'Parcial' }}
+                                    @php
+                                        $cobCls = $analisis['statusCobertura'] == 'verde' ? 'badge-success' : ($analisis['statusCobertura'] == 'amarillo' ? 'badge-warning' : 'badge-danger');
+                                    @endphp
+                                    <span class="badge {{ $cobCls }}" id="an_badgeCobertura">
+                                        {{ $analisis['badgeCobertura'] }}
                                     </span>
                                 </div>
                                 <h4 class="font-weight-bold text-primary mb-1" id="an_coberturaLog">
                                     {{ $analisis['coberturaLogistica'] }}%
                                 </h4>
                                 <small class="text-muted" style="font-size: 0.72rem;">
-                                    Si es mayor a 100%, los fletes cobrados no solo cubren el costo sino que aportan utilidad.
+                                    Meta &ge; 100%: los fletes cobrados no sólo cubren el costo sino que aportan utilidad.
                                 </small>
                             </div>
                         </div>
@@ -407,14 +496,14 @@
         </div>
     </div>
 
-    {{-- 5. FILA 4: TABLA COMPARATIVA MENSUAL HISTÓRICA --}}
+    {{-- 5. FILA 4: TABLA COMPARATIVA MENSUAL HISTÓRICA CON LEADS Y SEMÁFOROS (FASE 3) --}}
     <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 16px;">
         <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
             <div>
                 <h6 class="m-0 font-weight-bold text-gray-800">
                     <i class="fas fa-history text-primary mr-2"></i>Comparativa Mensual Histórica (Últimos 6 Meses)
                 </h6>
-                <span class="small text-muted">Evolución mes a mes con variación porcentual de venta neta</span>
+                <span class="small text-muted">Auditoría con leads, semáforos de conversión y variaciones de ticket y venta neta</span>
             </div>
             <span class="badge badge-light border text-muted small mt-2 mt-md-0">Auditoría continua</span>
         </div>
@@ -424,6 +513,7 @@
                     <thead class="bg-light">
                         <tr class="small font-weight-bold text-muted text-uppercase">
                             <th>Mes</th>
+                            <th class="text-center">Leads</th>
                             <th class="text-center">Cotizaciones</th>
                             <th class="text-center">Ventas</th>
                             <th class="text-center">Conversión</th>
@@ -444,6 +534,16 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
+                                    @if ($fila['leads_count'] > 0)
+                                        <span class="font-weight-bold text-info">{{ number_format($fila['leads_count']) }}</span>
+                                        @if ($fila['conv_leads_pct'] !== null)
+                                            <small class="text-muted d-block">{{ $fila['conv_leads_pct'] }}% cotizan</small>
+                                        @endif
+                                    @else
+                                        <span class="text-muted small">-</span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
                                     {{ number_format($fila['cotizaciones_count']) }}
                                     <small class="text-muted d-block">${{ $fila['total_cotizado'] }}</small>
                                 </td>
@@ -451,11 +551,21 @@
                                     <span class="badge badge-success px-2 py-1">{{ number_format($fila['ventas_count']) }}</span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="font-weight-bold {{ $fila['conversion_pct'] >= 30 ? 'text-success' : 'text-primary' }}">
+                                    @php
+                                        $semCls = $fila['status_conversion'] == 'verde' ? 'text-success' : ($fila['status_conversion'] == 'amarillo' ? 'text-warning' : 'text-danger');
+                                    @endphp
+                                    <span class="font-weight-bold {{ $semCls }}">
                                         {{ $fila['conversion_pct'] }}%
                                     </span>
                                 </td>
-                                <td class="text-right">${{ $fila['ticket_promedio'] }}</td>
+                                <td class="text-right">
+                                    ${{ $fila['ticket_promedio'] }}
+                                    @if ($fila['var_ticket'] !== null)
+                                        <small class="d-block font-weight-bold {{ $fila['status_ticket_var'] == 'verde' ? 'text-success' : ($fila['status_ticket_var'] == 'amarillo' ? 'text-warning' : 'text-danger') }}">
+                                            {{ $fila['var_ticket'] > 0 ? '+' : '' }}{{ $fila['var_ticket'] }}%
+                                        </small>
+                                    @endif
+                                </td>
                                 <td class="text-right font-weight-bold text-gray-800">${{ $fila['total_bruto'] }}</td>
                                 <td class="text-right font-weight-bold text-success">${{ $fila['total_neto'] }}</td>
                                 <td class="text-right text-muted">${{ $fila['neto_por_dia'] }}</td>
@@ -479,7 +589,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center py-4 text-muted">
+                                <td colspan="10" class="text-center py-4 text-muted">
                                     No hay registros históricos disponibles para el comparativo.
                                 </td>
                             </tr>
@@ -490,7 +600,7 @@
         </div>
     </div>
 
-    {{-- 6. FILA 5: BANNER FASE 2 (PUBLICIDAD Y LEADS META ADS) --}}
+    {{-- 6. FILA 5: BANNER INFORMATIVO META ADS --}}
     <div class="card border-0 rounded-lg shadow-sm" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-left: 5px solid #3b82f6 !important; border-radius: 14px;">
         <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap">
             <div class="d-flex align-items-center mb-2 mb-md-0">
@@ -499,10 +609,10 @@
                 </div>
                 <div>
                     <h6 class="font-weight-bold text-gray-800 mb-1">
-                        Próximamente: Publicidad y Atribución Comercial (Meta Ads & Leads)
+                        Próximamente: Atribución Automática con Meta Ads
                     </h6>
                     <p class="text-muted small mb-0">
-                        Espacio preparado para integrar leads por campaña, costo por lead (CPL), gasto publicitario diario y ROAS.
+                        Espacio preparado para sincronización automática de campañas, costo por lead (CPL), gasto publicitario diario en pesos y ROAS.
                     </p>
                 </div>
             </div>
@@ -510,6 +620,194 @@
                 <span class="badge badge-primary px-3 py-2 font-weight-bold small">
                     <i class="fas fa-clock mr-1"></i> Próximamente
                 </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 1: REGISTRO MANUAL DE LEADS POR MES                                 --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="modalRegistroLeads" tabindex="-1" role="dialog" aria-labelledby="modalRegistroLeadsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title font-weight-bold text-gray-800" id="modalRegistroLeadsLabel">
+                    <i class="fas fa-bullhorn text-primary mr-2"></i>Registrar Leads Mensuales (Conversaciones Iniciadas)
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4">
+                    Ingresa el número total de personas que iniciaron conversación o solicitaron informes en el mes (Facebook, WhatsApp, llamadas, etc.). Este dato calcula automáticamente la <strong>Tasa Lead → Cotización</strong> y la <strong>Efectividad Comercial Global</strong>.
+                </p>
+
+                <form id="formRegistroLeads" onsubmit="guardarLeadsMensual(event)">
+                    <div class="form-row align-items-end mb-4 p-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Mes correspondiente:</label>
+                            <input type="month" class="form-control" id="lead_mes" name="mes" value="{{ date('Y-m') }}" required>
+                        </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="small font-weight-bold text-gray-700 mb-1">Cantidad de Leads:</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white"><i class="fas fa-users text-primary"></i></span>
+                                </div>
+                                <input type="number" min="0" step="1" class="form-control font-weight-bold" id="lead_cantidad" name="leads" placeholder="Ej. 450" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-block font-weight-bold" id="btnGuardarLeads">
+                                <i class="fas fa-save mr-1"></i> Guardar Leads
+                            </button>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <input type="text" class="form-control form-control-sm" id="lead_notas" name="notas" placeholder="Notas u origen opcional (ej. Campañas FB Andamios Octubre)">
+                        </div>
+                    </div>
+                </form>
+
+                <h6 class="font-weight-bold text-gray-800 mb-2 small text-uppercase">
+                    <i class="fas fa-list text-muted mr-1"></i> Historial de Leads Registrados
+                </h6>
+                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="bg-light small font-weight-bold text-muted">
+                            <tr>
+                                <th>Mes</th>
+                                <th class="text-center">Leads Registrados</th>
+                                <th>Notas / Origen</th>
+                                <th class="text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblHistorialLeads">
+                            @forelse ($analisis['listaLeads'] as $l)
+                                <tr id="row_lead_{{ $l->id }}">
+                                    <td class="font-weight-bold">{{ $l->mes }}</td>
+                                    <td class="text-center font-weight-bold text-primary">{{ number_format($l->leads) }}</td>
+                                    <td class="small text-muted">{{ $l->notas ?: '-' }}</td>
+                                    <td class="text-right">
+                                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2" onclick="eliminarLeadRegistro({{ $l->id }}, '{{ $l->mes }}')" title="Eliminar registro">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr id="row_leads_vacio">
+                                    <td colspan="4" class="text-center py-3 text-muted small">No hay meses registrados aún. Captura el primero arriba.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary rounded-pill px-4 font-weight-bold" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 2: CONFIGURACIÓN DE METAS Y UMBRALES (FASE 3)                       --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="modalConfigUmbrales" tabindex="-1" role="dialog" aria-labelledby="modalConfigUmbralesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title font-weight-bold text-gray-800" id="modalConfigUmbralesLabel">
+                    <i class="fas fa-sliders-h text-primary mr-2"></i>Configuración de Metas y Semáforos Comerciales
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-4">
+                    Ajusta los porcentajes que definen cuándo un indicador se pinta en <strong class="text-success">Verde (Meta)</strong>, <strong class="text-warning">Amarillo (Precaución)</strong> o <strong class="text-danger">Rojo (Alerta)</strong>. Estos valores se guardan en el sistema y recalculan el panel en tiempo real.
+                </p>
+
+                <form id="formConfigUmbrales" onsubmit="guardarUmbralesConfig(event)">
+                    {{-- 1. Conversión Cotización a Venta --}}
+                    <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
+                            1. Tasa de Conversión (Cotización → Venta)
+                        </h6>
+                        <span class="text-muted small d-block mb-2">Porcentaje de cotizaciones que se concretan en venta cerrada.</span>
+                        <div class="form-row">
+                            <div class="col-md-6 mb-2 mb-md-0">
+                                <label class="small text-muted font-weight-bold mb-1">🟢 Meta Verde (&ge; %):</label>
+                                <input type="number" step="0.1" class="form-control" name="umb_conv_verde" id="conf_conv_verde" value="{{ $analisis['umbrales']['umb_conv_verde'] }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted font-weight-bold mb-1">🟡 Alerta Amarillo (&ge; %, menor es Rojo):</label>
+                                <input type="number" step="0.1" class="form-control" name="umb_conv_amarillo" id="conf_conv_amarillo" value="{{ $analisis['umbrales']['umb_conv_amarillo'] }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 2. Cobertura Logística --}}
+                    <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
+                            2. Cobertura Logística (Fletes Cobrados / Paquetería Pagada)
+                        </h6>
+                        <span class="text-muted small d-block mb-2">Relación porcentual entre lo cobrado al cliente y lo pagado a transportistas.</span>
+                        <div class="form-row">
+                            <div class="col-md-6 mb-2 mb-md-0">
+                                <label class="small text-muted font-weight-bold mb-1">🟢 Meta Verde (&ge; %):</label>
+                                <input type="number" step="1" class="form-control" name="umb_cobertura_verde" id="conf_cob_verde" value="{{ $analisis['umbrales']['umb_cobertura_verde'] }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted font-weight-bold mb-1">🟡 Alerta Amarillo (&ge; %, menor es Rojo):</label>
+                                <input type="number" step="1" class="form-control" name="umb_cobertura_amarillo" id="conf_cob_amarillo" value="{{ $analisis['umbrales']['umb_cobertura_amarillo'] }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Lead -> Cotización --}}
+                    <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
+                            3. Conversión de Prospección (Lead → Cotización)
+                        </h6>
+                        <span class="text-muted small d-block mb-2">Porcentaje de personas que solicitan cotización formal tras iniciar conversación.</span>
+                        <div class="form-row">
+                            <div class="col-md-6 mb-2 mb-md-0">
+                                <label class="small text-muted font-weight-bold mb-1">🟢 Meta Verde (&ge; %):</label>
+                                <input type="number" step="0.1" class="form-control" name="umb_lead_conv_verde" id="conf_lead_verde" value="{{ $analisis['umbrales']['umb_lead_conv_verde'] }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted font-weight-bold mb-1">🟡 Alerta Amarillo (&ge; %, menor es Rojo):</label>
+                                <input type="number" step="0.1" class="form-control" name="umb_lead_conv_amarillo" id="conf_lead_amarillo" value="{{ $analisis['umbrales']['umb_lead_conv_amarillo'] }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. Alerta de Pipeline Abierto --}}
+                    <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                        <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
+                            4. Multiplicador de Alerta de Pipeline Abierto
+                        </h6>
+                        <span class="text-muted small d-block mb-2">Dispara el banner de aviso si el dinero en cotizaciones abiertas supera X veces las ventas del periodo.</span>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <label class="small text-muted font-weight-bold mb-1">⚠️ Factor multiplicador (ej. 1.5x):</label>
+                                <input type="number" step="0.1" class="form-control" name="umb_pipeline_multiplicador" id="conf_pipeline_mult" value="{{ $analisis['umbrales']['umb_pipeline_multiplicador'] }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <button type="button" class="btn btn-outline-secondary font-weight-bold" onclick="restablecerUmbralesDefault()">
+                            <i class="fas fa-undo mr-1"></i> Valores Sugeridos
+                        </button>
+                        <button type="submit" class="btn btn-primary px-4 font-weight-bold" id="btnGuardarUmbrales">
+                            <i class="fas fa-save mr-1"></i> Guardar Metas
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
