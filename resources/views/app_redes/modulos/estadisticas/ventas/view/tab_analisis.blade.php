@@ -499,7 +499,7 @@
                 </div>
                 <div>
                     <h6 class="font-weight-bold text-gray-800 mb-1">
-                        Fase 2: Publicidad y Atribución Comercial (Meta Ads & Leads)
+                        Próximamente: Publicidad y Atribución Comercial (Meta Ads & Leads)
                     </h6>
                     <p class="text-muted small mb-0">
                         Espacio preparado para integrar leads por campaña, costo por lead (CPL), gasto publicitario diario y ROAS.
@@ -508,7 +508,7 @@
             </div>
             <div>
                 <span class="badge badge-primary px-3 py-2 font-weight-bold small">
-                    <i class="fas fa-clock mr-1"></i> Próxima Fase
+                    <i class="fas fa-clock mr-1"></i> Próximamente
                 </span>
             </div>
         </div>
