@@ -28,12 +28,13 @@ class EstadisticasController extends Controller
     public function showEstVentas(Request $request)
     {
         $metricas = $this->getMetricasVentas();
+        $analisis = $this->getAnalisisComercial(null, null, $metricas);
         $vendedoresPrin = $this->getVendedoresPrin();
         $productosMasVendidos = $this->getProductosMasVendidos();
 
         return view(
             'app_redes/modulos/estadisticas/ventas/view/est_ventas',
-            array_merge($metricas, compact('vendedoresPrin', 'productosMasVendidos'))
+            array_merge($metricas, compact('vendedoresPrin', 'productosMasVendidos', 'analisis'))
         );
     }
 
@@ -75,7 +76,7 @@ class EstadisticasController extends Controller
         $totalCotizaciones = (float) ($cotisAgg->total_cotizaciones ?? 0);
 
         $tasaConversion = $numCotizaciones > 0 ? round(($numeroVentas / $numCotizaciones) * 100, 2) : 0;
-        $totalNeto = $totalVentas + $totalEnvios - $totalIVA - $totalEnviosPaqueteria;
+        $totalNeto = $totalVentas - $totalIVA - $totalEnviosPaqueteria;
 
         return [
             'totalVentas'           => number_format($totalVentas, 2),
@@ -89,6 +90,215 @@ class EstadisticasController extends Controller
             'numCotizaciones'       => $numCotizaciones,
             'tasaConversion'        => $tasaConversion,
         ];
+    }
+
+    /**
+     * Calcula métricas avanzadas, embudo, salud logística, proyecciones y comparativa mensual para Análisis Comercial.
+     */
+    public function getAnalisisComercial($fechaInicio = null, $fechaFin = null, $metricas = null)
+    {
+        if (!$metricas) {
+            $metricas = $this->getMetricasVentas($fechaInicio, $fechaFin);
+        }
+
+        $bruto     = (float) str_replace(',', '', $metricas['totalVentas']);
+        $neto      = (float) str_replace(',', '', $metricas['totalNeto']);
+        $iva       = (float) str_replace(',', '', $metricas['totalIVA']);
+        $envios    = (float) str_replace(',', '', $metricas['totalEnvios']);
+        $paq       = (float) str_replace(',', '', $metricas['totalEnviosPaqueteria']);
+        $numVentas = (int) $metricas['numeroVentas'];
+        $numCotis  = (int) $metricas['numCotizaciones'];
+        $totalCoti = (float) str_replace(',', '', $metricas['totalCotizaciones']);
+
+        // 1. Días transcurridos en el rango
+        if ($fechaInicio && $fechaFin) {
+            $tsIni = strtotime($fechaInicio);
+            $tsFin = strtotime($fechaFin);
+            $dias = max(1, (int) round(($tsFin - $tsIni) / 86400) + 1);
+        } else {
+            $minFecha = DB::table('ventas')->min('fecha_venta') ?: date('Y-m-01');
+            $maxFecha = date('Y-m-d');
+            $dias = max(1, (int) round((strtotime($maxFecha) - strtotime($minFecha)) / 86400) + 1);
+        }
+
+        // 2. Ratios y KPIs
+        $tasaConversion     = $numCotis > 0 ? round(($numVentas / $numCotis) * 100, 2) : 0;
+        $conversionValor    = $totalCoti > 0 ? round(($bruto / $totalCoti) * 100, 2) : 0;
+        $ticketPromedio     = $numVentas > 0 ? round($bruto / $numVentas, 2) : 0;
+        $ventasPorDia       = round($numVentas / $dias, 2);
+        $cotizacionesPorDia = round($numCotis / $dias, 2);
+        $netoPorDia         = round($neto / $dias, 2);
+        $netoPorVenta       = $numVentas > 0 ? round($neto / $numVentas, 2) : 0;
+        $margenNetoPct      = $bruto > 0 ? round(($neto / $bruto) * 100, 2) : 0;
+        $ivaPct             = $bruto > 0 ? round(($iva / $bruto) * 100, 2) : 0;
+        $paqueteriaPct      = $bruto > 0 ? round(($paq / $bruto) * 100, 2) : 0;
+
+        // Pipeline abierto
+        $pipelineAbiertoCant  = max(0, $numCotis - $numVentas);
+        $pipelineAbiertoValor = max(0, $totalCoti - $bruto);
+
+        // 3. Salud Logística (Envíos vs Paquetería)
+        $superavitLogistico = $envios - $paq;
+        $coberturaLogistica = $paq > 0 ? round(($envios / $paq) * 100, 2) : ($envios > 0 ? 100 : 0);
+
+        // 4. Proyección al cierre de mes (lineal)
+        $mostrarProyeccion = false;
+        $diasTranscurridos = $dias;
+        $diasMes           = 30;
+        $factorProyeccion  = 1;
+        $proyVentas        = $numVentas;
+        $proyVentasBrutas  = $bruto;
+        $proyVentaNeta     = $neto;
+        $proyCotizaciones  = $numCotis;
+        $proyTotalCotizado = $totalCoti;
+
+        if ($fechaInicio && $fechaFin) {
+            $tsIni = strtotime($fechaInicio);
+            $tsFin = strtotime($fechaFin);
+            $diaInicio = (int) date('d', $tsIni);
+            $mesInicio = date('Y-m', $tsIni);
+            $mesFin    = date('Y-m', $tsFin);
+            $diasMes   = (int) date('t', $tsIni);
+            $diaFin    = (int) date('d', $tsFin);
+
+            if ($diaInicio === 1 && $mesInicio === $mesFin && $diaFin < $diasMes) {
+                $mostrarProyeccion = true;
+                $diasTranscurridos = $diaFin;
+                $factorProyeccion  = round($diasMes / max(1, $diasTranscurridos), 4);
+
+                $proyVentas        = (int) round($numVentas * ($diasMes / max(1, $diasTranscurridos)));
+                $proyVentasBrutas  = round($bruto * ($diasMes / max(1, $diasTranscurridos)), 2);
+                $proyVentaNeta     = round($neto * ($diasMes / max(1, $diasTranscurridos)), 2);
+                $proyCotizaciones  = (int) round($numCotis * ($diasMes / max(1, $diasTranscurridos)));
+                $proyTotalCotizado = round($totalCoti * ($diasMes / max(1, $diasTranscurridos)), 2);
+            }
+        }
+
+        // 5. Comparativa histórica de los últimos 6 meses
+        $comparativa = $this->getComparativaMensualHistorica(6);
+
+        return [
+            'dias'                  => $dias,
+            'tasaConversion'        => $tasaConversion,
+            'conversionValor'       => $conversionValor,
+            'ticketPromedio'        => number_format($ticketPromedio, 2),
+            'ventasPorDia'          => $ventasPorDia,
+            'cotizacionesPorDia'    => $cotizacionesPorDia,
+            'netoPorDia'            => number_format($netoPorDia, 2),
+            'netoPorVenta'          => number_format($netoPorVenta, 2),
+            'margenNetoPct'         => $margenNetoPct,
+            'ivaPct'                => $ivaPct,
+            'paqueteriaPct'         => $paqueteriaPct,
+            'pipelineAbiertoCant'   => $pipelineAbiertoCant,
+            'pipelineAbiertoValor'  => number_format($pipelineAbiertoValor, 2),
+            'superavitLogistico'    => number_format($superavitLogistico, 2),
+            'superavitLogisticoRaw' => $superavitLogistico,
+            'coberturaLogistica'    => $coberturaLogistica,
+            'totalVentas'           => $metricas['totalVentas'],
+            'totalCotizaciones'     => $metricas['totalCotizaciones'],
+            'totalIVA'              => $metricas['totalIVA'],
+            'totalEnvios'           => $metricas['totalEnvios'],
+            'totalEnviosPaqueteria' => $metricas['totalEnviosPaqueteria'],
+            'totalNeto'             => $metricas['totalNeto'],
+            'numeroVentas'          => $numVentas,
+            'numCotizaciones'       => $numCotis,
+            'mostrarProyeccion'     => $mostrarProyeccion,
+            'diasTranscurridos'     => $diasTranscurridos,
+            'diasMes'               => $diasMes,
+            'factorProyeccion'      => $factorProyeccion,
+            'proyVentas'            => $proyVentas,
+            'proyVentasBrutas'      => number_format($proyVentasBrutas, 2),
+            'proyVentaNeta'         => number_format($proyVentaNeta, 2),
+            'proyCotizaciones'      => $proyCotizaciones,
+            'proyTotalCotizado'     => number_format($proyTotalCotizado, 2),
+            'comparativa'           => $comparativa,
+        ];
+    }
+
+    /**
+     * Tabla comparativa mensual histórica (últimos N meses).
+     */
+    public function getComparativaMensualHistorica($mesesAtras = 6)
+    {
+        $fechaInicioComp = date('Y-m-01', strtotime('-' . ($mesesAtras - 1) . ' months'));
+        $fechaFinComp    = date('Y-m-t');
+
+        $ventasMensuales = collect(DB::table('ventas')
+            ->selectRaw('
+                DATE_FORMAT(fecha_venta, "%Y-%m") as mes,
+                COUNT(*) as ventas_count,
+                COALESCE(SUM(total), 0) as total_bruto,
+                COALESCE(SUM(iva), 0) as total_iva,
+                COALESCE(SUM(envio_paqueteria), 0) + COALESCE(SUM(envio_paqueteria_2), 0) as total_paqueteria
+            ')
+            ->whereBetween('fecha_venta', [$fechaInicioComp, $fechaFinComp])
+            ->groupBy(DB::raw('DATE_FORMAT(fecha_venta, "%Y-%m")'))
+            ->get())->keyBy('mes');
+
+        $cotisMensuales = collect(DB::table('cotizaciones')
+            ->selectRaw('
+                DATE_FORMAT(fecha, "%Y-%m") as mes,
+                COUNT(*) as cotizaciones_count,
+                COALESCE(SUM(total), 0) as total_cotizado
+            ')
+            ->whereBetween('fecha', [$fechaInicioComp, $fechaFinComp])
+            ->groupBy(DB::raw('DATE_FORMAT(fecha, "%Y-%m")'))
+            ->get())->keyBy('mes');
+
+        $mesesNombres = [
+            '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril',
+            '05' => 'Mayo', '06' => 'Junio', '07' => 'Julio', '08' => 'Agosto',
+            '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+        ];
+
+        $comparativa = [];
+        $prevNeto = null;
+
+        for ($i = $mesesAtras - 1; $i >= 0; $i--) {
+            $ym = date('Y-m', strtotime("-$i months"));
+            $partes = explode('-', $ym);
+            $nombreMes = ($mesesNombres[$partes[1]] ?? $partes[1]) . ' ' . $partes[0];
+
+            $v = $ventasMensuales->get($ym);
+            $c = $cotisMensuales->get($ym);
+
+            $numCotis   = $c ? (int) $c->cotizaciones_count : 0;
+            $totalCotis = $c ? (float) $c->total_cotizado : 0;
+            $numVentas  = $v ? (int) $v->ventas_count : 0;
+            $bruto      = $v ? (float) $v->total_bruto : 0;
+            $iva        = $v ? (float) $v->total_iva : 0;
+            $paq        = $v ? (float) $v->total_paqueteria : 0;
+            $neto       = $bruto - $iva - $paq;
+
+            $diasEnMes = ($ym === date('Y-m')) ? max(1, (int) date('j')) : (int) date('t', strtotime($ym . '-01'));
+
+            $conversion = $numCotis > 0 ? round(($numVentas / $numCotis) * 100, 1) : 0;
+            $ticket     = $numVentas > 0 ? round($bruto / $numVentas, 2) : 0;
+            $netoPorDia = round($neto / $diasEnMes, 2);
+
+            $varNeto = null;
+            if ($prevNeto !== null && $prevNeto > 0) {
+                $varNeto = round((($neto - $prevNeto) / $prevNeto) * 100, 1);
+            }
+            $prevNeto = $neto;
+
+            $comparativa[] = [
+                'mes_key'            => $ym,
+                'nombre_mes'         => $nombreMes,
+                'cotizaciones_count' => $numCotis,
+                'total_cotizado'     => number_format($totalCotis, 2),
+                'ventas_count'       => $numVentas,
+                'total_bruto'        => number_format($bruto, 2),
+                'total_neto'         => number_format($neto, 2),
+                'conversion_pct'     => $conversion,
+                'ticket_promedio'    => number_format($ticket, 2),
+                'neto_por_dia'       => number_format($netoPorDia, 2),
+                'var_neto'           => $varNeto,
+                'es_mes_actual'      => ($ym === date('Y-m')),
+            ];
+        }
+
+        return $comparativa;
     }
 
     /**
@@ -236,6 +446,7 @@ class EstadisticasController extends Controller
                     $fechaFin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
 
                     $metricas = $this->getMetricasVentas($fechaInicio, $fechaFin);
+                    $analisis = $this->getAnalisisComercial($fechaInicio, $fechaFin, $metricas);
                     $vendedoresPrin = $this->getVendedoresPrin($fechaInicio, $fechaFin);
                     $productosMasVendidos = $this->getProductosMasVendidos($fechaInicio, $fechaFin);
 
@@ -243,6 +454,7 @@ class EstadisticasController extends Controller
                         'success'              => true,
                         'vendedoresPrin'       => $vendedoresPrin,
                         'productosMasVendidos' => $productosMasVendidos,
+                        'analisis'             => $analisis,
                     ], $metricas));
 
                 case 'getVentasPorMes':

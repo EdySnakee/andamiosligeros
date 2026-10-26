@@ -349,11 +349,11 @@
                 <i class="fas fa-calendar-alt text-primary mr-1"></i> Período de Análisis:
             </label>
             <div class="preset-pills">
-                <button type="button" class="preset-pill active" onclick="setPreset('todo', this)">Todo el Historial</button>
-                <button type="button" class="preset-pill" onclick="setPreset('este_mes', this)">Este Mes</button>
-                <button type="button" class="preset-pill" onclick="setPreset('mes_pasado', this)">Mes Anterior</button>
-                <button type="button" class="preset-pill" onclick="setPreset('30_dias', this)">Últimos 30 días</button>
-                <button type="button" class="preset-pill" onclick="setPreset('este_ano', this)">Año en Curso</button>
+                <button type="button" class="preset-pill active" data-preset="todo" onclick="setPreset('todo', this)">Todo el Historial</button>
+                <button type="button" class="preset-pill" data-preset="este_mes" onclick="setPreset('este_mes', this)">Este Mes</button>
+                <button type="button" class="preset-pill" data-preset="mes_pasado" onclick="setPreset('mes_pasado', this)">Mes Anterior</button>
+                <button type="button" class="preset-pill" data-preset="30_dias" onclick="setPreset('30_dias', this)">Últimos 30 días</button>
+                <button type="button" class="preset-pill" data-preset="este_ano" onclick="setPreset('este_ano', this)">Año en Curso</button>
             </div>
         </div>
         <div class="row align-items-end">
@@ -393,12 +393,17 @@
         <ul class="nav nav-pills custom-pills" id="ventasTabs" role="tablist">
             <li class="nav-item">
                 <a class="nav-link active" id="tab-general-link" data-toggle="pill" href="#tab-general" role="tab" aria-controls="tab-general" aria-selected="true">
-                    <i class="fas fa-chart-pie"></i> Resumen Comercial y Financiero
+                    <i class="fas fa-chart-pie mr-1"></i> Resumen Comercial y Financiero
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-analisis-link" data-toggle="pill" href="#tab-analisis" role="tab" aria-controls="tab-analisis" aria-selected="false">
+                    <i class="fas fa-chart-line mr-1"></i> Análisis Comercial
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="tab-vendedores-link" data-toggle="pill" href="#tab-vendedores" role="tab" aria-controls="tab-vendedores" aria-selected="false">
-                    <i class="fas fa-users"></i> Detalle de Vendedores
+                    <i class="fas fa-users mr-1"></i> Detalle de Vendedores
                 </a>
             </li>
         </ul>
@@ -527,8 +532,8 @@
                         <div class="card-body">
                             <div class="stat-meta">
                                 <p class="stat-label">Cobro de Envíos</p>
-                                <p id="totalEnvios" class="stat-value text-primary">+${{ $totalEnvios }}</p>
-                                <p class="stat-sublabel">Pagado por clientes para flete</p>
+                                <p id="totalEnvios" class="stat-value text-primary">${{ $totalEnvios }}</p>
+                                <p class="stat-sublabel">Fletes cobrados (en venta bruta)</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-truck-loading"></i>
@@ -566,7 +571,7 @@
                                 </div>
                                 <p class="stat-label">Venta Neta</p>
                                 <p id="totalNeto" class="stat-value">${{ $totalNeto }}</p>
-                                <p class="stat-sublabel text-white-50">Ventas + Envíos - IVA - Paquetería</p>
+                                <p class="stat-sublabel text-white-50">Ventas Brutas - IVA - Paquetería</p>
                             </div>
                             <div class="stat-icon">
                                 <i class="fas fa-coins"></i>
@@ -665,24 +670,22 @@
                     <h6 class="m-0 font-weight-bold text-gray-800">
                         <i class="fas fa-balance-scale text-primary mr-2"></i>Estructura del Ingreso y Auditoría Contable
                     </h6>
-                    <span class="small text-muted">Desglose de ingresos, deducciones y costo de paquetería</span>
+                    <span class="small text-muted">Desglose de facturación bruta, componentes y deducciones</span>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted small mb-3">
-                        Composición porcentual de ingresos brutos totales (Ventas de Productos + Cobro de Envíos) y sus deducciones:
+                        Composición porcentual de la facturación bruta total respecto a sus deducciones (IVA y costo de paquetería):
                     </p>
 
                     @php
-                        $ventasNum     = max(0, (float) str_replace(',', '', $totalVentas));
-                        $enviosNum     = max(0, (float) str_replace(',', '', $totalEnvios));
-                        $totalIngresos = max(0.01, $ventasNum + $enviosNum);
-                        $netoNum       = max(0, (float) str_replace(',', '', $totalNeto));
-                        $ivaNum        = max(0, (float) str_replace(',', '', $totalIVA));
-                        $paqNum        = max(0, (float) str_replace(',', '', $totalEnviosPaqueteria));
+                        $brutoNum = max(0.01, (float) str_replace(',', '', $totalVentas));
+                        $netoNum  = max(0, (float) str_replace(',', '', $totalNeto));
+                        $ivaNum   = max(0, (float) str_replace(',', '', $totalIVA));
+                        $paqNum   = max(0, (float) str_replace(',', '', $totalEnviosPaqueteria));
 
-                        $pctNeto = round(($netoNum / $totalIngresos) * 100, 1);
-                        $pctIva  = round(($ivaNum / $totalIngresos) * 100, 1);
-                        $pctPaq  = round(($paqNum / $totalIngresos) * 100, 1);
+                        $pctNeto = round(($netoNum / $brutoNum) * 100, 1);
+                        $pctIva  = round(($ivaNum / $brutoNum) * 100, 1);
+                        $pctPaq  = round(($paqNum / $brutoNum) * 100, 1);
                     @endphp
 
                     <!-- Barra de Composición Visual -->
@@ -719,14 +722,16 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="font-weight-bold">Facturación Bruta (Ventas de Productos)</td>
-                                    <td><span class="badge badge-primary">Ingreso Bruto</span></td>
+                                    <td class="font-weight-bold">Facturación Bruta (Total Ventas)</td>
+                                    <td><span class="badge badge-primary">Ingreso Bruto Total</span></td>
                                     <td class="text-right font-weight-bold text-primary" id="tblTotalVentas">${{ $totalVentas }}</td>
                                 </tr>
-                                <tr>
-                                    <td class="font-weight-bold">Más: Cobro de Envíos al Cliente (Flete)</td>
-                                    <td><span class="badge badge-info">Ingreso por Envío</span></td>
-                                    <td class="text-right font-weight-bold text-info" id="tblTotalEnvios">+${{ $totalEnvios }}</td>
+                                <tr class="text-muted small">
+                                    <td class="pl-4">
+                                        <i class="fas fa-level-up-alt fa-rotate-90 text-primary mr-1"></i> De los cuales: Cobro de Envíos al Cliente (Flete)
+                                    </td>
+                                    <td><span class="badge badge-info">Flete Incluido</span></td>
+                                    <td class="text-right font-weight-bold text-info" id="tblTotalEnvios">${{ $totalEnvios }}</td>
                                 </tr>
                                 <tr>
                                     <td>Menos: Impuesto al Valor Agregado (IVA cobrado en facturas)</td>
@@ -815,6 +820,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- PESTAÑA 3: ANÁLISIS COMERCIAL (FASE 1)                         -->
+        <!-- ============================================================== -->
+        <div class="tab-pane fade" id="tab-analisis" role="tabpanel" aria-labelledby="tab-analisis-link">
+            @include('app_redes/modulos/estadisticas/ventas/view/tab_analisis')
         </div>
 
     </div>
