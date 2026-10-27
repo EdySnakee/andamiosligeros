@@ -250,13 +250,13 @@ class EstadisticasController extends Controller
         // Semáforo Conversión Cotización -> Venta
         if ($tasaConversion >= $conf['umb_conv_verde']) {
             $statusConversion = 'verde';
-            $badgeConversion  = 'Meta alcanzada';
+            $badgeConversion  = '🟢 Meta (≥ ' . $conf['umb_conv_verde'] . '%)';
         } elseif ($tasaConversion >= $conf['umb_conv_amarillo']) {
             $statusConversion = 'amarillo';
-            $badgeConversion  = 'En observación';
+            $badgeConversion  = '🟡 En observación (' . $conf['umb_conv_amarillo'] . '% - ' . $conf['umb_conv_verde'] . '%)';
         } else {
             $statusConversion = 'rojo';
-            $badgeConversion  = 'Atención requerida';
+            $badgeConversion  = '🔴 Alerta (< ' . $conf['umb_conv_amarillo'] . '%)';
         }
 
         // Semáforo Cobertura Logística
@@ -265,28 +265,28 @@ class EstadisticasController extends Controller
 
         if ($coberturaLogistica >= $conf['umb_cobertura_verde']) {
             $statusCobertura = 'verde';
-            $badgeCobertura  = 'Autosustentable';
+            $badgeCobertura  = '🟢 Autosustentable (≥ ' . $conf['umb_cobertura_verde'] . '%)';
         } elseif ($coberturaLogistica >= $conf['umb_cobertura_amarillo']) {
             $statusCobertura = 'amarillo';
-            $badgeCobertura  = 'Cobertura parcial';
+            $badgeCobertura  = '🟡 Cobertura parcial (' . $conf['umb_cobertura_amarillo'] . '% - ' . $conf['umb_cobertura_verde'] . '%)';
         } else {
             $statusCobertura = 'rojo';
-            $badgeCobertura  = 'Déficit logístico';
+            $badgeCobertura  = '🔴 Déficit (< ' . $conf['umb_cobertura_amarillo'] . '%)';
         }
 
         // Semáforo Lead -> Cotización
         if (!$hasLeads) {
             $statusLeadConversion = 'neutral';
-            $badgeLeadConversion  = 'Sin captura';
+            $badgeLeadConversion  = '⚪ Sin captura';
         } elseif ($leadToCotizacion >= $conf['umb_lead_conv_verde']) {
             $statusLeadConversion = 'verde';
-            $badgeLeadConversion  = 'Alta prospección';
+            $badgeLeadConversion  = '🟢 Meta cumplida (≥ ' . $conf['umb_lead_conv_verde'] . '%)';
         } elseif ($leadToCotizacion >= $conf['umb_lead_conv_amarillo']) {
             $statusLeadConversion = 'amarillo';
-            $badgeLeadConversion  = 'Prospección media';
+            $badgeLeadConversion  = '🟡 En observación (' . $conf['umb_lead_conv_amarillo'] . '% - ' . $conf['umb_lead_conv_verde'] . '%)';
         } else {
             $statusLeadConversion = 'rojo';
-            $badgeLeadConversion  = 'Baja conversión';
+            $badgeLeadConversion  = '🔴 Bajo meta (< ' . $conf['umb_lead_conv_amarillo'] . '%)';
         }
 
         // Alerta de Pipeline Abierto (si supera X veces la venta del periodo)

@@ -426,13 +426,46 @@
                 $('#an_alertaPipelineContainer').hide();
             }
 
+            // 0. Semáforos Comerciales Ejecutivos (Barra Superior)
+            const convCls = an.statusConversion === 'verde' ? 'badge-success' : (an.statusConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            const cobCls = an.statusCobertura === 'verde' ? 'badge-success' : (an.statusCobertura === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            const leadCls = an.statusLeadConversion === 'verde' ? 'badge-success' : (an.statusLeadConversion === 'amarillo' ? 'badge-warning' : (an.statusLeadConversion === 'rojo' ? 'badge-danger' : 'badge-light border text-muted'));
+
+            $('#an_semBarVentasVal').text((an.tasaConversion || 0) + '%');
+            if (an.umbrales && an.umbrales.umb_conv_verde !== undefined) {
+                $('#an_semBarVentasTarget').text('(Meta ≥ ' + an.umbrales.umb_conv_verde + '%)');
+            }
+            $('#an_semBarVentasBadge').attr('class', 'badge ' + convCls + ' px-2 py-1 font-weight-bold').text(an.badgeConversion || 'Meta');
+
+            $('#an_semBarLeadsVal').text(an.hasLeads ? (an.leadToCotizacion || 0) + '%' : '-');
+            if (an.umbrales && an.umbrales.umb_lead_conv_verde !== undefined) {
+                $('#an_semBarLeadsTarget').text('(Meta ≥ ' + an.umbrales.umb_lead_conv_verde + '%)');
+            }
+            $('#an_semBarLeadsBadge').attr('class', 'badge ' + leadCls + ' px-2 py-1 font-weight-bold').text(an.badgeLeadConversion || 'Prospección');
+
+            $('#an_semBarCobVal').text((an.coberturaLogistica || 0) + '%');
+            if (an.umbrales && an.umbrales.umb_cobertura_verde !== undefined) {
+                $('#an_semBarCobTarget').text('(Meta ≥ ' + an.umbrales.umb_cobertura_verde + '%)');
+            }
+            $('#an_semBarCobBadge').attr('class', 'badge ' + cobCls + ' px-2 py-1 font-weight-bold').text(an.badgeCobertura || 'Autosustentable');
+
+            // Sincronizar inputs del modal de umbrales
+            if (an.umbrales) {
+                $('#conf_conv_verde').val(an.umbrales.umb_conv_verde);
+                $('#conf_conv_amarillo').val(an.umbrales.umb_conv_amarillo);
+                $('#conf_cob_verde').val(an.umbrales.umb_cobertura_verde);
+                $('#conf_cob_amarillo').val(an.umbrales.umb_cobertura_amarillo);
+                $('#conf_lead_verde').val(an.umbrales.umb_lead_conv_verde);
+                $('#conf_lead_amarillo').val(an.umbrales.umb_lead_conv_amarillo);
+                $('#conf_pipeline_mult').val(an.umbrales.umb_pipeline_multiplicador);
+            }
+
             // 1. KPIs Fila 1
             $('#an_tasaConversion').text((an.tasaConversion || 0) + '%');
             $('#an_txtVentasNum').text(Number(an.numeroVentas || 0).toLocaleString());
             $('#an_txtCotisNum').text(Number(an.numCotizaciones || 0).toLocaleString());
 
-            // Semáforo Cotización -> Venta
-            const convCls = an.statusConversion === 'verde' ? 'badge-success' : (an.statusConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            // Semáforo Cotización -> Venta en KPI Card
             $('#an_badgeSemConversion').attr('class', 'badge ' + convCls + ' font-weight-bold').text(an.badgeConversion || 'Meta');
 
             $('#an_ticketPromedio').text('$' + (an.ticketPromedio || '0.00'));

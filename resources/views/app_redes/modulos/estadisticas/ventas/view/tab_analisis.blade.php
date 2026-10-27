@@ -52,6 +52,86 @@
         </div>
     </div>
 
+    {{-- BARRA RESUMEN DE SEMÁFOROS COMERCIALES (FASE 3) --}}
+    <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 14px; background: #ffffff;">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap pb-2 mb-2 border-bottom">
+                <div class="d-flex align-items-center">
+                    <span class="mr-2" style="font-size: 1.25rem;">🚦</span>
+                    <div>
+                        <strong class="text-gray-800" style="font-size: 0.95rem;">Semáforos de Desempeño Comercial</strong>
+                        <span class="text-muted small ml-2 d-none d-md-inline">Monitoreo en tiempo real contra metas de conversión y rentabilidad.</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-link text-primary font-weight-bold p-0" data-toggle="modal" data-target="#modalConfigUmbrales" style="font-size: 0.85rem; text-decoration: none;">
+                    <i class="fas fa-sliders-h mr-1"></i> Configurar Metas
+                </button>
+            </div>
+            <div class="row">
+                {{-- Semáforo 1: Cierre Comercial --}}
+                <div class="col-md-4 mb-2 mb-md-0 border-right">
+                    <div class="p-2 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small font-weight-bold d-block">
+                                <i class="fas fa-bullseye text-primary mr-1"></i> Cierre (Cotiz. → Venta)
+                            </span>
+                            <span class="h5 font-weight-bold mb-0 text-dark" id="an_semBarVentasVal">{{ $analisis['tasaConversion'] }}%</span>
+                            <small class="text-muted ml-1" id="an_semBarVentasTarget">(Meta &ge; {{ $analisis['umbrales']['umb_conv_verde'] }}%)</small>
+                        </div>
+                        <div>
+                            @php
+                                $clsConv = $analisis['statusConversion'] == 'verde' ? 'badge-success' : ($analisis['statusConversion'] == 'amarillo' ? 'badge-warning' : 'badge-danger');
+                            @endphp
+                            <span class="badge {{ $clsConv }} px-2 py-1 font-weight-bold" id="an_semBarVentasBadge" style="font-size: 11px;">
+                                {{ $analisis['badgeConversion'] }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {{-- Semáforo 2: Prospección de Leads --}}
+                <div class="col-md-4 mb-2 mb-md-0 border-right">
+                    <div class="p-2 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small font-weight-bold d-block">
+                                <i class="fas fa-comments text-info mr-1"></i> Prospección (Leads → Cotiz.)
+                            </span>
+                            <span class="h5 font-weight-bold mb-0 text-dark" id="an_semBarLeadsVal">{{ $analisis['hasLeads'] ? $analisis['leadToCotizacion'] . '%' : '-' }}</span>
+                            <small class="text-muted ml-1" id="an_semBarLeadsTarget">(Meta &ge; {{ $analisis['umbrales']['umb_lead_conv_verde'] }}%)</small>
+                        </div>
+                        <div>
+                            @php
+                                $clsLead = $analisis['statusLeadConversion'] == 'verde' ? 'badge-success' : ($analisis['statusLeadConversion'] == 'amarillo' ? 'badge-warning' : ($analisis['statusLeadConversion'] == 'rojo' ? 'badge-danger' : 'badge-light border text-muted'));
+                            @endphp
+                            <span class="badge {{ $clsLead }} px-2 py-1 font-weight-bold" id="an_semBarLeadsBadge" style="font-size: 11px;">
+                                {{ $analisis['badgeLeadConversion'] }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {{-- Semáforo 3: Cobertura Logística --}}
+                <div class="col-md-4">
+                    <div class="p-2 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small font-weight-bold d-block">
+                                <i class="fas fa-truck-loading text-success mr-1"></i> Cobertura Logística
+                            </span>
+                            <span class="h5 font-weight-bold mb-0 text-dark" id="an_semBarCobVal">{{ $analisis['coberturaLogistica'] }}%</span>
+                            <small class="text-muted ml-1" id="an_semBarCobTarget">(Meta &ge; {{ $analisis['umbrales']['umb_cobertura_verde'] }}%)</small>
+                        </div>
+                        <div>
+                            @php
+                                $clsCob = $analisis['statusCobertura'] == 'verde' ? 'badge-success' : ($analisis['statusCobertura'] == 'amarillo' ? 'badge-warning' : 'badge-danger');
+                            @endphp
+                            <span class="badge {{ $clsCob }} px-2 py-1 font-weight-bold" id="an_semBarCobBadge" style="font-size: 11px;">
+                                {{ $analisis['badgeCobertura'] }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- 2. TARJETAS KPI ESTRATÉGICAS (FILA 1) --}}
     <div class="row mb-4">
         {{-- KPI 1: Cotización -> Venta con Semáforo --}}
