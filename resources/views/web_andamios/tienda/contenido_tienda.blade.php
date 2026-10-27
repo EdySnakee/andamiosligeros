@@ -42,6 +42,12 @@
                     <button type="button" class="btn-category-pill" data-category="accesorio">
                         <i class="fa fa-wrench"></i> Accesorios
                     </button>
+                    <button type="button" class="btn-category-pill" data-category="vallas">
+                        <i class="fa fa-shield"></i> Vallas
+                    </button>
+                    <button type="button" class="btn-category-pill" data-category="otros">
+                        <i class="fa fa-tags"></i> Otros
+                    </button>
                     <!-- Hidden field to hold category -->
                     <input type="hidden" id="filter_categoria" value="">
                 </div>
