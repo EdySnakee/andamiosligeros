@@ -47,9 +47,11 @@
                 <i class="fas fa-sliders-h mr-1"></i> Metas
             </button>
             --}}
+            {{-- Botón Excel comentado temporalmente
             <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 font-weight-bold mr-1" onclick="exportarAnalisisExcel()" title="Descargar reporte en Excel">
                 <i class="fas fa-file-excel mr-1"></i> Excel
             </button>
+            --}}
             <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 font-weight-bold" onclick="window.print()" title="Imprimir reporte ejecutivo">
                 <i class="fas fa-print mr-1"></i> Imprimir
             </button>
