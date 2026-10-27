@@ -3,7 +3,8 @@
 {{-- ========================================================================= --}}
 
 <div class="mb-4">
-    {{-- ALERTA AUTOMÁTICA DE PIPELINE ABIERTO (FASE 3) --}}
+    {{-- ALERTA AUTOMÁTICA DE PIPELINE ABIERTO (FASE 3 - Comentada temporalmente por solicitud del usuario) --}}
+    {{--
     <div id="an_alertaPipelineContainer" class="alert alert-warning border-left-warning shadow-sm mb-4" style="{{ $analisis['alertaPipeline'] ? '' : 'display: none;' }}; border-radius: 12px; border-left: 5px solid #f59e0b !important;">
         <div class="d-flex align-items-center justify-content-between flex-wrap">
             <div class="d-flex align-items-center">
@@ -22,6 +23,7 @@
             </span>
         </div>
     </div>
+    --}}
 
     {{-- 1. HEADER DE LA SECCIÓN DE ANÁLISIS --}}
     <div class="d-flex align-items-center justify-content-between flex-wrap mb-4 pb-2 border-bottom">
@@ -30,7 +32,7 @@
                 <i class="fas fa-chart-pie text-primary mr-2"></i>Análisis Comercial y Salud del Negocio
             </h5>
             <p class="text-muted small mb-0">
-                Embudo de conversión, semáforos de metas, salud logística, proyección al cierre y comparativa histórica.
+                Embudo de conversión, salud logística, proyección al cierre y comparativa histórica.
             </p>
         </div>
         <div class="mt-2 mt-md-0 d-flex align-items-center flex-wrap" style="gap: 6px;">
@@ -40,9 +42,11 @@
             <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 font-weight-bold mr-1" data-toggle="modal" data-target="#modalRegistroLeads">
                 <i class="fas fa-bullhorn mr-1"></i> Registrar Leads
             </button>
+            {{-- Botón Metas comentado temporalmente
             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 font-weight-bold mr-1" data-toggle="modal" data-target="#modalConfigUmbrales" title="Configurar metas y umbrales de semáforos">
                 <i class="fas fa-sliders-h mr-1"></i> Metas
             </button>
+            --}}
             <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 font-weight-bold mr-1" onclick="exportarAnalisisExcel()" title="Descargar reporte en Excel">
                 <i class="fas fa-file-excel mr-1"></i> Excel
             </button>
@@ -52,7 +56,8 @@
         </div>
     </div>
 
-    {{-- BARRA RESUMEN DE SEMÁFOROS COMERCIALES (FASE 3) --}}
+    {{-- BARRA RESUMEN DE SEMÁFOROS COMERCIALES (FASE 3 - Comentada temporalmente por solicitud del usuario) --}}
+    {{--
     <div class="card shadow-sm border-0 rounded-lg mb-4" style="border-radius: 14px; background: #ffffff;">
         <div class="card-body p-3">
             <div class="d-flex align-items-center justify-content-between flex-wrap pb-2 mb-2 border-bottom">
@@ -68,7 +73,6 @@
                 </button>
             </div>
             <div class="row">
-                {{-- Semáforo 1: Cierre Comercial --}}
                 <div class="col-md-4 mb-2 mb-md-0 border-right">
                     <div class="p-2 d-flex align-items-center justify-content-between">
                         <div>
@@ -88,7 +92,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- Semáforo 2: Prospección de Leads --}}
                 <div class="col-md-4 mb-2 mb-md-0 border-right">
                     <div class="p-2 d-flex align-items-center justify-content-between">
                         <div>
@@ -108,7 +111,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- Semáforo 3: Cobertura Logística --}}
                 <div class="col-md-4">
                     <div class="p-2 d-flex align-items-center justify-content-between">
                         <div>
@@ -131,6 +133,7 @@
             </div>
         </div>
     </div>
+    --}}
 
     {{-- 2. TARJETAS KPI ESTRATÉGICAS (FILA 1) --}}
     <div class="row mb-4">
@@ -142,12 +145,14 @@
                     <div class="stat-meta">
                         <div class="d-flex align-items-center justify-content-between">
                             <p class="stat-label mb-0">Cotización → Venta</p>
+                            {{-- Badge semáforo comentado temporalmente
                             @php
                                 $badgeCls = $analisis['statusConversion'] == 'verde' ? 'badge-success' : ($analisis['statusConversion'] == 'amarillo' ? 'badge-warning' : 'badge-danger');
                             @endphp
                             <span class="badge {{ $badgeCls }} font-weight-bold" id="an_badgeSemConversion" style="font-size: 10px; border-radius: 999px;">
                                 {{ $analisis['badgeConversion'] }}
                             </span>
+                            --}}
                         </div>
                         <p id="an_tasaConversion" class="stat-value text-primary">{{ $analisis['tasaConversion'] }}%</p>
                         <p class="stat-sublabel" id="an_subConversion">
@@ -267,16 +272,14 @@
                         <div class="d-flex align-items-center justify-content-center my-2 text-muted small flex-wrap" id="an_funnelLeadRates">
                             <i class="fas fa-arrow-down text-info mr-1"></i>
                             Conversión Lead → Cotización:
-                            @php
-                                $leadColor = $analisis['statusLeadConversion'] == 'verde' ? '#10b981' : ($analisis['statusLeadConversion'] == 'amarillo' ? '#f59e0b' : ($analisis['statusLeadConversion'] == 'rojo' ? '#ef4444' : '#64748b'));
-                                $leadBadgeCls = $analisis['statusLeadConversion'] == 'verde' ? 'badge-success' : ($analisis['statusLeadConversion'] == 'amarillo' ? 'badge-warning' : ($analisis['statusLeadConversion'] == 'rojo' ? 'badge-danger' : 'badge-light text-muted border'));
-                            @endphp
-                            <strong class="ml-1 mr-2" id="an_funnelLeadConvRate" style="color: {{ $leadColor }};">
+                            <strong class="ml-1 mr-2 text-dark" id="an_funnelLeadConvRate">
                                 {{ $analisis['hasLeads'] ? $analisis['leadToCotizacion'] . '%' : '-' }}
                             </strong>
+                            {{-- Badge semáforo comentado temporalmente
                             <span class="badge {{ $leadBadgeCls }}" id="an_badgeLeadSem" style="font-size: 9.5px; border-radius: 999px;">
                                 {{ $analisis['badgeLeadConversion'] }}
                             </span>
+                            --}}
                             <span class="mx-2">·</span>
                             Lead → Venta:
                             <strong class="text-dark ml-1" id="an_funnelLeadVtaRate">
@@ -435,25 +438,27 @@
                             </div>
                         </div>
 
-                        {{-- Cobertura Logística con Semáforo (Fase 3) --}}
+                        {{-- Cobertura Logística (Fase 1) --}}
                         <div class="col-md-6">
                             <div class="p-3 rounded border h-100 d-flex flex-column justify-content-between" style="background: #eff6ff; border-color: #bfdbfe !important;">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span class="small font-weight-bold text-primary">
                                         <i class="fas fa-shield-alt mr-1"></i> Cobertura Logística
                                     </span>
+                                    {{-- Badge semáforo comentado temporalmente
                                     @php
                                         $cobCls = $analisis['statusCobertura'] == 'verde' ? 'badge-success' : ($analisis['statusCobertura'] == 'amarillo' ? 'badge-warning' : 'badge-danger');
                                     @endphp
                                     <span class="badge {{ $cobCls }}" id="an_badgeCobertura">
                                         {{ $analisis['badgeCobertura'] }}
                                     </span>
+                                    --}}
                                 </div>
                                 <h4 class="font-weight-bold text-primary mb-1" id="an_coberturaLog">
                                     {{ $analisis['coberturaLogistica'] }}%
                                 </h4>
                                 <small class="text-muted" style="font-size: 0.72rem;">
-                                    Meta &ge; 100%: los fletes cobrados no sólo cubren el costo sino que aportan utilidad.
+                                    Relación entre lo cobrado al cliente y lo pagado a transportistas.
                                 </small>
                             </div>
                         </div>
@@ -792,8 +797,9 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 2: CONFIGURACIÓN DE METAS Y UMBRALES (FASE 3)                       --}}
+{{-- MODAL 2: CONFIGURACIÓN DE METAS Y UMBRALES (FASE 3 - Guardado pero comentado temporalmente) --}}
 {{-- ========================================================================= --}}
+{{--
 <div class="modal fade" id="modalConfigUmbrales" tabindex="-1" role="dialog" aria-labelledby="modalConfigUmbralesLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
@@ -811,7 +817,6 @@
                 </p>
 
                 <form id="formConfigUmbrales" onsubmit="guardarUmbralesConfig(event)">
-                    {{-- 1. Conversión Cotización a Venta --}}
                     <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                         <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
                             1. Tasa de Conversión (Cotización → Venta)
@@ -829,7 +834,6 @@
                         </div>
                     </div>
 
-                    {{-- 2. Cobertura Logística --}}
                     <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                         <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
                             2. Cobertura Logística (Fletes Cobrados / Paquetería Pagada)
@@ -847,7 +851,6 @@
                         </div>
                     </div>
 
-                    {{-- 3. Lead -> Cotización --}}
                     <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                         <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
                             3. Conversión de Prospección (Lead → Cotización)
@@ -865,7 +868,6 @@
                         </div>
                     </div>
 
-                    {{-- 4. Alerta de Pipeline Abierto --}}
                     <div class="p-3 mb-3 rounded" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                         <h6 class="font-weight-bold text-gray-800 mb-1 small text-uppercase">
                             4. Multiplicador de Alerta de Pipeline Abierto
@@ -892,3 +894,4 @@
         </div>
     </div>
 </div>
+--}}
