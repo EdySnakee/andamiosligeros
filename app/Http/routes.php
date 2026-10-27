@@ -583,38 +583,6 @@ Route::get('/galeria', function () {
     return view('web_andamios.galeria.galeria', compact('imagenes'));
 });
 
-Route::get('/run-migration-vallas-{token}', function ($token) {
-    if ($token !== 'al_vallas_2026_x9k2') {
-        abort(403);
-    }
-    require_once database_path('migrations/2026_10_27_000001_normalizar_modelo_vallas_productos_tienda.php');
-    $migration = new NormalizarModeloVallasProductosTienda();
-    $migration->up();
-    
-    if (\Illuminate\Support\Facades\Schema::hasTable('migrations')) {
-        $exists = \Illuminate\Support\Facades\DB::table('migrations')
-            ->where('migration', '2026_10_27_000001_normalizar_modelo_vallas_productos_tienda')
-            ->first();
-        if (!$exists) {
-            $batch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?: 1;
-            \Illuminate\Support\Facades\DB::table('migrations')->insert([
-                'migration' => '2026_10_27_000001_normalizar_modelo_vallas_productos_tienda',
-                'batch' => $batch + 1
-            ]);
-        }
-    }
-
-    $vallas = \Illuminate\Support\Facades\DB::table('productos_tienda')
-        ->where('categoria', 'vallas')
-        ->select('id_product', 'post_titulo', 'categoria', 'modelo', 'modelo_ref')
-        ->get();
-
-    return response()->json([
-        'status' => 'success',
-        'vallas' => $vallas
-    ]);
-});
-
 Route::any('{any}', function () {
     return view('web_andamios.errors.404');
 })->where('any', '.*');
