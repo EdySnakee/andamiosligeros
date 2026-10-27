@@ -429,6 +429,7 @@
             // 0. Semáforos Comerciales Ejecutivos (Barra Superior)
             const convCls = an.statusConversion === 'verde' ? 'badge-success' : (an.statusConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
             const cobCls = an.statusCobertura === 'verde' ? 'badge-success' : (an.statusCobertura === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            const leadCol = an.statusLeadConversion === 'verde' ? '#10b981' : (an.statusLeadConversion === 'amarillo' ? '#f59e0b' : '#ef4444');
             const leadCls = an.statusLeadConversion === 'verde' ? 'badge-success' : (an.statusLeadConversion === 'amarillo' ? 'badge-warning' : (an.statusLeadConversion === 'rojo' ? 'badge-danger' : 'badge-light border text-muted'));
 
             $('#an_semBarVentasVal').text((an.tasaConversion || 0) + '%');
@@ -482,8 +483,6 @@
                 );
                 $('#an_barLeadsTxt').text(Number(an.leads).toLocaleString() + ' Leads (Base de Prospección)');
 
-                const leadCol = an.statusLeadConversion === 'verde' ? '#10b981' : (an.statusLeadConversion === 'amarillo' ? '#f59e0b' : '#ef4444');
-                const leadCls = an.statusLeadConversion === 'verde' ? 'badge-success' : (an.statusLeadConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
                 $('#an_funnelLeadConvRate').text((an.leadToCotizacion || 0) + '%').css('color', leadCol);
                 $('#an_badgeLeadSem').attr('class', 'badge ' + leadCls).text(an.badgeLeadConversion || 'Prospección');
                 $('#an_funnelLeadVtaRate').text((an.leadToVenta || 0) + '%');
@@ -534,7 +533,6 @@
             }
 
             $('#an_coberturaLog').text((an.coberturaLogistica || 0) + '%');
-            const cobCls = an.statusCobertura === 'verde' ? 'badge-success' : (an.statusCobertura === 'amarillo' ? 'badge-warning' : 'badge-danger');
             $('#an_badgeCobertura').attr('class', 'badge ' + cobCls).text(an.badgeCobertura || 'Autosustentable');
 
             // 4. Proyección al Cierre de Mes
