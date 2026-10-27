@@ -11,6 +11,7 @@ use \Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\User;
 
 class EstadisticasController extends Controller
@@ -28,12 +29,13 @@ class EstadisticasController extends Controller
     public function showEstVentas(Request $request)
     {
         $metricas = $this->getMetricasVentas();
+        $analisis = $this->getAnalisisComercial(null, null, $metricas);
         $vendedoresPrin = $this->getVendedoresPrin();
         $productosMasVendidos = $this->getProductosMasVendidos();
 
         return view(
             'app_redes/modulos/estadisticas/ventas/view/est_ventas',
-            array_merge($metricas, compact('vendedoresPrin', 'productosMasVendidos'))
+            array_merge($metricas, compact('vendedoresPrin', 'productosMasVendidos', 'analisis'))
         );
     }
 
@@ -75,7 +77,7 @@ class EstadisticasController extends Controller
         $totalCotizaciones = (float) ($cotisAgg->total_cotizaciones ?? 0);
 
         $tasaConversion = $numCotizaciones > 0 ? round(($numeroVentas / $numCotizaciones) * 100, 2) : 0;
-        $totalNeto = $totalVentas + $totalEnvios - $totalIVA - $totalEnviosPaqueteria;
+        $totalNeto = $totalVentas - $totalIVA - $totalEnviosPaqueteria;
 
         return [
             'totalVentas'           => number_format($totalVentas, 2),
@@ -89,6 +91,432 @@ class EstadisticasController extends Controller
             'numCotizaciones'       => $numCotizaciones,
             'tasaConversion'        => $tasaConversion,
         ];
+    }
+
+    /**
+     * Asegura la existencia de las tablas leads_mensuales y config_analisis_comercial,
+     * e inicializa los umbrales por defecto si no existen.
+     */
+    public function ensureAnalisisTablesExist()
+    {
+        if (!Schema::hasTable('leads_mensuales')) {
+            DB::statement("CREATE TABLE IF NOT EXISTS leads_mensuales (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                mes VARCHAR(7) NOT NULL UNIQUE,
+                leads INT UNSIGNED NOT NULL DEFAULT 0,
+                notas VARCHAR(255) NULL,
+                id_usuario INT UNSIGNED NULL,
+                created_at TIMESTAMP NULL,
+                updated_at TIMESTAMP NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        }
+
+        if (!Schema::hasTable('config_analisis_comercial')) {
+            DB::statement("CREATE TABLE IF NOT EXISTS config_analisis_comercial (
+                clave VARCHAR(64) PRIMARY KEY,
+                valor VARCHAR(255) NOT NULL,
+                descripcion VARCHAR(255) NULL,
+                created_at TIMESTAMP NULL,
+                updated_at TIMESTAMP NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        }
+
+        $defaults = [
+            'umb_conv_verde'             => ['40', 'Meta óptima de conversión cotización a venta (%)'],
+            'umb_conv_amarillo'          => ['30', 'Umbral de alerta mínima de conversión (%)'],
+            'umb_cobertura_verde'        => ['100', 'Meta de cobertura logística autosustentable (%)'],
+            'umb_cobertura_amarillo'     => ['90', 'Umbral de alerta de cobertura logística (%)'],
+            'umb_ticket_verde'           => ['-5', 'Variación aceptable de ticket promedio vs mes anterior (%)'],
+            'umb_ticket_amarillo'        => ['-15', 'Alerta de caída de ticket promedio (%)'],
+            'umb_lead_conv_verde'        => ['2.5', 'Meta óptima de conversión lead a cotización (%)'],
+            'umb_lead_conv_amarillo'     => ['1.8', 'Umbral de alerta lead a cotización (%)'],
+            'umb_pipeline_multiplicador' => ['1.5', 'Multiplicador de pipeline abierto sobre ventas para alerta']
+        ];
+
+        foreach ($defaults as $clave => $item) {
+            if (!DB::table('config_analisis_comercial')->where('clave', $clave)->exists()) {
+                DB::table('config_analisis_comercial')->insert([
+                    'clave'       => $clave,
+                    'valor'       => $item[0],
+                    'descripcion' => $item[1],
+                    'created_at'  => date('Y-m-d H:i:s'),
+                    'updated_at'  => date('Y-m-d H:i:s')
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Obtiene los umbrales y metas configurables para semáforos (Fase 3).
+     */
+    public function getConfigAnalisisComercial()
+    {
+        $this->ensureAnalisisTablesExist();
+
+        $defaults = [
+            'umb_conv_verde'             => 40.0,
+            'umb_conv_amarillo'          => 30.0,
+            'umb_cobertura_verde'        => 100.0,
+            'umb_cobertura_amarillo'     => 90.0,
+            'umb_ticket_verde'           => -5.0,
+            'umb_ticket_amarillo'        => -15.0,
+            'umb_lead_conv_verde'        => 2.5,
+            'umb_lead_conv_amarillo'     => 1.8,
+            'umb_pipeline_multiplicador' => 1.5,
+        ];
+
+        $filas = DB::table('config_analisis_comercial')->get();
+        foreach ($filas as $f) {
+            if (isset($defaults[$f->clave])) {
+                $defaults[$f->clave] = (float) $f->valor;
+            }
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * Obtiene la suma de leads capturados en el rango de fechas.
+     */
+    public function getLeadsPeriodo($fechaInicio = null, $fechaFin = null)
+    {
+        $this->ensureAnalisisTablesExist();
+
+        if ($fechaInicio && $fechaFin) {
+            $mesIni = date('Y-m', strtotime($fechaInicio));
+            $mesFin = date('Y-m', strtotime($fechaFin));
+            return (int) DB::table('leads_mensuales')->whereBetween('mes', [$mesIni, $mesFin])->sum('leads');
+        }
+
+        return (int) DB::table('leads_mensuales')->sum('leads');
+    }
+
+    /**
+     * Calcula métricas avanzadas, embudo, salud logística, proyecciones, semáforos y comparativa mensual para Análisis Comercial.
+     */
+    public function getAnalisisComercial($fechaInicio = null, $fechaFin = null, $metricas = null)
+    {
+        if (!$metricas) {
+            $metricas = $this->getMetricasVentas($fechaInicio, $fechaFin);
+        }
+
+        $this->ensureAnalisisTablesExist();
+        $conf = $this->getConfigAnalisisComercial();
+
+        $bruto     = (float) str_replace(',', '', $metricas['totalVentas']);
+        $neto      = (float) str_replace(',', '', $metricas['totalNeto']);
+        $iva       = (float) str_replace(',', '', $metricas['totalIVA']);
+        $envios    = (float) str_replace(',', '', $metricas['totalEnvios']);
+        $paq       = (float) str_replace(',', '', $metricas['totalEnviosPaqueteria']);
+        $numVentas = (int) $metricas['numeroVentas'];
+        $numCotis  = (int) $metricas['numCotizaciones'];
+        $totalCoti = (float) str_replace(',', '', $metricas['totalCotizaciones']);
+
+        // 1. Días transcurridos en el rango
+        if ($fechaInicio && $fechaFin) {
+            $tsIni = strtotime($fechaInicio);
+            $tsFin = strtotime($fechaFin);
+            $dias = max(1, (int) round(($tsFin - $tsIni) / 86400) + 1);
+        } else {
+            $minFecha = DB::table('ventas')->min('fecha_venta') ?: date('Y-m-01');
+            $maxFecha = date('Y-m-d');
+            $dias = max(1, (int) round((strtotime($maxFecha) - strtotime($minFecha)) / 86400) + 1);
+        }
+
+        // 2. Ratios y KPIs
+        $tasaConversion     = $numCotis > 0 ? round(($numVentas / $numCotis) * 100, 2) : 0;
+        $conversionValor    = $totalCoti > 0 ? round(($bruto / $totalCoti) * 100, 2) : 0;
+        $ticketPromedio     = $numVentas > 0 ? round($bruto / $numVentas, 2) : 0;
+        $ventasPorDia       = round($numVentas / $dias, 2);
+        $cotizacionesPorDia = round($numCotis / $dias, 2);
+        $netoPorDia         = round($neto / $dias, 2);
+        $netoPorVenta       = $numVentas > 0 ? round($neto / $numVentas, 2) : 0;
+        $margenNetoPct      = $bruto > 0 ? round(($neto / $bruto) * 100, 2) : 0;
+        $ivaPct             = $bruto > 0 ? round(($iva / $bruto) * 100, 2) : 0;
+        $paqueteriaPct      = $bruto > 0 ? round(($paq / $bruto) * 100, 2) : 0;
+
+        // Pipeline abierto
+        $pipelineAbiertoCant  = max(0, $numCotis - $numVentas);
+        $pipelineAbiertoValor = max(0, $totalCoti - $bruto);
+
+        // 3. Leads y métricas de prospección
+        $leads = $this->getLeadsPeriodo($fechaInicio, $fechaFin);
+        $hasLeads = $leads > 0;
+        $leadToCotizacion = $hasLeads ? round(($numCotis / $leads) * 100, 2) : 0;
+        $leadToVenta      = $hasLeads ? round(($numVentas / $leads) * 100, 2) : 0;
+        $valorPorLead     = $hasLeads ? round($bruto / $leads, 2) : 0;
+
+        // 4. Semáforos inteligentes (Fase 3)
+        // Semáforo Conversión Cotización -> Venta
+        if ($tasaConversion >= $conf['umb_conv_verde']) {
+            $statusConversion = 'verde';
+            $badgeConversion  = '🟢 Meta (≥ ' . $conf['umb_conv_verde'] . '%)';
+        } elseif ($tasaConversion >= $conf['umb_conv_amarillo']) {
+            $statusConversion = 'amarillo';
+            $badgeConversion  = '🟡 En observación (' . $conf['umb_conv_amarillo'] . '% - ' . $conf['umb_conv_verde'] . '%)';
+        } else {
+            $statusConversion = 'rojo';
+            $badgeConversion  = '🔴 Alerta (< ' . $conf['umb_conv_amarillo'] . '%)';
+        }
+
+        // Semáforo Cobertura Logística
+        $superavitLogistico = $envios - $paq;
+        $coberturaLogistica = $paq > 0 ? round(($envios / $paq) * 100, 2) : ($envios > 0 ? 100 : 0);
+
+        if ($coberturaLogistica >= $conf['umb_cobertura_verde']) {
+            $statusCobertura = 'verde';
+            $badgeCobertura  = '🟢 Autosustentable (≥ ' . $conf['umb_cobertura_verde'] . '%)';
+        } elseif ($coberturaLogistica >= $conf['umb_cobertura_amarillo']) {
+            $statusCobertura = 'amarillo';
+            $badgeCobertura  = '🟡 Cobertura parcial (' . $conf['umb_cobertura_amarillo'] . '% - ' . $conf['umb_cobertura_verde'] . '%)';
+        } else {
+            $statusCobertura = 'rojo';
+            $badgeCobertura  = '🔴 Déficit (< ' . $conf['umb_cobertura_amarillo'] . '%)';
+        }
+
+        // Semáforo Lead -> Cotización
+        if (!$hasLeads) {
+            $statusLeadConversion = 'neutral';
+            $badgeLeadConversion  = '⚪ Sin captura';
+        } elseif ($leadToCotizacion >= $conf['umb_lead_conv_verde']) {
+            $statusLeadConversion = 'verde';
+            $badgeLeadConversion  = '🟢 Meta cumplida (≥ ' . $conf['umb_lead_conv_verde'] . '%)';
+        } elseif ($leadToCotizacion >= $conf['umb_lead_conv_amarillo']) {
+            $statusLeadConversion = 'amarillo';
+            $badgeLeadConversion  = '🟡 En observación (' . $conf['umb_lead_conv_amarillo'] . '% - ' . $conf['umb_lead_conv_verde'] . '%)';
+        } else {
+            $statusLeadConversion = 'rojo';
+            $badgeLeadConversion  = '🔴 Bajo meta (< ' . $conf['umb_lead_conv_amarillo'] . '%)';
+        }
+
+        // Alerta de Pipeline Abierto (si supera X veces la venta del periodo)
+        $ratioPipelineVentas = $bruto > 0 ? round($pipelineAbiertoValor / $bruto, 1) : 0;
+        $alertaPipeline = ($pipelineAbiertoValor > 0 && $pipelineAbiertoValor >= ($bruto * $conf['umb_pipeline_multiplicador']));
+
+        // 5. Proyección al cierre de mes (lineal)
+        $mostrarProyeccion = false;
+        $diasTranscurridos = $dias;
+        $diasMes           = 30;
+        $factorProyeccion  = 1;
+        $proyVentas        = $numVentas;
+        $proyVentasBrutas  = $bruto;
+        $proyVentaNeta     = $neto;
+        $proyCotizaciones  = $numCotis;
+        $proyTotalCotizado = $totalCoti;
+        $proyLeads         = $leads;
+
+        if ($fechaInicio && $fechaFin) {
+            $tsIni = strtotime($fechaInicio);
+            $tsFin = strtotime($fechaFin);
+            $diaInicio = (int) date('d', $tsIni);
+            $mesInicio = date('Y-m', $tsIni);
+            $mesFin    = date('Y-m', $tsFin);
+            $diasMes   = (int) date('t', $tsIni);
+            $diaFin    = (int) date('d', $tsFin);
+
+            if ($diaInicio === 1 && $mesInicio === $mesFin && $diaFin < $diasMes) {
+                $mostrarProyeccion = true;
+                $diasTranscurridos = $diaFin;
+                $factorProyeccion  = round($diasMes / max(1, $diasTranscurridos), 4);
+
+                $proyVentas        = (int) round($numVentas * ($diasMes / max(1, $diasTranscurridos)));
+                $proyVentasBrutas  = round($bruto * ($diasMes / max(1, $diasTranscurridos)), 2);
+                $proyVentaNeta     = round($neto * ($diasMes / max(1, $diasTranscurridos)), 2);
+                $proyCotizaciones  = (int) round($numCotis * ($diasMes / max(1, $diasTranscurridos)));
+                $proyTotalCotizado = round($totalCoti * ($diasMes / max(1, $diasTranscurridos)), 2);
+                $proyLeads         = (int) round($leads * ($diasMes / max(1, $diasTranscurridos)));
+            }
+        }
+
+        // 6. Comparativa histórica de los últimos 6 meses (con leads)
+        $comparativa = $this->getComparativaMensualHistorica(6, $conf);
+
+        // Lista de meses con leads capturados (para el modal de administración)
+        $listaLeads = DB::table('leads_mensuales')->orderBy('mes', 'desc')->get();
+
+        return [
+            'dias'                  => $dias,
+            'tasaConversion'        => $tasaConversion,
+            'conversionValor'       => $conversionValor,
+            'ticketPromedio'        => number_format($ticketPromedio, 2),
+            'ventasPorDia'          => $ventasPorDia,
+            'cotizacionesPorDia'    => $cotizacionesPorDia,
+            'netoPorDia'            => number_format($netoPorDia, 2),
+            'netoPorVenta'          => number_format($netoPorVenta, 2),
+            'margenNetoPct'         => $margenNetoPct,
+            'ivaPct'                => $ivaPct,
+            'paqueteriaPct'         => $paqueteriaPct,
+            'pipelineAbiertoCant'   => $pipelineAbiertoCant,
+            'pipelineAbiertoValor'  => number_format($pipelineAbiertoValor, 2),
+            'superavitLogistico'    => number_format($superavitLogistico, 2),
+            'superavitLogisticoRaw' => $superavitLogistico,
+            'coberturaLogistica'    => $coberturaLogistica,
+            'totalVentas'           => $metricas['totalVentas'],
+            'totalCotizaciones'     => $metricas['totalCotizaciones'],
+            'totalIVA'              => $metricas['totalIVA'],
+            'totalEnvios'           => $metricas['totalEnvios'],
+            'totalEnviosPaqueteria' => $metricas['totalEnviosPaqueteria'],
+            'totalNeto'             => $metricas['totalNeto'],
+            'numeroVentas'          => $numVentas,
+            'numCotizaciones'       => $numCotis,
+            'leads'                 => $leads,
+            'hasLeads'              => $hasLeads,
+            'leadToCotizacion'      => $leadToCotizacion,
+            'leadToVenta'           => $leadToVenta,
+            'valorPorLead'          => number_format($valorPorLead, 2),
+            'statusConversion'      => $statusConversion,
+            'badgeConversion'       => $badgeConversion,
+            'statusCobertura'       => $statusCobertura,
+            'badgeCobertura'        => $badgeCobertura,
+            'statusLeadConversion'  => $statusLeadConversion,
+            'badgeLeadConversion'   => $badgeLeadConversion,
+            'alertaPipeline'        => $alertaPipeline,
+            'ratioPipelineVentas'   => $ratioPipelineVentas,
+            'mostrarProyeccion'     => $mostrarProyeccion,
+            'diasTranscurridos'     => $diasTranscurridos,
+            'diasMes'               => $diasMes,
+            'factorProyeccion'      => $factorProyeccion,
+            'proyVentas'            => $proyVentas,
+            'proyVentasBrutas'      => number_format($proyVentasBrutas, 2),
+            'proyVentaNeta'         => number_format($proyVentaNeta, 2),
+            'proyCotizaciones'      => $proyCotizaciones,
+            'proyTotalCotizado'     => number_format($proyTotalCotizado, 2),
+            'proyLeads'             => $proyLeads,
+            'comparativa'           => $comparativa,
+            'umbrales'              => $conf,
+            'listaLeads'            => $listaLeads,
+        ];
+    }
+
+    /**
+     * Tabla comparativa mensual histórica (últimos N meses) auditando leads y variaciones de ticket.
+     */
+    public function getComparativaMensualHistorica($mesesAtras = 6, $conf = null)
+    {
+        if (!$conf) {
+            $conf = $this->getConfigAnalisisComercial();
+        }
+
+        $fechaInicioComp = date('Y-m-01', strtotime('-' . ($mesesAtras - 1) . ' months'));
+        $fechaFinComp    = date('Y-m-t');
+
+        $ventasMensuales = collect(DB::table('ventas')
+            ->selectRaw('
+                DATE_FORMAT(fecha_venta, "%Y-%m") as mes,
+                COUNT(*) as ventas_count,
+                COALESCE(SUM(total), 0) as total_bruto,
+                COALESCE(SUM(iva), 0) as total_iva,
+                COALESCE(SUM(envio_paqueteria), 0) + COALESCE(SUM(envio_paqueteria_2), 0) as total_paqueteria
+            ')
+            ->whereBetween('fecha_venta', [$fechaInicioComp, $fechaFinComp])
+            ->groupBy(DB::raw('DATE_FORMAT(fecha_venta, "%Y-%m")'))
+            ->get())->keyBy('mes');
+
+        $cotisMensuales = collect(DB::table('cotizaciones')
+            ->selectRaw('
+                DATE_FORMAT(fecha, "%Y-%m") as mes,
+                COUNT(*) as cotizaciones_count,
+                COALESCE(SUM(total), 0) as total_cotizado
+            ')
+            ->whereBetween('fecha', [$fechaInicioComp, $fechaFinComp])
+            ->groupBy(DB::raw('DATE_FORMAT(fecha, "%Y-%m")'))
+            ->get())->keyBy('mes');
+
+        $leadsMensuales = collect(DB::table('leads_mensuales')
+            ->whereBetween('mes', [substr($fechaInicioComp, 0, 7), substr($fechaFinComp, 0, 7)])
+            ->get())->keyBy('mes');
+
+        $mesesNombres = [
+            '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril',
+            '05' => 'Mayo', '06' => 'Junio', '07' => 'Julio', '08' => 'Agosto',
+            '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+        ];
+
+        $comparativa = [];
+        $prevNeto = null;
+        $prevTicket = null;
+
+        for ($i = $mesesAtras - 1; $i >= 0; $i--) {
+            $ym = date('Y-m', strtotime("-$i months"));
+            $partes = explode('-', $ym);
+            $nombreMes = ($mesesNombres[$partes[1]] ?? $partes[1]) . ' ' . $partes[0];
+
+            $v = $ventasMensuales->get($ym);
+            $c = $cotisMensuales->get($ym);
+            $l = $leadsMensuales->get($ym);
+
+            $numCotis   = $c ? (int) $c->cotizaciones_count : 0;
+            $totalCotis = $c ? (float) $c->total_cotizado : 0;
+            $numVentas  = $v ? (int) $v->ventas_count : 0;
+            $bruto      = $v ? (float) $v->total_bruto : 0;
+            $iva        = $v ? (float) $v->total_iva : 0;
+            $paq        = $v ? (float) $v->total_paqueteria : 0;
+            $neto       = $bruto - $iva - $paq;
+
+            $diasEnMes = ($ym === date('Y-m')) ? max(1, (int) date('j')) : (int) date('t', strtotime($ym . '-01'));
+
+            $conversion = $numCotis > 0 ? round(($numVentas / $numCotis) * 100, 1) : 0;
+            $ticket     = $numVentas > 0 ? round($bruto / $numVentas, 2) : 0;
+            $netoPorDia = round($neto / $diasEnMes, 2);
+
+            // Leads del mes y ratio
+            $leadsCount = $l ? (int) $l->leads : 0;
+            $convLeads = $leadsCount > 0 ? round(($numCotis / $leadsCount) * 100, 1) : null;
+
+            $varNeto = null;
+            if ($prevNeto !== null && $prevNeto > 0) {
+                $varNeto = round((($neto - $prevNeto) / $prevNeto) * 100, 1);
+            }
+            $prevNeto = $neto;
+
+            // Variación de ticket vs mes anterior para semáforo de ticket
+            $varTicket = null;
+            $statusTicketVar = 'neutral';
+            if ($prevTicket !== null && $prevTicket > 0 && $ticket > 0) {
+                $varTicket = round((($ticket - $prevTicket) / $prevTicket) * 100, 1);
+                if ($varTicket >= $conf['umb_ticket_verde']) {
+                    $statusTicketVar = 'verde';
+                } elseif ($varTicket >= $conf['umb_ticket_amarillo']) {
+                    $statusTicketVar = 'amarillo';
+                } else {
+                    $statusTicketVar = 'rojo';
+                }
+            }
+            if ($ticket > 0) {
+                $prevTicket = $ticket;
+            }
+
+            // Semáforo de conversión
+            if ($conversion >= $conf['umb_conv_verde']) {
+                $statusConversion = 'verde';
+            } elseif ($conversion >= $conf['umb_conv_amarillo']) {
+                $statusConversion = 'amarillo';
+            } else {
+                $statusConversion = 'rojo';
+            }
+
+            $comparativa[] = [
+                'mes_key'            => $ym,
+                'nombre_mes'         => $nombreMes,
+                'leads_count'        => $leadsCount,
+                'conv_leads_pct'     => $convLeads,
+                'cotizaciones_count' => $numCotis,
+                'total_cotizado'     => number_format($totalCotis, 2),
+                'ventas_count'       => $numVentas,
+                'total_bruto'        => number_format($bruto, 2),
+                'total_neto'         => number_format($neto, 2),
+                'conversion_pct'     => $conversion,
+                'status_conversion'  => $statusConversion,
+                'ticket_promedio'    => number_format($ticket, 2),
+                'var_ticket'         => $varTicket,
+                'status_ticket_var'  => $statusTicketVar,
+                'neto_por_dia'       => number_format($netoPorDia, 2),
+                'var_neto'           => $varNeto,
+                'es_mes_actual'      => ($ym === date('Y-m')),
+            ];
+        }
+
+        return $comparativa;
     }
 
     /**
@@ -236,6 +664,7 @@ class EstadisticasController extends Controller
                     $fechaFin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
 
                     $metricas = $this->getMetricasVentas($fechaInicio, $fechaFin);
+                    $analisis = $this->getAnalisisComercial($fechaInicio, $fechaFin, $metricas);
                     $vendedoresPrin = $this->getVendedoresPrin($fechaInicio, $fechaFin);
                     $productosMasVendidos = $this->getProductosMasVendidos($fechaInicio, $fechaFin);
 
@@ -243,6 +672,7 @@ class EstadisticasController extends Controller
                         'success'              => true,
                         'vendedoresPrin'       => $vendedoresPrin,
                         'productosMasVendidos' => $productosMasVendidos,
+                        'analisis'             => $analisis,
                     ], $metricas));
 
                 case 'getVentasPorMes':
@@ -304,6 +734,91 @@ class EstadisticasController extends Controller
                         'datos'        => $datos_por_mes,
                         'fecha_inicio' => $fecha_inicio,
                         'fecha_fin'    => $fecha_fin
+                    ]);
+
+                case 'guardarLeads':
+                    $mes = !empty($datos['mes']) ? trim($datos['mes']) : null;
+                    $leads = isset($datos['leads']) ? max(0, (int) $datos['leads']) : 0;
+                    $notas = !empty($datos['notas']) ? trim($datos['notas']) : null;
+
+                    if (!$mes || !preg_match('/^\d{4}-\d{2}$/', $mes)) {
+                        return response()->json(['success' => false, 'error' => 'Formato de mes no válido (use YYYY-MM)']);
+                    }
+
+                    $this->ensureAnalisisTablesExist();
+                    $user = Auth::user();
+
+                    $existente = DB::table('leads_mensuales')->where('mes', $mes)->first();
+                    if ($existente) {
+                        DB::table('leads_mensuales')->where('mes', $mes)->update([
+                            'leads'      => $leads,
+                            'notas'      => $notas,
+                            'id_usuario' => $user ? $user->id : null,
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    } else {
+                        DB::table('leads_mensuales')->insert([
+                            'mes'        => $mes,
+                            'leads'      => $leads,
+                            'notas'      => $notas,
+                            'id_usuario' => $user ? $user->id : null,
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+
+                    $fechaInicio = !empty($datos['fecha_inicio']) ? $datos['fecha_inicio'] : null;
+                    $fechaFin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
+                    $metricas    = $this->getMetricasVentas($fechaInicio, $fechaFin);
+                    $analisis    = $this->getAnalisisComercial($fechaInicio, $fechaFin, $metricas);
+
+                    return response()->json([
+                        'success'  => true,
+                        'mensaje'  => 'Leads registrados correctamente para ' . $mes,
+                        'analisis' => $analisis,
+                    ]);
+
+                case 'eliminarLeads':
+                    $idLead = !empty($datos['id']) ? (int) $datos['id'] : null;
+                    if ($idLead) {
+                        DB::table('leads_mensuales')->where('id', $idLead)->delete();
+                    }
+
+                    $fechaInicio = !empty($datos['fecha_inicio']) ? $datos['fecha_inicio'] : null;
+                    $fechaFin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
+                    $metricas    = $this->getMetricasVentas($fechaInicio, $fechaFin);
+                    $analisis    = $this->getAnalisisComercial($fechaInicio, $fechaFin, $metricas);
+
+                    return response()->json([
+                        'success'  => true,
+                        'mensaje'  => 'Registro de leads eliminado',
+                        'analisis' => $analisis,
+                    ]);
+
+                case 'guardarUmbrales':
+                    $umbralesInput = !empty($datos['umbrales']) ? (array) $datos['umbrales'] : [];
+                    $this->ensureAnalisisTablesExist();
+
+                    foreach ($umbralesInput as $clave => $valor) {
+                        if (is_numeric($valor)) {
+                            DB::table('config_analisis_comercial')
+                                ->where('clave', $clave)
+                                ->update([
+                                    'valor'      => (string) $valor,
+                                    'updated_at' => date('Y-m-d H:i:s')
+                                ]);
+                        }
+                    }
+
+                    $fechaInicio = !empty($datos['fecha_inicio']) ? $datos['fecha_inicio'] : null;
+                    $fechaFin    = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
+                    $metricas    = $this->getMetricasVentas($fechaInicio, $fechaFin);
+                    $analisis    = $this->getAnalisisComercial($fechaInicio, $fechaFin, $metricas);
+
+                    return response()->json([
+                        'success'  => true,
+                        'mensaje'  => 'Metas y umbrales comerciales actualizados',
+                        'analisis' => $analisis,
                     ]);
 
                 default:

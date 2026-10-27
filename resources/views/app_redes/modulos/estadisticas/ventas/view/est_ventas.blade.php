@@ -104,28 +104,26 @@
                         // 2. Actualizar KPIs Financieros
                         $('#totalVentas').text('$' + result.totalVentas);
                         $('#totalIVA').text('-$' + result.totalIVA);
-                        $('#totalEnvios').text('+$' + result.totalEnvios);
+                        $('#totalEnvios').text('$' + result.totalEnvios);
                         $('#totalEnviosPaqueteria').text('-$' + result.totalEnviosPaqueteria);
                         $('#totalNeto').text('$' + result.totalNeto);
 
-                        // Ingreso total para cálculo de porcentajes
-                        const ventasVal = parseFloat(String(result.totalVentas).replace(/,/g, '')) || 0;
-                        const enviosVal = parseFloat(String(result.totalEnvios).replace(/,/g, '')) || 0;
-                        const totalIngresos = Math.max(0.01, ventasVal + enviosVal);
-                        const netoVal = parseFloat(String(result.totalNeto).replace(/,/g, '')) || 0;
-                        const ivaVal = parseFloat(String(result.totalIVA).replace(/,/g, '')) || 0;
-                        const paqVal = parseFloat(String(result.totalEnviosPaqueteria).replace(/,/g, '')) || 0;
+                        // Facturación bruta base para cálculo de porcentajes
+                        const brutoVal = parseFloat(String(result.totalVentas).replace(/,/g, '')) || 0.01;
+                        const netoVal  = parseFloat(String(result.totalNeto).replace(/,/g, '')) || 0;
+                        const ivaVal   = parseFloat(String(result.totalIVA).replace(/,/g, '')) || 0;
+                        const paqVal   = parseFloat(String(result.totalEnviosPaqueteria).replace(/,/g, '')) || 0;
 
                         // Actualizar Tabla y Barra Financiera
                         $('#tblTotalVentas').text('$' + result.totalVentas);
-                        $('#tblTotalEnvios').text('+$' + result.totalEnvios);
+                        $('#tblTotalEnvios').text('$' + result.totalEnvios);
                         $('#tblTotalIVA').text('-$' + result.totalIVA);
                         $('#tblTotalPaq').text('-$' + result.totalEnviosPaqueteria);
                         $('#tblTotalNeto').text('$' + result.totalNeto);
 
-                        const pctNeto = Math.max(0, Math.min(100, ((netoVal / totalIngresos) * 100).toFixed(1)));
-                        const pctIva = Math.max(0, Math.min(100, ((ivaVal / totalIngresos) * 100).toFixed(1)));
-                        const pctPaq = Math.max(0, Math.min(100, ((paqVal / totalIngresos) * 100).toFixed(1)));
+                        const pctNeto = Math.max(0, Math.min(100, ((netoVal / brutoVal) * 100).toFixed(1)));
+                        const pctIva  = Math.max(0, Math.min(100, ((ivaVal / brutoVal) * 100).toFixed(1)));
+                        const pctPaq  = Math.max(0, Math.min(100, ((paqVal / brutoVal) * 100).toFixed(1)));
 
                         $('#barPctNeto').css('width', pctNeto + '%').attr('title', 'Venta Neta: ' + pctNeto + '%');
                         $('#barPctIva').css('width', pctIva + '%').attr('title', 'IVA: ' + pctIva + '%');
@@ -141,7 +139,12 @@
                         // 4. Renderizar Vendedores
                         renderVendedores(result.vendedoresPrin);
 
-                        // 5. Sincronizar Gráfica Mensual
+                        // 5. Renderizar Análisis Comercial
+                        if (result.analisis) {
+                            renderAnalisis(result.analisis);
+                        }
+
+                        // 6. Sincronizar Gráfica Mensual
                         actualizarGrafico(fecha_inicio, fecha_fin);
                     } else {
                         alert('No fue posible procesar las estadísticas.');
@@ -407,6 +410,408 @@
             });
         }
 
+        // Renderizado dinámico de la pestaña de Análisis Comercial (Fases 1, 2 y 3)
+        function renderAnalisis(an) {
+            if (!an) return;
+
+            // Días analizados
+            $('#an_badgeDias').text(an.dias || 1);
+
+            // Alerta de Pipeline Abierto (Fase 3)
+            if (an.alertaPipeline) {
+                $('#an_alertaPipelineContainer').show();
+                $('#an_txtAlertPipelineVal').text('$' + (an.pipelineAbiertoValor || '0.00'));
+                $('#an_txtAlertRatio').text((an.ratioPipelineVentas || 0) + 'x');
+            } else {
+                $('#an_alertaPipelineContainer').hide();
+            }
+
+            // 0. Semáforos Comerciales Ejecutivos (Barra Superior)
+            const convCls = an.statusConversion === 'verde' ? 'badge-success' : (an.statusConversion === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            const cobCls = an.statusCobertura === 'verde' ? 'badge-success' : (an.statusCobertura === 'amarillo' ? 'badge-warning' : 'badge-danger');
+            const leadCol = an.statusLeadConversion === 'verde' ? '#10b981' : (an.statusLeadConversion === 'amarillo' ? '#f59e0b' : '#ef4444');
+            const leadCls = an.statusLeadConversion === 'verde' ? 'badge-success' : (an.statusLeadConversion === 'amarillo' ? 'badge-warning' : (an.statusLeadConversion === 'rojo' ? 'badge-danger' : 'badge-light border text-muted'));
+
+            $('#an_semBarVentasVal').text((an.tasaConversion || 0) + '%');
+            if (an.umbrales && an.umbrales.umb_conv_verde !== undefined) {
+                $('#an_semBarVentasTarget').text('(Meta ≥ ' + an.umbrales.umb_conv_verde + '%)');
+            }
+            $('#an_semBarVentasBadge').attr('class', 'badge ' + convCls + ' px-2 py-1 font-weight-bold').text(an.badgeConversion || 'Meta');
+
+            $('#an_semBarLeadsVal').text(an.hasLeads ? (an.leadToCotizacion || 0) + '%' : '-');
+            if (an.umbrales && an.umbrales.umb_lead_conv_verde !== undefined) {
+                $('#an_semBarLeadsTarget').text('(Meta ≥ ' + an.umbrales.umb_lead_conv_verde + '%)');
+            }
+            $('#an_semBarLeadsBadge').attr('class', 'badge ' + leadCls + ' px-2 py-1 font-weight-bold').text(an.badgeLeadConversion || 'Prospección');
+
+            $('#an_semBarCobVal').text((an.coberturaLogistica || 0) + '%');
+            if (an.umbrales && an.umbrales.umb_cobertura_verde !== undefined) {
+                $('#an_semBarCobTarget').text('(Meta ≥ ' + an.umbrales.umb_cobertura_verde + '%)');
+            }
+            $('#an_semBarCobBadge').attr('class', 'badge ' + cobCls + ' px-2 py-1 font-weight-bold').text(an.badgeCobertura || 'Autosustentable');
+
+            // Sincronizar inputs del modal de umbrales
+            if (an.umbrales) {
+                $('#conf_conv_verde').val(an.umbrales.umb_conv_verde);
+                $('#conf_conv_amarillo').val(an.umbrales.umb_conv_amarillo);
+                $('#conf_cob_verde').val(an.umbrales.umb_cobertura_verde);
+                $('#conf_cob_amarillo').val(an.umbrales.umb_cobertura_amarillo);
+                $('#conf_lead_verde').val(an.umbrales.umb_lead_conv_verde);
+                $('#conf_lead_amarillo').val(an.umbrales.umb_lead_conv_amarillo);
+                $('#conf_pipeline_mult').val(an.umbrales.umb_pipeline_multiplicador);
+            }
+
+            // 1. KPIs Fila 1
+            $('#an_tasaConversion').text((an.tasaConversion || 0) + '%');
+            $('#an_txtVentasNum').text(Number(an.numeroVentas || 0).toLocaleString());
+            $('#an_txtCotisNum').text(Number(an.numCotizaciones || 0).toLocaleString());
+
+            // Semáforo Cotización -> Venta en KPI Card
+            $('#an_badgeSemConversion').attr('class', 'badge ' + convCls + ' font-weight-bold').text(an.badgeConversion || 'Meta');
+
+            $('#an_ticketPromedio').text('$' + (an.ticketPromedio || '0.00'));
+            $('#an_ventasPorDia').text(an.ventasPorDia || 0);
+            $('#an_cotizacionesPorDia').text(an.cotizacionesPorDia || 0);
+            $('#an_netoPorDia').text('$' + (an.netoPorDia || '0.00'));
+            $('#an_netoPorVenta').text(an.netoPorVenta || '0.00');
+
+            // 2. Embudo Fila 2 (con Leads)
+            if (an.hasLeads) {
+                $('#an_funnelLeadsTxt').html(
+                    '<span id="an_funnelLeadsNum">' + Number(an.leads).toLocaleString() + '</span> prospectos ' +
+                    '<a href="#" class="text-primary ml-1" data-toggle="modal" data-target="#modalRegistroLeads" title="Editar leads"><i class="fas fa-edit"></i></a>'
+                );
+                $('#an_barLeadsTxt').text(Number(an.leads).toLocaleString() + ' Leads (Base de Prospección)');
+
+                $('#an_funnelLeadConvRate').text((an.leadToCotizacion || 0) + '%').css('color', leadCol);
+                $('#an_badgeLeadSem').attr('class', 'badge ' + leadCls).text(an.badgeLeadConversion || 'Prospección');
+                $('#an_funnelLeadVtaRate').text((an.leadToVenta || 0) + '%');
+            } else {
+                $('#an_funnelLeadsTxt').html(
+                    '<span class="text-muted font-weight-normal">No capturados en el mes</span> ' +
+                    '<button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 ml-1" data-toggle="modal" data-target="#modalRegistroLeads" style="font-size: 11px;">' +
+                    '<i class="fas fa-plus"></i> Registrar</button>'
+                );
+                $('#an_barLeadsTxt').text('Sin captura de leads');
+                $('#an_funnelLeadConvRate').text('-').css('color', '#64748b');
+                $('#an_badgeLeadSem').attr('class', 'badge badge-light text-muted border').text('Sin captura');
+                $('#an_funnelLeadVtaRate').text('-');
+            }
+
+            $('#an_funnelCotisNum').text(Number(an.numCotizaciones || 0).toLocaleString());
+            $('#an_funnelCotisVal').text('$' + (an.totalCotizaciones || '0.00'));
+            $('#an_funnelConvRate').text((an.tasaConversion || 0) + '%');
+            $('#an_funnelValRate').text((an.conversionValor || 0) + '%');
+            $('#an_funnelVentasNum').text(Number(an.numeroVentas || 0).toLocaleString());
+            $('#an_funnelVentasVal').text('$' + (an.totalVentas || '0.00'));
+            $('#an_funnelMargenRate').text((an.margenNetoPct || 0) + '%');
+
+            const dedRate = Math.max(0, (parseFloat(an.ivaPct || 0) + parseFloat(an.paqueteriaPct || 0)).toFixed(1));
+            $('#an_funnelDedRate').text(dedRate + '%');
+            $('#an_funnelNetoVal').text('$' + (an.totalNeto || '0.00'));
+
+            const wVtas = Math.max(5, Math.min(100, parseFloat(an.tasaConversion || 0)));
+            $('#an_barVentas').css('width', wVtas + '%').text((an.tasaConversion || 0) + '%');
+            const wNeto = Math.max(5, Math.min(100, parseFloat(an.margenNetoPct || 0)));
+            $('#an_barNeto').css('width', wNeto + '%').text((an.margenNetoPct || 0) + '% del bruto');
+
+            $('#an_pipelineVal').text('$' + (an.pipelineAbiertoValor || '0.00'));
+            $('#an_pipelineCant').text(Number(an.pipelineAbiertoCant || 0).toLocaleString() + ' cotizaciones');
+
+            // 3. Salud Logística
+            $('#an_logEnvios').text('$' + (an.totalEnvios || '0.00'));
+            $('#an_logPaq').text('$' + (an.totalEnviosPaqueteria || '0.00'));
+            $('#an_superavitLog').text('$' + (an.superavitLogistico || '0.00'));
+
+            const esSuperavit = parseFloat(an.superavitLogisticoRaw || 0) >= 0;
+            if (esSuperavit) {
+                $('#an_superavitLog').removeClass('text-danger').addClass('text-success');
+                $('#an_badgeSuperavit').removeClass('badge-danger').addClass('badge-success').text('Margen a favor');
+            } else {
+                $('#an_superavitLog').removeClass('text-success').addClass('text-danger');
+                $('#an_badgeSuperavit').removeClass('badge-success').addClass('badge-danger').text('Déficit logístico');
+            }
+
+            $('#an_coberturaLog').text((an.coberturaLogistica || 0) + '%');
+            $('#an_badgeCobertura').attr('class', 'badge ' + cobCls).text(an.badgeCobertura || 'Autosustentable');
+
+            // 4. Proyección al Cierre de Mes
+            if (an.mostrarProyeccion) {
+                $('#an_proyeccionActiva').show();
+                $('#an_proyeccionDisabled').hide();
+                $('#an_proyBadge').html('<i class="fas fa-calendar-day mr-1"></i> Día ' + an.diasTranscurridos + ' de ' + an.diasMes + ' · Factor: ' + an.factorProyeccion + 'x')
+                    .removeClass('badge-light text-muted border').addClass('text-white').css('background', '#8b5cf6');
+
+                $('#an_proyVentas').text(an.proyVentas);
+                $('#an_proyVentasActual').text(Number(an.numeroVentas || 0).toLocaleString());
+                $('#an_proyBruto').text('$' + an.proyVentasBrutas);
+                $('#an_proyBrutoActual').text('$' + an.totalVentas);
+                $('#an_proyNeto').text('$' + an.proyVentaNeta);
+                $('#an_proyNetoActual').text('$' + an.totalNeto);
+                $('#an_proyCotis').text(an.proyCotizaciones);
+                $('#an_proyCotisActual').text(Number(an.numCotizaciones || 0).toLocaleString());
+            } else {
+                $('#an_proyeccionActiva').hide();
+                $('#an_proyeccionDisabled').show();
+                $('#an_proyBadge').html('<i class="fas fa-info-circle mr-1"></i> Requiere inicio en día 1 de mes')
+                    .removeClass('text-white').addClass('badge-light text-muted border').css('background', '');
+            }
+
+            // 5. Tabla Comparativa Histórica (con leads y semáforos)
+            if (an.comparativa && an.comparativa.length > 0) {
+                let htmlComp = '';
+                an.comparativa.forEach(function(row) {
+                    const trClass = row.es_mes_actual ? 'table-primary font-weight-bold' : '';
+                    const badgeEnCurso = row.es_mes_actual ? ' <span class="badge badge-primary ml-1" style="font-size: 9.5px;">En curso</span>' : '';
+
+                    const semConvCls = row.status_conversion === 'verde' ? 'text-success' : (row.status_conversion === 'amarillo' ? 'text-warning' : 'text-danger');
+
+                    let leadsTd = '<span class="text-muted small">-</span>';
+                    if (row.leads_count > 0) {
+                        leadsTd = '<span class="font-weight-bold text-info">' + Number(row.leads_count).toLocaleString() + '</span>' +
+                            (row.conv_leads_pct !== null ? '<small class="text-muted d-block">' + row.conv_leads_pct + '% cotizan</small>' : '');
+                    }
+
+                    let ticketSub = '';
+                    if (row.var_ticket !== null && row.var_ticket !== undefined) {
+                        const tickCls = row.status_ticket_var === 'verde' ? 'text-success' : (row.status_ticket_var === 'amarillo' ? 'text-warning' : 'text-danger');
+                        const sign = parseFloat(row.var_ticket) > 0 ? '+' : '';
+                        ticketSub = '<small class="d-block font-weight-bold ' + tickCls + '">' + sign + row.var_ticket + '%</small>';
+                    }
+
+                    let varHtml = '<span class="text-muted small">-</span>';
+                    if (row.var_neto !== null && row.var_neto !== undefined) {
+                        if (parseFloat(row.var_neto) > 0) {
+                            varHtml = '<span class="badge badge-success font-weight-bold"><i class="fas fa-arrow-up mr-1"></i>+' + row.var_neto + '%</span>';
+                        } else if (parseFloat(row.var_neto) < 0) {
+                            varHtml = '<span class="badge badge-danger font-weight-bold"><i class="fas fa-arrow-down mr-1"></i>' + row.var_neto + '%</span>';
+                        } else {
+                            varHtml = '<span class="badge badge-secondary">0.0%</span>';
+                        }
+                    }
+
+                    htmlComp += '<tr class="' + trClass + '">' +
+                        '<td><strong>' + row.nombre_mes + '</strong>' + badgeEnCurso + '</td>' +
+                        '<td class="text-center">' + leadsTd + '</td>' +
+                        '<td class="text-center">' + Number(row.cotizaciones_count).toLocaleString() + '<small class="text-muted d-block">$' + row.total_cotizado + '</small></td>' +
+                        '<td class="text-center"><span class="badge badge-success px-2 py-1">' + Number(row.ventas_count).toLocaleString() + '</span></td>' +
+                        '<td class="text-center"><span class="font-weight-bold ' + semConvCls + '">' + row.conversion_pct + '%</span></td>' +
+                        '<td class="text-right">$' + row.ticket_promedio + ticketSub + '</td>' +
+                        '<td class="text-right font-weight-bold text-gray-800">$' + row.total_bruto + '</td>' +
+                        '<td class="text-right font-weight-bold text-success">$' + row.total_neto + '</td>' +
+                        '<td class="text-right text-muted">$' + row.neto_por_dia + '</td>' +
+                        '<td class="text-center">' + varHtml + '</td>' +
+                    '</tr>';
+                });
+                $('#an_tbodyComparativa').html(htmlComp);
+            }
+
+            // 6. Actualizar Historial de Leads en el Modal
+            if (an.listaLeads) {
+                let htmlLeads = '';
+                if (an.listaLeads.length > 0) {
+                    an.listaLeads.forEach(function(l) {
+                        htmlLeads += '<tr id="row_lead_' + l.id + '">' +
+                            '<td class="font-weight-bold">' + l.mes + '</td>' +
+                            '<td class="text-center font-weight-bold text-primary">' + Number(l.leads).toLocaleString() + '</td>' +
+                            '<td class="small text-muted">' + (l.notas || '-') + '</td>' +
+                            '<td class="text-right">' +
+                                '<button type="button" class="btn btn-xs btn-outline-danger py-0 px-2" onclick="eliminarLeadRegistro(' + l.id + ', \'' + l.mes + '\')" title="Eliminar registro">' +
+                                    '<i class="fas fa-trash"></i>' +
+                                '</button>' +
+                            '</td>' +
+                        '</tr>';
+                    });
+                } else {
+                    htmlLeads = '<tr id="row_leads_vacio"><td colspan="4" class="text-center py-3 text-muted small">No hay meses registrados aún. Captura el primero arriba.</td></tr>';
+                }
+                $('#tblHistorialLeads').html(htmlLeads);
+            }
+        }
+
+        // =====================================================================
+        // MANEJADORES DE ACCIONES FASE 3 (LEADS, UMBRALES, EXPORTACIÓN)
+        // =====================================================================
+
+        function guardarLeadsMensual(e) {
+            e.preventDefault();
+            const $btn = $('#btnGuardarLeads');
+            const mes = $('#lead_mes').val();
+            const leads = $('#lead_cantidad').val();
+            const notas = $('#lead_notas').val();
+            const fecha_inicio = $('#fecha_inicio').val();
+            const fecha_fin = $('#fecha_fin').val();
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+
+            $.ajax({
+                url: '{{ route('ajax_est_ventas') }}',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    accion: 'guardarLeads',
+                    datos: {
+                        mes: mes,
+                        leads: leads,
+                        notas: notas,
+                        fecha_inicio: fecha_inicio,
+                        fecha_fin: fecha_fin
+                    }
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#modalRegistroLeads').modal('hide');
+                        $('#lead_cantidad').val('');
+                        $('#lead_notas').val('');
+                        if (res.analisis) {
+                            renderAnalisis(res.analisis);
+                        }
+                    } else {
+                        alert(res.error || 'Error al guardar leads');
+                    }
+                },
+                error: function() {
+                    alert('Error de conexión al guardar los leads.');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Guardar Leads');
+                }
+            });
+        }
+
+        function eliminarLeadRegistro(id, mes) {
+            if (!confirm('¿Deseas eliminar el registro de leads del mes ' + mes + '?')) {
+                return;
+            }
+            const fecha_inicio = $('#fecha_inicio').val();
+            const fecha_fin = $('#fecha_fin').val();
+
+            $.ajax({
+                url: '{{ route('ajax_est_ventas') }}',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    accion: 'eliminarLeads',
+                    datos: {
+                        id: id,
+                        fecha_inicio: fecha_inicio,
+                        fecha_fin: fecha_fin
+                    }
+                },
+                success: function(res) {
+                    if (res.success && res.analisis) {
+                        renderAnalisis(res.analisis);
+                    }
+                }
+            });
+        }
+
+        function guardarUmbralesConfig(e) {
+            e.preventDefault();
+            const $btn = $('#btnGuardarUmbrales');
+            const fecha_inicio = $('#fecha_inicio').val();
+            const fecha_fin = $('#fecha_fin').val();
+
+            const umbrales = {
+                umb_conv_verde: $('#conf_conv_verde').val(),
+                umb_conv_amarillo: $('#conf_conv_amarillo').val(),
+                umb_cobertura_verde: $('#conf_cob_verde').val(),
+                umb_cobertura_amarillo: $('#conf_cob_amarillo').val(),
+                umb_lead_conv_verde: $('#conf_lead_verde').val(),
+                umb_lead_conv_amarillo: $('#conf_lead_amarillo').val(),
+                umb_pipeline_multiplicador: $('#conf_pipeline_mult').val()
+            };
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Guardando...');
+
+            $.ajax({
+                url: '{{ route('ajax_est_ventas') }}',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    accion: 'guardarUmbrales',
+                    datos: {
+                        umbrales: umbrales,
+                        fecha_inicio: fecha_inicio,
+                        fecha_fin: fecha_fin
+                    }
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#modalConfigUmbrales').modal('hide');
+                        if (res.analisis) {
+                            renderAnalisis(res.analisis);
+                        }
+                    }
+                },
+                complete: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Guardar Metas');
+                }
+            });
+        }
+
+        function restablecerUmbralesDefault() {
+            $('#conf_conv_verde').val(40);
+            $('#conf_conv_amarillo').val(30);
+            $('#conf_cob_verde').val(100);
+            $('#conf_cob_amarillo').val(90);
+            $('#conf_lead_verde').val(2.5);
+            $('#conf_lead_amarillo').val(1.8);
+            $('#conf_pipeline_mult').val(1.5);
+        }
+
+        // Exportación de reporte ejecutivo en formato CSV (compatible Excel con BOM)
+        function exportarAnalisisExcel() {
+            let csv = '\uFEFF'; // UTF-8 BOM
+            csv += 'REPORTE DE ANÁLISIS COMERCIAL - ANDAMIOS LIGEROS\n';
+            csv += 'Generado el: ' + new Date().toLocaleDateString('es-MX') + '\n';
+            csv += 'Período: ' + ($('#fecha_inicio').val() || 'Todo el historial') + ' al ' + ($('#fecha_fin').val() || 'Hoy') + '\n\n';
+
+            csv += '1. RESUMEN DE KPIs ESTRATÉGICOS\n';
+            csv += 'Métrica,Valor\n';
+            csv += 'Tasa de Conversión (Cotización a Venta),' + $('#an_tasaConversion').text() + '\n';
+            csv += 'Ticket Promedio,' + $('#an_ticketPromedio').text() + '\n';
+            csv += 'Ritmo de Ventas por Día,' + $('#an_ventasPorDia').text() + ' vtas/día\n';
+            csv += 'Cotizaciones por Día,' + $('#an_cotizacionesPorDia').text() + ' cotis/día\n';
+            csv += 'Generación Neta Diaria,' + $('#an_netoPorDia').text() + '\n';
+            csv += 'Ingreso Neto por Venta,' + $('#an_netoPorVenta').text() + '\n\n';
+
+            csv += '2. SALUD LOGÍSTICA\n';
+            csv += 'Concepto,Monto\n';
+            csv += 'Fletes Cobrados al Cliente,' + $('#an_logEnvios').text() + '\n';
+            csv += 'Paquetería Pagada a Transportistas,' + $('#an_logPaq').text() + '\n';
+            csv += 'Superávit Logístico Net,' + $('#an_superavitLog').text() + '\n';
+            csv += 'Cobertura Logística,' + $('#an_coberturaLog').text() + '\n\n';
+
+            csv += '3. COMPARATIVA MENSUAL HISTÓRICA\n';
+            csv += 'Mes,Leads,Cotizaciones,Ventas,Conversión %,Ticket Promedio,Facturación Bruta,Venta Neta,Neto por Día,Variación Neto\n';
+
+            $('#an_tbodyComparativa tr').each(function() {
+                const cols = [];
+                $(this).find('td').each(function() {
+                    let text = $(this).text().replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+                    text = '"' + text.replace(/"/g, '""') + '"';
+                    cols.push(text);
+                });
+                if (cols.length > 0) {
+                    csv += cols.join(',') + '\n';
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'analisis_comercial_' + (new Date().toISOString().slice(0, 10)) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         $(document).ready(function() {
             actualizarGrafico();
 
@@ -415,6 +820,23 @@
                 if (ventasChart) {
                     ventasChart.resize();
                 }
+            });
+
+            // Aplicar automáticamente filtro "Este Mes" al abrir la pestaña de Análisis Comercial si está en historial completo
+            let analisisAutoFiltrado = false;
+            $('#tab-analisis-link').on('shown.bs.tab', function (e) {
+                if (!analisisAutoFiltrado && !$('#fecha_inicio').val()) {
+                    analisisAutoFiltrado = true;
+                    const pill = $('.preset-pill[data-preset="este_mes"]')[0];
+                    setPreset('este_mes', pill);
+                }
+            });
+
+            // Botón de filtro rápido de mes en la card de proyección
+            $(document).on('click', '#btnFiltrarEsteMesAnalisis', function(e) {
+                e.preventDefault();
+                const pill = $('.preset-pill[data-preset="este_mes"]')[0];
+                setPreset('este_mes', pill);
             });
         });
     </script>
