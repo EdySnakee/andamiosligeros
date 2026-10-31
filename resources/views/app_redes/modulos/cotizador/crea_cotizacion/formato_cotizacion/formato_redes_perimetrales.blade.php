@@ -1,16 +1,13 @@
 <div class="row encabezado">
   <div class="col-md-6">
     @if($accion == "agregar")
-    <h2>COTIZACIÓN (folio)</h2>
+    <h2>COTIZACIÓN</h2>
 	@elseif($accion == "editar")
 	<h2>COTIZACIÓN {{$info_cotizacion->cod_cotizacion}}</h2>
 	@endif
     <span id="fecha_formato">{{$fecha}}</span>
     <div class="row txt-cliente">
-	    <div class="col-md-3">
-	    	<p class="text-bold">EN ATENCIÓN</p>
-	    </div>
-	    <div class="col-md-9">
+	    <div class="col-md-12">
 	    	<ul id="info_cliente" class="info-cliente">
 	    		@include('app_redes.modulos.cotizador.crea_cotizacion.formato_cotizacion.fieldset_info_cliente')
 	    	</ul>
