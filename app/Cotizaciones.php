@@ -106,48 +106,45 @@ class Cotizaciones extends Model
 
     public static function actualizaTabla($info_array, $data_post, $accion)
     {   
-        //dd($data_post);
-        //$cenvio = 100;
         $subtotal = 0;
         $impuestos = 0;
-        //$descuento = 0;
         $total = 0;
         $subtotal_sin_descuento = 0;
         $num_proc = 0;
         $descuento_global = 0;
         $nuevo_descuento = 0;
-        $s = 'A';
-        foreach ($info_array as $i => $v) {
-        ?>
-        
-        <tr class="fila-det-servicio">
-            <td class="text-center"><?php echo $v['cantidad'] ?></td>
-            <td class="text-left" nomb-det-serv="<?php echo $v['nombre_producto'] ?>" data-id-producto="<?php echo $v['id_producto'] ?>"><?php echo $v['nombre_producto'] ?></td>
-            <td class="text-center"><?php echo "ANEXO ".$v['sku'] ?></td>
-            <td class="text-center" data-punit="<?php echo $v['costo'] ?>" data-alto="<?php echo $v['alto'] ?>" data-largo="<?php echo $v['largo'] ?>"><?php echo "$".number_format($v['costo'], 2, '.', ',') ?></td>
-            <td class="text-center" data-total-ind="<?php echo $v['total'] ?>"><?php echo "$".number_format($v['total'], 2, '.', ',') ?></td>
-            <td class="text-center boton-eliminar" data-tipo-cobro="<?= $v['tipo_cobro'] ?>" dimensiones="<?php if ($v['tipo_cobro'] == "m2"){echo $v['dimensiones'];}else{echo "N/A";} ?>">
-                <button type="button" class="eliminar_servicio btn btn-sm btn-danger" data-id="<?php echo $v['id'] ?>"><i class="fa fa-times"></i></button>
-            </td>
-        </tr>
-        <?php
-            $subtotal_sin_descuento += $v['total'];
-            if ($v['categoria'] == "andamio") {
-                $num_proc += $v['cantidad'];
+
+        if (!empty($info_array)) {
+            foreach ($info_array as $i => $v) {
+                ?>
+                <tr class="fila-det-servicio">
+                    <td class="text-center" style="vertical-align: middle;"><?php echo $v['cantidad'] ?></td>
+                    <td class="text-left font-weight-bold" nomb-det-serv="<?php echo htmlspecialchars($v['nombre_producto'], ENT_QUOTES) ?>" data-id-producto="<?php echo $v['id_producto'] ?>" style="vertical-align: middle;"><?php echo $v['nombre_producto'] ?></td>
+                    <td class="text-center" style="vertical-align: middle;"><span style="color: #007bff; font-weight: 600;">ANEXO <?php echo $v['sku'] ?></span></td>
+                    <td class="text-center" data-punit="<?php echo $v['costo'] ?>" data-alto="<?php echo $v['alto'] ?>" data-largo="<?php echo $v['largo'] ?>" style="vertical-align: middle;"><?php echo "$".number_format($v['costo'], 2, '.', ',') ?></td>
+                    <td class="text-center font-weight-bold" data-total-ind="<?php echo $v['total'] ?>" style="vertical-align: middle;"><?php echo "$".number_format($v['total'], 2, '.', ',') ?></td>
+                    <td class="text-center boton-eliminar col-accion-td no-captura" data-tipo-cobro="<?= $v['tipo_cobro'] ?>" dimensiones="<?php if ($v['tipo_cobro'] == "m2"){echo $v['dimensiones'];}else{echo "N/A";} ?>" style="vertical-align: middle;">
+                        <button type="button" class="eliminar_servicio btn btn-sm btn-outline-danger" style="border-radius: 50%; width: 26px; height: 26px; padding: 0; line-height: 24px;" data-id="<?php echo $v['id'] ?>" title="Eliminar"><i class="fa fa-times"></i></button>
+                    </td>
+                </tr>
+                <?php
+                $subtotal_sin_descuento += $v['total'];
+                if ($v['categoria'] == "andamio") {
+                    $num_proc += $v['cantidad'];
+                }
             }
+        } else {
+            ?>
+            <tr id="sin_conceptos_row">
+                <td colspan="6" class="text-center text-muted py-4" style="background: #fafafa;">
+                    <span style="font-size: 13px; color: #888;">No hay productos agregados a la cotización</span>
+                </td>
+            </tr>
+            <?php
         }
-        //dd($data_post);
-        /*
-        if ($data_post->activa_envio == "true" or isset($data_post->envio) and $data_post->envio != 0) {
-            $envio = $cenvio * $num_proc;
-        }else{
-            $envio = 0;
-        }
-        */
         
         if (!empty($data_post->descuento_aplicado)) {
             if ($data_post->t_descuento == "Porcentual") {
-                echo $accion;
                 if(!empty($accion) and $accion == "editar"){
                     $descuento = ((float)$subtotal_sin_descuento * $data_post->descuento); 
                 }else{
@@ -162,80 +159,44 @@ class Cotizaciones extends Model
                     $nuevo_descuento = $data_post->descuento_aplicado; 
                 }
             }
-        }else{
+        } else {
             $nuevo_descuento = 0;
         }
 
-        $subtotal_global = $subtotal_sin_descuento + (!empty($data_post->envio) ? $data_post->envio : 0) - $nuevo_descuento;
-        //$subtotal_global = $subtotal_sin_descuento + $envio - $nuevo_descuento;
+        $envio_val = (!empty($data_post->envio) ? (float)$data_post->envio : 0);
+        $subtotal_global = $subtotal_sin_descuento + $envio_val - $nuevo_descuento;
         
-        if ($data_post->activa_iva == "true" or isset($data_post->iva) and $data_post->iva != 0.0) {
-            $impuestos = (float) $subtotal_global*0.16;
+        if ($data_post->activa_iva == "true" or (isset($data_post->iva) and $data_post->iva != 0.0)) {
+            $impuestos = (float) $subtotal_global * 0.16;
             $total = $impuestos + $subtotal_global;
-        }else{
+        } else {
             $total = $subtotal_global;
         }
-        //dd($impuestos);
         ?>
-        <?php 
-        if ($nuevo_descuento != 0) {
-            ?>
-            <tr>
-                <td colspan="4" class="text-right">Descuento</td>
-                <td class="text-center" id="nuevo_descuento" data-nuevo-descuento="<?php echo $nuevo_descuento ?>"><?php echo "-$".number_format($nuevo_descuento, 2, '.', ',') ?></td>
-                <td>
-                <button type="button" class="del_descuento btn btn-sm btn-danger" ><i class="fa fa-times"></i></button>
-                </td>
-            </tr>
-            <?php 
-        }
-        //dd($data_post->activa_envio);
-        if (!empty($data_post->envio) and $data_post->envio != 0) {
-            
-            ?>
-            <tr>
-                <td colspan="4" class="text-right">Envío</td>
-                <td class="text-center" id="envio" data-costo-envio="<?php echo $data_post->envio ?>"><?php echo "$".number_format($data_post->envio, 2, '.', ',') ?></td>
-                <td>
-                <a href="#" class="del_envio btn btn-sm btn-danger" ><i class="fa fa-times"></i></a>
-                </td>
-            </tr>
-            <?php 
-        }
-         ?>
-        <tr>
-            <td colspan="4" class="text-right">
-                Subtotal
+        <tr id="fila_totales_hidden" style="display: none !important;">
+            <td colspan="6">
                 <input type="hidden" id="subtotal_sin_descuento" value="<?php echo $subtotal_sin_descuento ?>">
+                <span id="subtotal_global" data-subtotal-global="<?php echo $subtotal_global ?>"></span>
+                <span id="nuevo_descuento" data-nuevo-descuento="<?php echo $nuevo_descuento ?>"></span>
+                <span id="envio" data-costo-envio="<?php echo $envio_val ?>"></span>
+                <input type="hidden" id="iva" value="<?php echo $impuestos ?>">
+                <input type="hidden" id="v_iva" value="<?php echo (!empty($impuestos) ? $impuestos : "0.0") ?>">
+                <span id="total" data-total="<?php echo $total ?>"></span>
             </td>
-            <td class="text-center" id="subtotal_global" data-subtotal-global="<?php echo $subtotal_global ?>"><?php echo "$".number_format($subtotal_global, 2, '.', ',') ?></td>
-            <td></td>
         </tr>
+        <script>
+        if (typeof actualizarCajaTotales === 'function') {
+            actualizarCajaTotales({
+                envio: <?php echo json_encode($envio_val); ?>,
+                subtotal: <?php echo json_encode($subtotal_global); ?>,
+                subtotal_sin_descuento: <?php echo json_encode($subtotal_sin_descuento); ?>,
+                descuento: <?php echo json_encode($nuevo_descuento); ?>,
+                iva: <?php echo json_encode($impuestos); ?>,
+                total: <?php echo json_encode($total); ?>
+            });
+        }
+        </script>
         <?php
-            //dd($impuestos);
-            if (isset($impuestos) and $impuestos != 0) {
-                //$total = $subtotal + $impuestos;
-                ?>
-                    <tr>
-                        <td colspan="4" class="text-right">IVA</td>
-                        <td class="text-center">
-                            $ <?php echo number_format($impuestos, 2, '.', ',') ?>
-                            <input id="iva" type="hidden" value="<?php echo $impuestos ?>">
-                        </td>
-                        <td></td>
-                    </tr>
-                <?php
-            }
-        ?>
-        <tr>
-            <input type="hidden" id="v_iva" value="<?php !empty($impuestos) ? print_r($impuestos) : print_r("0.0"); ?>">
-            <td colspan="4" class="text-right">TOTAL</td>
-            <td class="text-center"><h4 id="total" data-total="<?php echo $total ?>"><?php echo "$".number_format($total, 2, '.', ',') ?></h4></td>
-            <td></td>
-        </tr>
-        <?php
-        
-        
     }
 
     public static function confirmaVende($data_post, $infoCotizacion, $fecha, $status, $cot_metodo, $exportacion, $moneda, $metodo_pago)

@@ -35,17 +35,7 @@ session_destroy();
 
         #tabla_productos td,
         #tabla_productos th {
-            padding: 0.3rem;
-        }
-
-        #tabla_productos th {
-            font-size: 0.8rem;
-            background: #2a2a2a;
-            color: white;
-        }
-
-        #tabla_productos td {
-            font-size: 0.9rem;
+            padding: 0.5rem 0.4rem;
         }
 
         ul.opc-desc li {
@@ -59,6 +49,217 @@ session_destroy();
 
         ul.opc-desc {
             padding: 0;
+        }
+
+        /* === ESTILOS VISTA PREVIA COTIZACIÓN IDÉNTICA A COTIZACIÓN GUARDADA === */
+        .coti-preview-sheet {
+            background: #ffffff;
+            padding: 22px 22px 18px 22px;
+            border-radius: 8px;
+            border: 1px solid #e3e6f0;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            position: relative;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .blue-title {
+            color: #0d2b68;
+            border-bottom: 2px solid #f2bc1c;
+            display: inline-block;
+            width: 100%;
+            margin: 0;
+            margin-bottom: 5px;
+            font-size: 21px;
+            letter-spacing: 0.2px;
+        }
+
+        .coti-cinta-seguridad {
+            height: 8px !important;
+            width: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 2px;
+        }
+
+        .table-coti {
+            margin-top: 5px;
+            border-collapse: collapse;
+        }
+
+        .table-coti thead th {
+            background-color: #f8f9fa !important;
+            color: #0d2b68 !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 8px 6px !important;
+            border-top: none !important;
+            border-bottom: 2px solid #aecfea !important;
+            border-left: none !important;
+            border-right: none !important;
+            vertical-align: middle !important;
+        }
+
+        .table-coti tbody td {
+            border-top: none !important;
+            border-bottom: 1px solid #f0f0f0 !important;
+            border-left: none !important;
+            border-right: none !important;
+            padding: 8px 6px !important;
+            font-size: 14px !important;
+            vertical-align: middle !important;
+            color: #333;
+        }
+
+        .table-coti tbody tr:hover {
+            background-color: #fafcff;
+        }
+
+        .cotizacion-banner {
+            width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Pie de cotización y caja de totales protegida */
+        .coti-footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .coti-pagos-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1 1 auto;
+            min-width: 270px;
+            flex-wrap: wrap;
+        }
+
+        .coti-bbva {
+            max-width: 85px;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .coti-banco-info {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #333;
+            line-height: 1.35;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .coti-banco-tit {
+            margin: 0 0 2px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #1a1a1a;
+            letter-spacing: 0.3px;
+        }
+
+        .coti-banco-txt {
+            margin: 0;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .coti-mp {
+            max-width: 80px;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .coti-qr {
+            max-width: 65px;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .tabla-total-container {
+            flex: 0 0 270px;
+            width: 270px;
+            max-width: 270px;
+            padding-left: 0;
+        }
+
+        .tabla-total {
+            background-color: #ffbb01;
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #0d2b68;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .tabla-total table {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: collapse;
+        }
+
+        .tabla-total table td {
+            padding: 3px 0;
+            font-size: 14px !important;
+            color: #0d2b68 !important;
+            font-weight: 700 !important;
+            border: none !important;
+            vertical-align: middle;
+        }
+
+        .tabla-total #caja_row_total td {
+            font-size: 17.5px !important;
+            color: #081d4a !important;
+            font-weight: 900 !important;
+            padding-top: 6px;
+            padding-bottom: 2px;
+            border-top: 1.5px solid rgba(13, 43, 104, 0.35) !important;
+        }
+
+        /* Ocultar elementos para captura */
+        .modo-captura-activa .no-captura,
+        .modo-captura-activa .info-cliente-tel,
+        .modo-captura-activa .col-accion-th,
+        .modo-captura-activa .col-accion-td {
+            display: none !important;
+        }
+
+        @media (max-width: 767px) {
+            .coti-preview-sheet {
+                padding: 14px;
+            }
+            .coti-footer-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .tabla-total-container {
+                width: 100%;
+                max-width: 100%;
+                flex: 1 1 auto;
+                margin-top: 10px;
+            }
+            .res-center {
+                text-align: center !important;
+            }
+            .res-mt {
+                margin-top: 15px;
+            }
         }
     </style>
 @stop
@@ -76,10 +277,101 @@ session_destroy();
     <script>
         var quill = null;
 
+        function formatMoney(num) {
+            return '$' + parseFloat(num || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function actualizarCajaTotales(data) {
+            if (!data) return;
+
+            var envio = parseFloat(data.envio || 0);
+            var subtotal = parseFloat(data.subtotal || 0);
+            var descuento = parseFloat(data.descuento || 0);
+            var iva = parseFloat(data.iva || 0);
+            var total = parseFloat(data.total || 0);
+
+            // Actualizar textos en la caja amarilla
+            $("#caja_txt_envio").text(formatMoney(envio));
+            if (envio > 0) {
+                $("#caja_btn_del_envio").show();
+            } else {
+                $("#caja_btn_del_envio").hide();
+            }
+
+            $("#caja_txt_subtotal").text(formatMoney(subtotal));
+
+            if (descuento > 0) {
+                $("#caja_txt_descuento").text("-" + formatMoney(descuento));
+                $("#caja_row_descuento").show();
+            } else {
+                $("#caja_row_descuento").hide();
+            }
+
+            $("#caja_txt_iva").text(formatMoney(iva));
+            $("#caja_txt_total").text(formatMoney(total));
+        }
+
+        function initPreviewCotizador() {
+            function syncSucursal() {
+                var sucNombre = $("#suc_origen option:selected").data("nombre") || $("#suc_origen option:selected").text().trim();
+                if (sucNombre && sucNombre !== "Selecciona una sucursal" && sucNombre !== "SELECCIONA UNA SUCURSAL") {
+                    $("#sucursal_preview_txt").text(sucNombre);
+                }
+            }
+            syncSucursal();
+            $(document).on("change", "#suc_origen", syncSucursal);
+
+            function syncTipoCotizacion() {
+                var tipoVal = $('input:radio[name=tipo_cotizacion]:checked').val();
+                if (tipoVal) {
+                    $("#tipo_coti_preview_txt").text(tipoVal);
+                }
+            }
+            syncTipoCotizacion();
+            $(document).on("change", "input[name=tipo_cotizacion]", syncTipoCotizacion);
+
+            if ($("#fila_totales_hidden").length > 0) {
+                actualizarCajaTotales({
+                    envio: $("#envio").attr("data-costo-envio") || 0,
+                    subtotal: $("#subtotal_global").attr("data-subtotal-global") || 0,
+                    subtotal_sin_descuento: $("#subtotal_sin_descuento").val() || 0,
+                    descuento: $("#nuevo_descuento").attr("data-nuevo-descuento") || 0,
+                    iva: $("#iva").val() || 0,
+                    total: $("#total").attr("data-total") || 0
+                });
+            } else {
+                actualizarCajaTotales({
+                    envio: 0,
+                    subtotal: 0,
+                    subtotal_sin_descuento: 0,
+                    descuento: 0,
+                    iva: 0,
+                    total: 0
+                });
+            }
+        }
+
         $(document).ready(function() {
             $('.js-example-basic-single').select2();
             buscadorCliente();
             quillCondicionesPlano();
+            initPreviewCotizador();
+        });
+
+        // Alternar entre "Modo captura" (limpio para screenshot) y "Modificar productos" (muestra botones de acción)
+        $(document).on("click", "#btn_toggle_captura", function() {
+            var $area = $("#coti_captura_area");
+            $area.toggleClass("modo-captura-activa");
+            if ($area.hasClass("modo-captura-activa")) {
+                $(this).html('<i class="fas fa-edit mr-1"></i> Modificar productos');
+                $(this).removeClass("btn-secondary").addClass("btn-outline-secondary");
+            } else {
+                $(this).html('<i class="fas fa-camera mr-1"></i> Modo captura');
+                $(this).removeClass("btn-outline-secondary").addClass("btn-secondary");
+            }
         });
 
         $(document).on("click", "#edit_cotizacion", confirmEditCotizacion);
@@ -410,46 +702,66 @@ session_destroy();
         function confirmCotizacion() {
             var id_sucursal = $('#suc_origen').val();
             var cliente = $("#search_cliente").val();
-            if (cliente != null && id_sucursal != null) {
-                swal({
-                        title: "Confirma para guardar la cotizacion",
-                        text: "Valida que todos los datos esten correctos",
-                        icon: "warning",
-                        buttons: true,
-                        dangerMode: false,
-                        buttons: ["Cancelar", "Si, Guardar ahora"],
-                    })
-                    .then((willDelete) => {
-                        if (willDelete) {
-                            postCotizacion();
-                        } else {
+            var nFilas = $(".fila-det-servicio").length;
 
-                        }
-                    });
-            } else {
+            if (!cliente || !id_sucursal) {
                 swal({
-                    title: "Error!",
-                    text: "Por favor selecciona una SUCRUSAL y un CLIENTE",
+                    title: "Atención",
+                    text: "Por favor selecciona una SUCURSAL y un CLIENTE",
                     icon: "error",
                     dangerMode: true,
-                })
-            };
+                });
+                return;
+            }
+
+            if (nFilas === 0) {
+                swal({
+                    title: "Sin productos",
+                    text: "Por favor agrega al menos un concepto a la cotización antes de guardar.",
+                    icon: "warning",
+                    dangerMode: true,
+                });
+                return;
+            }
+
+            swal({
+                title: "Confirma para guardar la cotización",
+                text: "Valida que todos los datos estén correctos",
+                icon: "warning",
+                buttons: true,
+                dangerMode: false,
+                buttons: ["Cancelar", "Sí, Guardar ahora"],
+            })
+            .then((willDelete) => {
+                if (willDelete) {
+                    postCotizacion();
+                }
+            });
         }
 
         function confirmEditCotizacion() {
+            var nFilas = $(".fila-det-servicio").length;
+            if (nFilas === 0) {
+                swal({
+                    title: "Sin productos",
+                    text: "Por favor agrega al menos un concepto a la cotización.",
+                    icon: "warning",
+                    dangerMode: true,
+                });
+                return;
+            }
+
             swal({
-                    title: "Editar cotizacion",
-                    text: "Seguro que deseas editar la cotización",
+                    title: "Editar cotización",
+                    text: "¿Seguro que deseas editar la cotización?",
                     icon: "warning",
                     buttons: true,
                     dangerMode: false,
-                    buttons: ["Cancelar", "Si, Editar ahora"],
+                    buttons: ["Cancelar", "Sí, Editar ahora"],
                 })
                 .then((willEdit) => {
                     if (willEdit) {
                         editCotizacion();
-                    } else {
-
                     }
                 });
         }
@@ -466,28 +778,20 @@ session_destroy();
             var total = $("#total").attr("data-total");
             var configuracion = $('#datos_condicion > .ql-editor').html();
 
-            var nFilas = $(".fila-det-servicio").length;
+            var detalle_coti = [];
 
-            var detalle_coti = []
-
-            for (var i = 0; i < nFilas; i++) {
-                var suma = (i + 1);
-
-                var cantidad = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(1)").html();
-                var nombre_producto = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(2)").html();
-                var id_producto = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(2)").attr(
-                    "data-id-producto");
-                var titulo_descripcion = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(3)").html();
-                var precio_unit = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(4)").attr(
-                    "data-punit");
-                var alto = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(4)").attr("data-alto");
-                var largo = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(4)").attr("data-largo");
-                var total_ind = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(5)").attr(
-                    "data-total-ind");
-                var dimensiones = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(6)").attr(
-                    "dimensiones");
-                var tipo_cobro = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(6)").attr(
-                    "data-tipo-cobro");
+            $(".fila-det-servicio").each(function() {
+                var $row = $(this);
+                var cantidad = $row.find("td:nth-child(1)").text().trim();
+                var nombre_producto = $row.find("td:nth-child(2)").attr("nomb-det-serv") || $row.find("td:nth-child(2)").text().trim();
+                var id_producto = $row.find("td:nth-child(2)").attr("data-id-producto");
+                var titulo_descripcion = $row.find("td:nth-child(3)").text().trim();
+                var precio_unit = $row.find("td:nth-child(4)").attr("data-punit");
+                var alto = $row.find("td:nth-child(4)").attr("data-alto");
+                var largo = $row.find("td:nth-child(4)").attr("data-largo");
+                var total_ind = $row.find("td:nth-child(5)").attr("data-total-ind");
+                var dimensiones = $row.find("td:nth-child(6)").attr("dimensiones");
+                var tipo_cobro = $row.find("td:nth-child(6)").attr("data-tipo-cobro");
 
                 detalle_coti.push({
                     cantidad: cantidad,
@@ -501,7 +805,7 @@ session_destroy();
                     dimensiones: dimensiones,
                     tipo_cobro: tipo_cobro
                 });
-            };
+            });
 
             //console.log(info_coti);
             //console.log(detalle_coti);
@@ -568,27 +872,20 @@ session_destroy();
             var configuracion = $('#datos_condicion > .ql-editor').html();
             var id_sucursal = $('#suc_origen').val();
 
-            var nFilas = $(".fila-det-servicio").length;
+            var detalle_coti = [];
 
-            var detalle_coti = []
-
-            for (var i = 0; i < nFilas; i++) {
-                var suma = (i + 1);
-                var cantidad = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(1)").html();
-                var nombre_producto = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(2)").html();
-                var id_producto = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(2)").attr(
-                    "data-id-producto");
-                var titulo_descripcion = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(3)").html();
-                var precio_unit = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(4)").attr(
-                    "data-punit");
-                var alto = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(4)").attr("data-alto");
-                var largo = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(4)").attr("data-largo");
-                var total_ind = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(5)").attr(
-                    "data-total-ind");
-                var dimensiones = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(6)").attr(
-                    "dimensiones");
-                var tipo_cobro = $("#detalle_cotizacion > tr:nth-child(" + suma + ") > td:nth-child(6)").attr(
-                    "data-tipo-cobro");
+            $(".fila-det-servicio").each(function() {
+                var $row = $(this);
+                var cantidad = $row.find("td:nth-child(1)").text().trim();
+                var nombre_producto = $row.find("td:nth-child(2)").attr("nomb-det-serv") || $row.find("td:nth-child(2)").text().trim();
+                var id_producto = $row.find("td:nth-child(2)").attr("data-id-producto");
+                var titulo_descripcion = $row.find("td:nth-child(3)").text().trim();
+                var precio_unit = $row.find("td:nth-child(4)").attr("data-punit");
+                var alto = $row.find("td:nth-child(4)").attr("data-alto");
+                var largo = $row.find("td:nth-child(4)").attr("data-largo");
+                var total_ind = $row.find("td:nth-child(5)").attr("data-total-ind");
+                var dimensiones = $row.find("td:nth-child(6)").attr("dimensiones");
+                var tipo_cobro = $row.find("td:nth-child(6)").attr("data-tipo-cobro");
 
                 detalle_coti.push({
                     cantidad: cantidad,
@@ -605,7 +902,7 @@ session_destroy();
                     clave_unidad: "05",
                     unidad: "PIEZA"
                 });
-            };
+            });
 
             //console.log(info_coti);
             //console.log(detalle_coti);
