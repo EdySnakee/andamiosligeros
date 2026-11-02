@@ -509,9 +509,9 @@ class CotizadorController extends Controller
 
                     case 'postCotizacion':
                         //dd($data_post);
-                        if (isset($data_post->descuento_aplicado)) {
+                        if (!empty($data_post->descuento_aplicado) && (float)$data_post->descuento_aplicado > 0 && !empty($data_post->t_descuento)) {
                             if ($data_post->t_descuento == "Porcentual") {
-                                $porcentaje_descuento = $data_post->porcentaje_descuento;
+                                $porcentaje_descuento = !empty($data_post->porcentaje_descuento) ? $data_post->porcentaje_descuento : 0;
                                 $descuento_aplicado = $data_post->descuento_aplicado;
                             }
                             if ($data_post->t_descuento == "Fijo") {
@@ -674,16 +674,9 @@ class CotizadorController extends Controller
 
                     case 'editCotizacion':
                         //dd($data_post);
-                        if (isset($data_post->descuento_aplicado)) {
-                            $porcentaje_descuento = $data_post->porcentaje_descuento;
-                            $descuento_aplicado = $data_post->descuento_aplicado;
-                        }else{
-                            $porcentaje_descuento = 0;
-                            $descuento_aplicado = 0;
-                        }
-                        if (isset($data_post->descuento_aplicado)) {
+                        if (!empty($data_post->descuento_aplicado) && (float)$data_post->descuento_aplicado > 0 && !empty($data_post->t_descuento)) {
                             if ($data_post->t_descuento == "Porcentual") {
-                                $porcentaje_descuento = $data_post->porcentaje_descuento;
+                                $porcentaje_descuento = !empty($data_post->porcentaje_descuento) ? $data_post->porcentaje_descuento : 0;
                                 $descuento_aplicado = $data_post->descuento_aplicado;
                             }
                             if ($data_post->t_descuento == "Fijo") {

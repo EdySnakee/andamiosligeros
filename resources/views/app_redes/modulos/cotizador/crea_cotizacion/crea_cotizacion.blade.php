@@ -768,10 +768,11 @@ session_destroy();
 
         function editCotizacion() {
             var id_cotizacion = $("#id_cotizacion").val();
-            var porcentaje_descuento = $("#descuento").val();
-            var t_descuento = $('input:radio[name=t_descuento]:checked').val();
+            var d_val = parseFloat($("#nuevo_descuento").attr("data-nuevo-descuento") || 0);
+            var t_descuento = $('input:radio[name=t_descuento]:checked').val() || "NA";
+            var porcentaje_descuento = d_val > 0 ? ($("#descuento").val() || 0) : 0;
             var tipo_cotizacion = $('input:radio[name=tipo_cotizacion]:checked').val();
-            var descuento_aplicado = $("#nuevo_descuento").attr("data-nuevo-descuento");
+            var descuento_aplicado = d_val > 0 ? d_val : 0;
             var subtotal = $("#subtotal_global").attr("data-subtotal-global");
             var iva = $("#iva").val();
             var envio = $("#envio").attr("data-costo-envio");
@@ -859,11 +860,12 @@ session_destroy();
         function postCotizacion() {
             var giro_empresa = $("#tipo_cotizacion").val();
             var id_cliente = $("#search_cliente").val();
-            var t_descuento = $('input:radio[name=t_descuento]:checked').val();
+            var d_val = parseFloat($("#nuevo_descuento").attr("data-nuevo-descuento") || 0);
+            var t_descuento = $('input:radio[name=t_descuento]:checked').val() || "NA";
             var tipo_cotizacion = $('input:radio[name=tipo_cotizacion]:checked').val();
-            var subtotal_sin_descuento = $("#subtotal_sin_descuento").val()
-            var porcentaje_descuento = $("#descuento").val();
-            var descuento_aplicado = $("#nuevo_descuento").attr("data-nuevo-descuento");
+            var subtotal_sin_descuento = $("#subtotal_sin_descuento").val();
+            var porcentaje_descuento = d_val > 0 ? ($("#descuento").val() || 0) : 0;
+            var descuento_aplicado = d_val > 0 ? d_val : 0;
             var envio = $("#envio").attr("data-costo-envio");
             var subtotal = $("#subtotal_global").attr("data-subtotal-global");
             var iva = $("#iva").val();
