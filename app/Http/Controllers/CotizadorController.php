@@ -283,27 +283,15 @@ class CotizadorController extends Controller
         $usuario_id = \Auth::User()->id;
         $tipo_usuario = \Auth::User()->tipo_usuario;
 
-         if ($tipo_usuario == 'f1' || $tipo_usuario == 'v1') {
-            // filtramos para FRANQUISIA ->
-            $listado_cotizaciones = $objCotizaciones
-                ->select("*")
-                ->from("cotizaciones AS cot")
-                ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                ->join("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                ->where("cot.giro_empresa", "al")
-                ->where("cot.id_usuario_genera", $usuario_id)
-                ->orderBy('cot.id_cotizacion', 'DESC')
-                ->paginate($this->max_row);
-        } else {
-            $listado_cotizaciones = $objCotizaciones
-                ->select("*")
-                ->from("cotizaciones AS cot")
-                ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                ->join("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                ->where("cot.giro_empresa", "al")
-                ->orderBy('cot.id_cotizacion', 'DESC')
-                ->paginate($this->max_row);
-        }
+         // Por el momento, todos los usuarios pueden ver todas las cotizaciones
+         $listado_cotizaciones = $objCotizaciones
+             ->select("*")
+             ->from("cotizaciones AS cot")
+             ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
+             ->join("users AS us", "us.id", "=", "cot.id_usuario_genera")
+             ->where("cot.giro_empresa", "al")
+             ->orderBy('cot.id_cotizacion', 'DESC')
+             ->paginate($this->max_row);
                                 
         return view('app_redes/modulos/cotizador/listado_cotizaciones', compact("giroEmpresas", "listado_cotizaciones"));
     }
@@ -854,29 +842,16 @@ class CotizadorController extends Controller
                         $usuario_id = \Auth::User()->id;
                         $tipo_usuario = \Auth::User()->tipo_usuario;
 
-                        if ($tipo_usuario == 'f1' || $tipo_usuario == 'v1') {
-                            // filtramos para F1 y V1 ->
-                            $listado_cotizaciones = $objCotizaciones
-                                ->select("*")
-                                ->from("cotizaciones AS cot")
-                                ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                                ->join("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                                ->where("cot.giro_empresa", "al")
-                                ->where("cot.id_usuario_genera", $usuario_id)
-                                ->whereRaw($condicion_filtro)
-                                ->orderBy('cot.id_cotizacion', 'DESC')
-                                ->paginate($this->max_row);
-                        } else {
-                            $listado_cotizaciones = $objCotizaciones
-                                ->select("*")
-                                ->from("cotizaciones AS cot")
-                                ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                                ->join("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                                ->where("cot.giro_empresa", "al")
-                                ->whereRaw($condicion_filtro)
-                                ->orderBy('cot.id_cotizacion', 'DESC')
-                                ->paginate($this->max_row);
-                        }
+                        // Por el momento, todos los usuarios pueden ver todas las cotizaciones
+                        $listado_cotizaciones = $objCotizaciones
+                            ->select("*")
+                            ->from("cotizaciones AS cot")
+                            ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
+                            ->join("users AS us", "us.id", "=", "cot.id_usuario_genera")
+                            ->where("cot.giro_empresa", "al")
+                            ->whereRaw($condicion_filtro)
+                            ->orderBy('cot.id_cotizacion', 'DESC')
+                            ->paginate($this->max_row);
 
 
                         return view('app_redes/modulos/cotizador/tabla_listado_cotizaciones', compact('listado_cotizaciones'));
@@ -898,36 +873,15 @@ class CotizadorController extends Controller
                         //$fecha_actual = date('Y-m-d');
                         //$semana = date("Y-m-d",strtotime($fecha_actual."- 7 days"));
 
-                        if (Auth::user()->tipo_usuario == "admin") {
-                            $info_cotizaciones = $objCotizaciones
-                                            ->select("*")
-                                            ->from("cotizaciones AS cot")
-                                            ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                                            ->Leftjoin("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                                            ->where("cot.giro_empresa", "al")
-                                            ->whereRaw($condicion_filtro)
-                                            ->get();
-                        }elseif (Auth::user()->tipo_usuario == "n2") {
-                            $info_cotizaciones = $objCotizaciones
-                                            ->select("*")
-                                            ->from("cotizaciones AS cot")
-                                            ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                                            ->Leftjoin("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                                            ->where("cot.giro_empresa", "al")
-                                            ->whereRaw($condicion_filtro)
-                                            ->get();
-                        }else{
-                            $info_cotizaciones = $objCotizaciones
-                                            ->select("*")
-                                            ->from("cotizaciones AS cot")
-                                            ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
-                                            ->Leftjoin("users AS us", "us.id", "=", "cot.id_usuario_genera")
-                                            ->where("cot.id_usuario_genera", Auth::user()->id)
-                                            ->where("cot.giro_empresa", "al")
-                                            //->where("cot.fecha", ">=", $semana)
-                                            ->whereRaw($condicion_filtro)
-                                            ->get();
-                        }
+                        // Por el momento, todos los usuarios pueden ver todas las cotizaciones
+                        $info_cotizaciones = $objCotizaciones
+                                        ->select("*")
+                                        ->from("cotizaciones AS cot")
+                                        ->join("clientes AS cli", "cli.idcl", "=", "cot.id_cliente")
+                                        ->Leftjoin("users AS us", "us.id", "=", "cot.id_usuario_genera")
+                                        ->where("cot.giro_empresa", "al")
+                                        ->whereRaw($condicion_filtro)
+                                        ->get();
 
                         $data = array();
                         foreach ($info_cotizaciones as $item_coti) {
@@ -1143,9 +1097,11 @@ class CotizadorController extends Controller
             ->whereRaw($condicion_filtro)
             ->orderBy('cot.id_cotizacion', 'DESC');
 
+        /*
         if ($tipo_usuario == 'f1' || $tipo_usuario == 'v1') {
             $query->where('cot.id_usuario_genera', $usuario_id);
         }
+        */
 
         $cotizaciones = $query->get();
 
