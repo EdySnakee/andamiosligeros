@@ -69,8 +69,7 @@ $objDetCotizacion = new DetalleCotizaciones();
                 {{ $result_coti->fecha_formato }}
             </td>
             @php
-                $calc_total_coti_item = round(max(0, (float)$result_coti->subtotal - (float)$result_coti->descuento_aplicado) + (float)$result_coti->envio + (float)$result_coti->iva, 2);
-                $show_total_coti_item = ($calc_total_coti_item > 0 || (float)$result_coti->total == 0) ? $calc_total_coti_item : (float)$result_coti->total;
+                $show_total_coti_item = round((float)$result_coti->subtotal + (float)$result_coti->iva, 2);
             @endphp
             <td style="vertical-align: middle;">
                 <span class="font-weight-bold text-dark" style="font-size: 0.95rem;">$ {{ number_format($show_total_coti_item, 2, '.', ',') }}</span>
@@ -252,17 +251,20 @@ $objDetCotizacion = new DetalleCotizaciones();
                                     </tr>
                                 @endif
 
+                                @php
+                                    $prod_sub_accordion = max(0, (float)$result_coti->subtotal - (float)$result_coti->envio);
+                                @endphp
+                                @if ($prod_sub_accordion != 0)
+                                    <tr>
+                                        <td colspan="3" class="text-right font-weight-bold text-muted">Subtotal</td>
+                                        <td class="text-right font-weight-bold">$ {{ number_format($prod_sub_accordion, 2, '.', ',') }}</td>
+                                    </tr>
+                                @endif
+
                                 @if ($result_coti->envio != 0)
                                     <tr>
                                         <td colspan="3" class="text-right font-weight-bold text-muted">Envío</td>
                                         <td class="text-right font-weight-bold">$ {{ number_format($result_coti->envio, 2, '.', ',') }}</td>
-                                    </tr>
-                                @endif
-
-                                @if ($result_coti->subtotal != 0)
-                                    <tr>
-                                        <td colspan="3" class="text-right font-weight-bold text-muted">Subtotal</td>
-                                        <td class="text-right font-weight-bold">$ {{ number_format($result_coti->subtotal, 2, '.', ',') }}</td>
                                     </tr>
                                 @endif
 

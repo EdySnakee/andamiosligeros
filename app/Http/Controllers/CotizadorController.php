@@ -194,8 +194,7 @@ class CotizadorController extends Controller
                 }
             })
             ->editColumn('total', function ($info_cotizaciones){
-                $total_c = round(max(0, (float)$info_cotizaciones->subtotal - (float)$info_cotizaciones->descuento_aplicado) + (float)$info_cotizaciones->envio + (float)$info_cotizaciones->iva, 2);
-                $final_total = ($total_c > 0 || (float)$info_cotizaciones->total == 0) ? $total_c : (float)$info_cotizaciones->total;
+                $final_total = round((float)$info_cotizaciones->subtotal + (float)$info_cotizaciones->iva, 2);
                 return "$".number_format($final_total, 2, '.', ',');
             })
             ->editColumn('celularcl', function ($info_cotizaciones){
@@ -531,8 +530,7 @@ class CotizadorController extends Controller
                         }else{
                             $datosCotizacion->iva = 0;
                         }
-                        $base_calc = max(0, (float)$datosCotizacion->subtotal - (float)$descuento_aplicado);
-                        $datosCotizacion->total = round($base_calc + $envio_monto + (float)$datosCotizacion->iva, 2);
+                        $datosCotizacion->total = round((float)$datosCotizacion->subtotal + (float)$datosCotizacion->iva, 2);
                         $datosCotizacion->status = 1;
                         $datosCotizacion->mp_status = "si";
                         $datosCotizacion->configuracion = $data_post->configuracion;
@@ -692,8 +690,7 @@ class CotizadorController extends Controller
                         }else{
                             $datosEditCotizacion->iva = 0;
                         }
-                        $base_calc = max(0, (float)$datosEditCotizacion->subtotal - (float)$descuento_aplicado);
-                        $datosEditCotizacion->total = round($base_calc + $envio_monto + (float)$datosEditCotizacion->iva, 2);
+                        $datosEditCotizacion->total = round((float)$datosEditCotizacion->subtotal + (float)$datosEditCotizacion->iva, 2);
                         $datosEditCotizacion->configuracion = $data_post->configuracion;
                         $datosEditCotizacion->save();
 
@@ -724,11 +721,11 @@ class CotizadorController extends Controller
                         if (!empty($datosEditVtas)) {
                             $datosEditVtas->porcentaje_descuento = $porcentaje_descuento;
                             $datosEditVtas->descuento_aplicado = $descuento_aplicado;
-                            $datosEditVtas->subtotal = (float) $data_post->subtotal;
+                            $envio_2_monto = !empty($datosEditVtas->envio_2) ? (float)$datosEditVtas->envio_2 : 0;
+                            $datosEditVtas->subtotal = round((float) $data_post->subtotal + $envio_2_monto, 2);
                             $datosEditVtas->envio = $envio_monto;
                             $datosEditVtas->iva = $datosEditCotizacion->iva;
-                            $envio_2_monto = !empty($datosEditVtas->envio_2) ? (float)$datosEditVtas->envio_2 : 0;
-                            $datosEditVtas->total = round($base_calc + $envio_monto + $envio_2_monto + (float)$datosEditVtas->iva, 2);
+                            $datosEditVtas->total = round((float)$datosEditVtas->subtotal + (float)$datosEditVtas->iva, 2);
                             $datosEditVtas->save();
                         }
                         
@@ -1023,8 +1020,7 @@ class CotizadorController extends Controller
                             $sub_array["telefonocl"] = $item_coti->telefonocl;
                             $sub_array["celularcl"] = $item_coti->celularcl;
                             $sub_array["fecha_formato"] = $item_coti->fecha_formato;
-                            $coti_tot_calc = round(max(0, (float)$item_coti->subtotal - (float)$item_coti->descuento_aplicado) + (float)$item_coti->envio + (float)$item_coti->iva, 2);
-                            $final_item_total = ($coti_tot_calc > 0 || (float)$item_coti->total == 0) ? $coti_tot_calc : (float)$item_coti->total;
+                            $final_item_total = round((float)$item_coti->subtotal + (float)$item_coti->iva, 2);
                             $sub_array["total"] = "$".number_format($final_item_total, 2, '.', ',');
                             $sub_array["status"] = $estatus_coti;
                             $sub_array["mp_status"] = $options_mp;
@@ -1146,7 +1142,7 @@ class CotizadorController extends Controller
                     $c->descuento_aplicado ? '-$' . number_format($c->descuento_aplicado, 2, '.', ',') : '0',
                     '$' . number_format($c->envio, 2, '.', ','),
                     '$' . number_format($c->iva, 2, '.', ','),
-                    '$' . number_format((round(max(0, (float)$c->subtotal - (float)$c->descuento_aplicado) + (float)$c->envio + (float)$c->iva, 2) > 0 || (float)$c->total == 0) ? round(max(0, (float)$c->subtotal - (float)$c->descuento_aplicado) + (float)$c->envio + (float)$c->iva, 2) : (float)$c->total, 2, '.', ','),
+                    '$' . number_format(round((float)$c->subtotal + (float)$c->iva, 2), 2, '.', ','),
                     $statusMap[$c->status] ?? $c->status,
                     $c->vendedor ?: $c->name,
                 ]);

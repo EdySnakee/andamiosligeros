@@ -289,19 +289,21 @@ session_destroy();
 
             var envio = parseFloat(data.envio || 0);
             var subtotal = parseFloat(data.subtotal || 0);
+            var subtotalProd = (data.subtotal_productos !== undefined) ? parseFloat(data.subtotal_productos) : (parseFloat(data.subtotal_sin_descuento || 0) > 0 ? parseFloat(data.subtotal_sin_descuento) : Math.max(0, subtotal - envio));
             var descuento = parseFloat(data.descuento || 0);
             var iva = parseFloat(data.iva || 0);
             var total = parseFloat(data.total || 0);
 
             // Actualizar textos en la caja amarilla
-            $("#caja_txt_envio").text(formatMoney(envio));
+            $("#caja_txt_envio").text("+" + formatMoney(envio));
             if (envio > 0) {
                 $("#caja_btn_del_envio").show();
+                $("#caja_row_envio").show();
             } else {
                 $("#caja_btn_del_envio").hide();
             }
 
-            $("#caja_txt_subtotal").text(formatMoney(subtotal));
+            $("#caja_txt_subtotal").text(formatMoney(subtotalProd));
 
             if (descuento > 0) {
                 $("#caja_txt_descuento").text("-" + formatMoney(descuento));
@@ -339,12 +341,14 @@ session_destroy();
                 var subtotalSinDesc = parseFloat($("#subtotal_sin_descuento").val() || 0);
                 var descVal = parseFloat($("#nuevo_descuento").attr("data-nuevo-descuento") || 0);
                 var ivaVal = parseFloat($("#iva").val() || 0);
-                var baseVal = Math.max(0, subtotalVal - descVal);
-                var totalVal = Math.round((baseVal + envioVal + ivaVal) * 100) / 100;
+                var baseProd = Math.max(0, subtotalSinDesc - descVal);
+                var baseGravable = baseProd + envioVal;
+                var totalVal = Math.round((baseGravable + ivaVal) * 100) / 100;
 
                 actualizarCajaTotales({
                     envio: envioVal,
-                    subtotal: subtotalVal,
+                    subtotal: baseGravable,
+                    subtotal_productos: baseProd,
                     subtotal_sin_descuento: subtotalSinDesc,
                     descuento: descVal,
                     iva: ivaVal,
@@ -782,16 +786,17 @@ session_destroy();
             var porcentaje_descuento = d_val > 0 ? ($("#descuento").val() || 0) : 0;
             var tipo_cotizacion = $('input:radio[name=tipo_cotizacion]:checked').val();
             var descuento_aplicado = d_val > 0 ? d_val : 0;
-            var subtotal = parseFloat($("#subtotal_global").attr("data-subtotal-global") || $("#subtotal_sin_descuento").val() || 0);
+            var subtotal_prod = parseFloat($("#subtotal_sin_descuento").val() || 0);
 
             var envioInput = parseFloat($("#precio_envio").val() || 0);
             var envioAttr = parseFloat($("#envio").attr("data-costo-envio") || 0);
             var envio = (!isNaN(envioInput) && envioInput > 0) ? envioInput : envioAttr;
 
-            var base_calc = Math.max(0, subtotal - descuento_aplicado);
+            var base_calc = Math.max(0, subtotal_prod - descuento_aplicado);
+            var subtotal = Math.round((base_calc + envio) * 100) / 100;
             var activa_iva = $("#activa_iva").is(":checked");
-            var iva = activa_iva ? Math.round(base_calc * 0.16 * 100) / 100 : 0;
-            var total = Math.round((base_calc + envio + iva) * 100) / 100;
+            var iva = activa_iva ? Math.round(subtotal * 0.16 * 100) / 100 : 0;
+            var total = Math.round((subtotal + iva) * 100) / 100;
             var configuracion = $('#datos_condicion > .ql-editor').html();
 
             var detalle_coti = [];
@@ -881,16 +886,16 @@ session_destroy();
             var subtotal_sin_descuento = parseFloat($("#subtotal_sin_descuento").val() || 0);
             var porcentaje_descuento = d_val > 0 ? ($("#descuento").val() || 0) : 0;
             var descuento_aplicado = d_val > 0 ? d_val : 0;
-            var subtotal = parseFloat($("#subtotal_global").attr("data-subtotal-global") || subtotal_sin_descuento || 0);
 
             var envioInput = parseFloat($("#precio_envio").val() || 0);
             var envioAttr = parseFloat($("#envio").attr("data-costo-envio") || 0);
             var envio = (!isNaN(envioInput) && envioInput > 0) ? envioInput : envioAttr;
 
-            var base_calc = Math.max(0, subtotal - descuento_aplicado);
+            var base_calc = Math.max(0, subtotal_sin_descuento - descuento_aplicado);
+            var subtotal = Math.round((base_calc + envio) * 100) / 100;
             var activa_iva = $("#activa_iva").is(":checked");
-            var iva = activa_iva ? Math.round(base_calc * 0.16 * 100) / 100 : 0;
-            var total = Math.round((base_calc + envio + iva) * 100) / 100;
+            var iva = activa_iva ? Math.round(subtotal * 0.16 * 100) / 100 : 0;
+            var total = Math.round((subtotal + iva) * 100) / 100;
 
             var fecha_formato = $("#fecha_formato").html();
             var configuracion = $('#datos_condicion > .ql-editor').html();

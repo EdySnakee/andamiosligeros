@@ -181,12 +181,13 @@ class VentasController extends Controller
                                 $add_venta->status = 5;
                             }
 
-                            // Recalcular el total de la venta sumando subtotal - descuento + envio + envio_2 + iva
-                            $base_vta = max(0, (float)$add_venta->subtotal - (float)($add_venta->descuento_aplicado ?? 0));
+                            // Recalcular subtotal y total de la venta
+                            $old_envio = (float)($add_venta->envio ?? 0) + (float)($add_venta->envio_2 ?? 0);
+                            $prod_base = max(0, (float)$add_venta->subtotal - $old_envio);
                             $c_envio_1 = (float)($add_venta->envio ?? 0);
                             $c_envio_2 = (float)($add_venta->envio_2 ?? 0);
-                            $m_iva = (float)($add_venta->iva ?? 0);
-                            $add_venta->total = round($base_vta + $c_envio_1 + $c_envio_2 + $m_iva, 2);
+                            $add_venta->subtotal = round($prod_base + $c_envio_1 + $c_envio_2, 2);
+                            $add_venta->total = round((float)$add_venta->subtotal + (float)($add_venta->iva ?? 0), 2);
 
                             $add_venta->save();
 
@@ -195,8 +196,8 @@ class VentasController extends Controller
                                 $coti_asoc = \App\Cotizaciones::find($add_venta->id_cotizacion);
                                 if ($coti_asoc) {
                                     $coti_asoc->envio = $c_envio_1;
-                                    $coti_base = max(0, (float)$coti_asoc->subtotal - (float)($coti_asoc->descuento_aplicado ?? 0));
-                                    $coti_asoc->total = round($coti_base + $c_envio_1 + $c_envio_2 + (float)($coti_asoc->iva ?? 0), 2);
+                                    $coti_asoc->subtotal = $add_venta->subtotal;
+                                    $coti_asoc->total = $add_venta->total;
                                     $coti_asoc->save();
                                 }
                             }
@@ -209,20 +210,21 @@ class VentasController extends Controller
                     $datosVenta = new Ventas(); 
                     $add_venta = $datosVenta->find($data_post->id_vta); 
                     if ($add_venta) {
-                        $add_venta->envio = (float)$data_post->envio; 
-                        $base_vta = max(0, (float)$add_venta->subtotal - (float)($add_venta->descuento_aplicado ?? 0));
-                        $c_envio_1 = (float)$add_venta->envio;
+                        $old_envio = (float)($add_venta->envio ?? 0) + (float)($add_venta->envio_2 ?? 0);
+                        $prod_base = max(0, (float)$add_venta->subtotal - $old_envio);
+                        $c_envio_1 = (float)$data_post->envio;
                         $c_envio_2 = (float)($add_venta->envio_2 ?? 0);
-                        $m_iva = (float)($add_venta->iva ?? 0);
-                        $add_venta->total = round($base_vta + $c_envio_1 + $c_envio_2 + $m_iva, 2);
+                        $add_venta->envio = $c_envio_1;
+                        $add_venta->subtotal = round($prod_base + $c_envio_1 + $c_envio_2, 2);
+                        $add_venta->total = round((float)$add_venta->subtotal + (float)($add_venta->iva ?? 0), 2);
                         $add_venta->save(); 
 
                         if (!empty($add_venta->id_cotizacion)) {
                             $coti_asoc = \App\Cotizaciones::find($add_venta->id_cotizacion);
                             if ($coti_asoc) {
                                 $coti_asoc->envio = $c_envio_1;
-                                $coti_base = max(0, (float)$coti_asoc->subtotal - (float)($coti_asoc->descuento_aplicado ?? 0));
-                                $coti_asoc->total = round($coti_base + $c_envio_1 + $c_envio_2 + (float)($coti_asoc->iva ?? 0), 2);
+                                $coti_asoc->subtotal = $add_venta->subtotal;
+                                $coti_asoc->total = $add_venta->total;
                                 $coti_asoc->save();
                             }
                         }
@@ -357,7 +359,7 @@ class VentasController extends Controller
                     $v->fecha_venta_formato,
                     '$' . number_format($v->iva, 2, '.', ','),
                     $v->porcentaje_descuento != 0 ? 'Si' : 'No',
-                    '$' . number_format((round(max(0, (float)$v->subtotal - (float)$v->descuento_aplicado) + (float)$v->envio + (float)($v->envio_2 ?? 0) + (float)$v->iva, 2) > 0 || (float)$v->total == 0) ? round(max(0, (float)$v->subtotal - (float)$v->descuento_aplicado) + (float)$v->envio + (float)($v->envio_2 ?? 0) + (float)$v->iva, 2) : (float)$v->total, 2, '.', ','),
+                    '$' . number_format(round((float)$v->subtotal + (float)$v->iva, 2), 2, '.', ','),
                     '$' . number_format($v->envio, 2, '.', ','),
                     !empty($v->envio_2) ? '$' . number_format($v->envio_2, 2, '.', ',') : '',
                     isset($statusMap[$v->status]) ? $statusMap[$v->status] : $v->status,

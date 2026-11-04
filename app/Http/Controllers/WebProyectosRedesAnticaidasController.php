@@ -150,7 +150,7 @@ class WebProyectosRedesAnticaidasController extends Controller
                     $preference = new \MercadoPago\Preference();
 
                     // 3. Crea un ítem en la preferencia
-                    $monto_coti_total = round(max(0, (float)$cotizacionesRedes->subtotal - (float)($cotizacionesRedes->descuento_aplicado ?? 0)) + (float)($cotizacionesRedes->envio ?? 0) + (float)($cotizacionesRedes->iva ?? 0), 2);
+                    $monto_coti_total = round((float)$cotizacionesRedes->subtotal + (float)($cotizacionesRedes->iva ?? 0), 2);
                     $item = new \MercadoPago\Item();
                     $item->title = 'Cotización ' . $cotizacionesRedes->cod_cotizacion;
                     $item->quantity = 1;
@@ -711,7 +711,7 @@ class WebProyectosRedesAnticaidasController extends Controller
 
         try {
             $openpayService = new OpenpayService();
-            $monto_coti_total = round(max(0, (float)$cotizacion->subtotal - (float)($cotizacion->descuento_aplicado ?? 0)) + (float)($cotizacion->envio ?? 0) + (float)($cotizacion->iva ?? 0), 2);
+            $monto_coti_total = round((float)$cotizacion->subtotal + (float)($cotizacion->iva ?? 0), 2);
 
             $resCharge = $openpayService->createCardCharge([
                 'token_id' => $token_id,

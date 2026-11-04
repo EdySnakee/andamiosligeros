@@ -46,8 +46,7 @@ use App\SeguimientoBitacora;
                 @endif
             </td>
             @php
-                $calc_total_vta_item = round(max(0, (float)$result_vta->subtotal - (float)$result_vta->descuento_aplicado) + (float)$result_vta->envio + (float)($result_vta->envio_2 ?? 0) + (float)$result_vta->iva, 2);
-                $show_total_vta_item = ($calc_total_vta_item > 0 || (float)$result_vta->total == 0) ? $calc_total_vta_item : (float)$result_vta->total;
+                $show_total_vta_item = round((float)$result_vta->subtotal + (float)$result_vta->iva, 2);
             @endphp
             <td><?php echo "$" . number_format($show_total_vta_item, 2, '.', ','); ?></td>
             <td>

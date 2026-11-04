@@ -360,29 +360,32 @@
                             $desc_coti = (float)($cotizacionesRedes->descuento_aplicado ?? 0);
                             $envio_coti = (float)($cotizacionesRedes->envio ?? 0);
                             $iva_coti = (float)($cotizacionesRedes->iva ?? 0);
-                            $total_coti = round(max(0, $subtotal_coti - $desc_coti) + $envio_coti + $iva_coti, 2);
+                            $prod_subtotal = max(0, $subtotal_coti - $envio_coti);
+                            $total_coti = round($subtotal_coti + $iva_coti, 2);
                         @endphp
                         <div class="col-md-3 col-xs-12 tabla-total-container">
                             <div class="tabla-total">
                                 <table class="table table-condensed" style="margin-bottom: 0;">
                                     <tr>
-                                        <td>ENVÍO</td>
-                                        <td class="text-right">${{ number_format($cotizacionesRedes->envio, 2) }}</td>
-                                    </tr>
-                                    <tr>
                                         <td>SUBTOTAL</td>
-                                        <td class="text-right">${{ number_format($cotizacionesRedes->subtotal, 2) }}</td>
+                                        <td class="text-right">${{ number_format($prod_subtotal, 2) }}</td>
                                     </tr>
-                                    @if ($cotizacionesRedes->descuento != 0)
+                                    @if ($desc_coti > 0)
                                         <tr>
                                             <td>DESCUENTO</td>
                                             <td class="text-right">
-                                                -${{ number_format($cotizacionesRedes->descuento_aplicado, 2) }}</td>
+                                                -${{ number_format($desc_coti, 2) }}</td>
+                                        </tr>
+                                    @endif
+                                    @if ($envio_coti > 0)
+                                        <tr>
+                                            <td>COSTO DE ENVÍO</td>
+                                            <td class="text-right">+${{ number_format($envio_coti, 2) }}</td>
                                         </tr>
                                     @endif
                                     <tr>
                                         <td>IVA</td>
-                                        <td class="text-right">${{ number_format($cotizacionesRedes->iva, 2) }}</td>
+                                        <td class="text-right">${{ number_format($iva_coti, 2) }}</td>
                                     </tr>
                                     <tr style="font-size: 1.2em; color: #1a4189;">
                                         <td><b>TOTAL</b></td>

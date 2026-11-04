@@ -56,8 +56,7 @@ class Ventas extends Model
 		$datosVenta->subtotal = $infoCotizacion->subtotal;
 		$datosVenta->iva = $infoCotizacion->iva;
 		$datosVenta->envio = !empty($infoCotizacion->envio) ? (float)$infoCotizacion->envio : 0;
-		$base_vta = max(0, (float)$infoCotizacion->subtotal - (float)($infoCotizacion->descuento_aplicado ?? 0));
-		$datosVenta->total = round($base_vta + (float)$datosVenta->envio + (float)$infoCotizacion->iva, 2);
+		$datosVenta->total = round((float)$datosVenta->subtotal + (float)$datosVenta->iva, 2);
 		$datosVenta->status = $status;
 		$datosVenta->save();
 		$guarda_datos_adicionales = $datosVenta->find($datosVenta->id_venta);

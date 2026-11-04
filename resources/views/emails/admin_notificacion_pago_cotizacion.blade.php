@@ -102,10 +102,9 @@
                 @endif
                 <li><strong>Tipo de Pago:</strong> <code>{{ $mp_payment_type }}</code></li>
                 @php
-                    $calc_tot_mail_header = round(max(0, (float)$cotizacion->subtotal - (float)$cotizacion->descuento_aplicado) + (float)$cotizacion->envio + (float)$cotizacion->iva, 2);
-                    $show_tot_mail_header = ($calc_tot_mail_header > 0 || (float)$cotizacion->total == 0) ? $calc_tot_mail_header : (float)$cotizacion->total;
+                    $total_mail_header = round((float)$cotizacion->subtotal + (float)($cotizacion->iva ?? 0), 2);
                 @endphp
-                <li><strong>Monto Total:</strong> <span class="highlight">${{ number_format($show_tot_mail_header, 2) }}</span></li>
+                <li><strong>Monto Total:</strong> <span class="highlight">${{ number_format($total_mail_header, 2) }}</span></li>
             </ul>
 
 
@@ -158,33 +157,37 @@
                     @endforeach
                 </tbody>
                 <tfoot>
-                    @if($cotizacion->descuento_aplicado > 0)
-                    <tr>
-                        <td colspan="3" style="text-align: right;">Descuento:</td>
-                        <td>-${{ number_format($cotizacion->descuento_aplicado, 2) }}</td>
-                    </tr>
-                    @endif
+                    @php
+                        $subtotal_mail = (float)$cotizacion->subtotal;
+                        $desc_mail = (float)($cotizacion->descuento_aplicado ?? 0);
+                        $envio_mail = (float)($cotizacion->envio ?? 0);
+                        $iva_mail = (float)($cotizacion->iva ?? 0);
+                        $prod_subtotal_mail = max(0, $subtotal_mail - $envio_mail);
+                        $total_mail = round($subtotal_mail + $iva_mail, 2);
+                    @endphp
                     <tr>
                         <td colspan="3" style="text-align: right;">Subtotal:</td>
-                        <td>${{ number_format($cotizacion->subtotal, 2) }}</td>
+                        <td>${{ number_format($prod_subtotal_mail, 2) }}</td>
                     </tr>
-                    @if($cotizacion->envio > 0)
+                    @if($desc_mail > 0)
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Descuento:</td>
+                        <td>-${{ number_format($desc_mail, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($envio_mail > 0)
                     <tr>
                         <td colspan="3" style="text-align: right;">Envío:</td>
-                        <td>+${{ number_format($cotizacion->envio, 2) }}</td>
+                        <td>+${{ number_format($envio_mail, 2) }}</td>
                     </tr>
                     @endif
                     <tr>
                         <td colspan="3" style="text-align: right;">IVA (si aplica):</td>
-                        <td>${{ number_format($cotizacion->iva, 2) }}</td>
+                        <td>${{ number_format($iva_mail, 2) }}</td>
                     </tr>
-                    @php
-                        $calc_tot_mail = round(max(0, (float)$cotizacion->subtotal - (float)$cotizacion->descuento_aplicado) + (float)$cotizacion->envio + (float)$cotizacion->iva, 2);
-                        $show_tot_mail = ($calc_tot_mail > 0 || (float)$cotizacion->total == 0) ? $calc_tot_mail : (float)$cotizacion->total;
-                    @endphp
                     <tr style="font-weight: bold; background-color: #f2f2f2;">
                         <td colspan="3" style="text-align: right;">TOTAL:</td>
-                        <td>${{ number_format($show_tot_mail, 2) }}</td>
+                        <td>${{ number_format($total_mail, 2) }}</td>
                     </tr>
                 </tfoot>
             </table>

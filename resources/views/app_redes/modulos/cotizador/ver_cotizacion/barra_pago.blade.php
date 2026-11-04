@@ -57,26 +57,38 @@
 							<td class="text-right"><small><?php echo "$" . number_format($result_det_coti->total_ind, 2, '.', ',') ?></small></td>
 						</tr>
 						@endforeach
+						@php
+							$bp_subtotal = (float)$cotizacionesRedes->subtotal;
+							$bp_envio = (float)($cotizacionesRedes->envio ?? 0);
+							$bp_iva = (float)($cotizacionesRedes->iva ?? 0);
+							$bp_prod_subtotal = max(0, $bp_subtotal - $bp_envio);
+							$bp_total = round($bp_subtotal + $bp_iva, 2);
+						@endphp
+						<tr class="fila-sin-bordes">
+							<td colspan="2" class="text-right"><small>SUBTOTAL</small></td>
+							<td class="text-right"><small><?php echo "$" . number_format($bp_prod_subtotal, 2, '.', ',') ?></small></td>
+						</tr>
 						@if($cotizacionesRedes->descuento_aplicado != 0)
 						<tr>
 							<td colspan="2" class="text-right"><small>DESCUENTO</small></td>
 							<td class="text-right"><small><?php echo "-$" . number_format($cotizacionesRedes->descuento_aplicado, 2, '.', ',') ?></small></td>
 						</tr>
 						@endif
+						@if($bp_envio > 0)
 						<tr class="fila-sin-bordes">
-							<td colspan="2" class="text-right"><small>SUBTOTAL</small></td>
-							<td class="text-right"><small><?php echo "$" . number_format($cotizacionesRedes->subtotal, 2, '.', ',') ?></small></td>
+							<td colspan="2" class="text-right"><small>ENVÍO</small></td>
+							<td class="text-right"><small><?php echo "+$" . number_format($bp_envio, 2, '.', ',') ?></small></td>
 						</tr>
-						@if($cotizacionesRedes->iva != 0)
+						@endif
+						@if($bp_iva != 0)
 						<tr class="fila-sin-bordes">
 							<td colspan="2" class="text-right"><small>IVA 16%</small></td>
-							<td class="text-right"><small><?php echo "$" . number_format($cotizacionesRedes->iva, 2, '.', ',') ?></small></td>
+							<td class="text-right"><small><?php echo "$" . number_format($bp_iva, 2, '.', ',') ?></small></td>
 						</tr>
-						@else
 						@endif
 						<tr class="fila-sin-bordes">
 							<td colspan="2" class="text-right"><b>TOTAL</b></td>
-							<td class="text-right"><b><?php echo "$" . number_format($cotizacionesRedes->total, 2, '.', ',') ?></b></td>
+							<td class="text-right"><b><?php echo "$" . number_format($bp_total, 2, '.', ',') ?></b></td>
 						</tr>
 						@else
 						<tr>

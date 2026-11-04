@@ -98,13 +98,6 @@
         <div class="tabla-total-container">
             <div class="tabla-total">
                 <table>
-                    <tr id="caja_row_envio">
-                        <td style="white-space: nowrap; text-align: left; padding-right: 8px;">ENVÍO</td>
-                        <td style="white-space: nowrap; text-align: right;" id="caja_txt_envio">$0.00</td>
-                        <td class="no-captura" style="width: 18px; text-align: right; padding-left: 4px;">
-                            <a href="#" class="del_envio" id="caja_btn_del_envio" style="display: none; font-size: 12px; font-weight: bold; color: #8a1f11 !important; text-decoration: none;" title="Quitar envío"><i class="fa fa-times"></i></a>
-                        </td>
-                    </tr>
                     <tr id="caja_row_subtotal">
                         <td style="white-space: nowrap; text-align: left; padding-right: 8px;">SUBTOTAL</td>
                         <td style="white-space: nowrap; text-align: right;" id="caja_txt_subtotal">$0.00</td>
@@ -115,6 +108,13 @@
                         <td style="white-space: nowrap; text-align: right; color: #7a1200 !important;" id="caja_txt_descuento">-$0.00</td>
                         <td class="no-captura" style="width: 18px; text-align: right; padding-left: 4px;">
                             <a href="#" class="del_descuento" id="caja_btn_del_descuento" style="font-size: 12px; font-weight: bold; color: #7a1200 !important; text-decoration: none;" title="Quitar descuento"><i class="fa fa-times"></i></a>
+                        </td>
+                    </tr>
+                    <tr id="caja_row_envio">
+                        <td style="white-space: nowrap; text-align: left; padding-right: 8px;">ENVÍO</td>
+                        <td style="white-space: nowrap; text-align: right;" id="caja_txt_envio">$0.00</td>
+                        <td class="no-captura" style="width: 18px; text-align: right; padding-left: 4px;">
+                            <a href="#" class="del_envio" id="caja_btn_del_envio" style="display: none; font-size: 12px; font-weight: bold; color: #8a1f11 !important; text-decoration: none;" title="Quitar envío"><i class="fa fa-times"></i></a>
                         </td>
                     </tr>
                     <tr id="caja_row_iva">

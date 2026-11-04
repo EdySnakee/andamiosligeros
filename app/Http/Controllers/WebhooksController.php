@@ -220,7 +220,7 @@ class WebhooksController extends Controller
 
         // 3. INTENTO 1: Buscar en Cotizaciones
         $info_cotizacion = \App\Cotizaciones::find($id_orden_remota);
-        $coti_total_esperado = $info_cotizacion ? round(max(0, (float)$info_cotizacion->subtotal - (float)($info_cotizacion->descuento_aplicado ?? 0)) + (float)($info_cotizacion->envio ?? 0) + (float)($info_cotizacion->iva ?? 0), 2) : 0;
+        $coti_total_esperado = $info_cotizacion ? round((float)$info_cotizacion->subtotal + (float)($info_cotizacion->iva ?? 0), 2) : 0;
 
         // Verificamos si existe Y SI EL MONTO COINCIDE (contra total guardado o total calculado con envío)
         if ($info_cotizacion && (abs($info_cotizacion->total - $total_pagado) < 1.00 || abs($coti_total_esperado - $total_pagado) < 1.00)) {

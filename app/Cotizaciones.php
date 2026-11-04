@@ -164,19 +164,19 @@ class Cotizaciones extends Model
         }
 
         $envio_val = (!empty($data_post->envio) ? (float)$data_post->envio : 0);
-        $base_imponible = max(0, (float)$subtotal_sin_descuento - (float)$nuevo_descuento);
+        $base_productos = max(0, (float)$subtotal_sin_descuento - (float)$nuevo_descuento);
+        $subtotal_global = round($base_productos + $envio_val, 2);
         
         $activa_iva_bool = (isset($data_post->activa_iva) && ($data_post->activa_iva === true || $data_post->activa_iva === "true" || $data_post->activa_iva === 1 || $data_post->activa_iva === "1"))
             || (isset($data_post->iva) && (float)$data_post->iva > 0);
 
         if ($activa_iva_bool) {
-            $impuestos = round($base_imponible * 0.16, 2);
+            $impuestos = round($subtotal_global * 0.16, 2);
         } else {
             $impuestos = 0;
         }
 
-        $subtotal_global = (float) $subtotal_sin_descuento;
-        $total = round($base_imponible + $envio_val + $impuestos, 2);
+        $total = round($subtotal_global + $impuestos, 2);
         ?>
         <tr id="fila_totales_hidden" style="display: none !important;">
             <td colspan="6">
@@ -194,6 +194,7 @@ class Cotizaciones extends Model
             actualizarCajaTotales({
                 envio: <?php echo json_encode($envio_val); ?>,
                 subtotal: <?php echo json_encode($subtotal_global); ?>,
+                subtotal_productos: <?php echo json_encode($base_productos); ?>,
                 subtotal_sin_descuento: <?php echo json_encode($subtotal_sin_descuento); ?>,
                 descuento: <?php echo json_encode($nuevo_descuento); ?>,
                 iva: <?php echo json_encode($impuestos); ?>,

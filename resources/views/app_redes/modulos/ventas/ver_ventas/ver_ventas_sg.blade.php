@@ -1012,13 +1012,14 @@
                         $envio_vta = (float)($ventasRedes->envio ?? 0);
                         $envio2_vta = (float)($ventasRedes->envio_2 ?? 0);
                         $iva_vta = (float)($ventasRedes->iva ?? 0);
-                        $total_vta = round(max(0, $subtotal_vta - $desc_vta) + $envio_vta + $envio2_vta + $iva_vta, 2);
+                        $prod_subtotal_vta = max(0, $subtotal_vta - $envio_vta - $envio2_vta);
+                        $total_vta = round($subtotal_vta + $iva_vta, 2);
                     @endphp
                     <div class="totals-card">
                         <table class="totals-table">
                             <tr>
                                 <td>SUBTOTAL:</td>
-                                <td class="text-right">${{ number_format($ventasRedes->subtotal, 2, '.', ',') }}</td>
+                                <td class="text-right">${{ number_format($prod_subtotal_vta, 2, '.', ',') }}</td>
                             </tr>
                             @if(!empty($ventasRedes->descuento_aplicado) && $ventasRedes->descuento_aplicado > 0)
                                 <tr>
