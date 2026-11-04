@@ -46,3 +46,4 @@ class RecalcularTotalesConEnvioCotizacionesVentas extends Migration
         // Reversión no requerida / idempotente
     }
 }
+
