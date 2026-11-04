@@ -583,37 +583,6 @@ Route::get('/galeria', function () {
     return view('web_andamios.galeria.galeria', compact('imagenes'));
 });
 
-Route::get('/run-migration-totales-{token}', function ($token) {
-    if ($token !== 'al_totales_2026_w7q1') {
-        abort(403);
-    }
-    require_once database_path('migrations/2026_11_04_000001_recalcular_totales_con_envio_cotizaciones_ventas.php');
-    $migration = new RecalcularTotalesConEnvioCotizacionesVentas();
-    $migration->up();
-    
-    if (\Illuminate\Support\Facades\Schema::hasTable('migrations')) {
-        $exists = \Illuminate\Support\Facades\DB::table('migrations')
-            ->where('migration', '2026_11_04_000001_recalcular_totales_con_envio_cotizaciones_ventas')
-            ->first();
-        if (!$exists) {
-            $batch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?: 1;
-            \Illuminate\Support\Facades\DB::table('migrations')->insert([
-                'migration' => '2026_11_04_000001_recalcular_totales_con_envio_cotizaciones_ventas',
-                'batch' => $batch + 1
-            ]);
-        }
-    }
-
-    $cotiCount = \Illuminate\Support\Facades\DB::select('SELECT COUNT(*) as c FROM cotizaciones WHERE envio > 0 AND ABS(total - (GREATEST(0, subtotal - descuento_aplicado) + envio + iva)) > 0.05');
-    $vtaCount = \Illuminate\Support\Facades\DB::select('SELECT COUNT(*) as c FROM ventas WHERE (envio > 0 OR envio_2 > 0) AND ABS(total - (GREATEST(0, subtotal - descuento_aplicado) + envio + COALESCE(envio_2, 0) + iva)) > 0.05');
-
-    return response()->json([
-        'status' => 'success',
-        'coti_diff_remaining' => $cotiCount[0]->c,
-        'vta_diff_remaining' => $vtaCount[0]->c
-    ]);
-});
-
 Route::any('{any}', function () {
     return view('web_andamios.errors.404');
 })->where('any', '.*');
