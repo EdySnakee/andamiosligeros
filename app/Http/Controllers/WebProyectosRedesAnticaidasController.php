@@ -150,10 +150,11 @@ class WebProyectosRedesAnticaidasController extends Controller
                     $preference = new \MercadoPago\Preference();
 
                     // 3. Crea un ítem en la preferencia
+                    $monto_coti_total = round(max(0, (float)$cotizacionesRedes->subtotal - (float)($cotizacionesRedes->descuento_aplicado ?? 0)) + (float)($cotizacionesRedes->envio ?? 0) + (float)($cotizacionesRedes->iva ?? 0), 2);
                     $item = new \MercadoPago\Item();
                     $item->title = 'Cotización ' . $cotizacionesRedes->cod_cotizacion;
                     $item->quantity = 1;
-                    $item->unit_price = (float) $cotizacionesRedes->total; // Asegurarse de que sea float
+                    $item->unit_price = (float) $monto_coti_total; // Asegurarse de que incluya subtotal + envio + iva
 
                     $preference->items = array($item);
 
@@ -710,11 +711,12 @@ class WebProyectosRedesAnticaidasController extends Controller
 
         try {
             $openpayService = new OpenpayService();
+            $monto_coti_total = round(max(0, (float)$cotizacion->subtotal - (float)($cotizacion->descuento_aplicado ?? 0)) + (float)($cotizacion->envio ?? 0) + (float)($cotizacion->iva ?? 0), 2);
 
             $resCharge = $openpayService->createCardCharge([
                 'token_id' => $token_id,
                 'device_session_id' => $device_session_id,
-                'monto' => (float) $cotizacion->total,
+                'monto' => (float) $monto_coti_total,
                 'descripcion' => 'Cotización Andamios Ligeros #' . $cotizacion->cod_cotizacion,
                 'order_id' => 'COT-' . $cotizacion->id_cotizacion,
                 'redirect_url' => str_replace('http://', 'https://', route('pago.cotizacion.retorno', [

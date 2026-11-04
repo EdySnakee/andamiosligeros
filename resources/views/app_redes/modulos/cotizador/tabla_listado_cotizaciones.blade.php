@@ -68,8 +68,12 @@ $objDetCotizacion = new DetalleCotizaciones();
             <td style="vertical-align: middle; white-space: nowrap; font-size: 0.85rem; color: #495057;">
                 {{ $result_coti->fecha_formato }}
             </td>
+            @php
+                $calc_total_coti_item = round(max(0, (float)$result_coti->subtotal - (float)$result_coti->descuento_aplicado) + (float)$result_coti->envio + (float)$result_coti->iva, 2);
+                $show_total_coti_item = ($calc_total_coti_item > 0 || (float)$result_coti->total == 0) ? $calc_total_coti_item : (float)$result_coti->total;
+            @endphp
             <td style="vertical-align: middle;">
-                <span class="font-weight-bold text-dark" style="font-size: 0.95rem;">$ {{ number_format($result_coti->total, 2, '.', ',') }}</span>
+                <span class="font-weight-bold text-dark" style="font-size: 0.95rem;">$ {{ number_format($show_total_coti_item, 2, '.', ',') }}</span>
                 @if ($result_coti->t_descuento == 'Fijo' && $result_coti->descuento_aplicado != 0)
                     <div class="mt-1">
                         <span class="badge badge-warning text-dark font-weight-bold" style="font-size: 0.7rem; padding: 2px 5px;">-$ {{ number_format($result_coti->descuento_aplicado, 2, '.', ',') }}</span>
@@ -269,11 +273,11 @@ $objDetCotizacion = new DetalleCotizaciones();
                                     </tr>
                                 @endif
 
-                                @if ($result_coti->total != 0)
+                                @if ($show_total_coti_item != 0)
                                     <tr class="table-primary">
                                         <td colspan="3" class="text-right font-weight-bold" style="color: #0948AF;">TOTAL</td>
                                         <td class="text-right font-weight-bold" style="color: #0948AF; font-size: 0.95rem;">
-                                            $ {{ number_format($result_coti->total, 2, '.', ',') }}
+                                            $ {{ number_format($show_total_coti_item, 2, '.', ',') }}
                                         </td>
                                     </tr>
                                 @endif

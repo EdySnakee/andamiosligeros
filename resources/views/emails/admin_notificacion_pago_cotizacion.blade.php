@@ -101,7 +101,11 @@
                     <li><strong>ID de Pago Mercado Pago:</strong> <code>{{ $mp_id }}</code></li>
                 @endif
                 <li><strong>Tipo de Pago:</strong> <code>{{ $mp_payment_type }}</code></li>
-                <li><strong>Monto Total:</strong> <span class="highlight">${{ number_format($cotizacion->total, 2) }}</span></li>
+                @php
+                    $calc_tot_mail_header = round(max(0, (float)$cotizacion->subtotal - (float)$cotizacion->descuento_aplicado) + (float)$cotizacion->envio + (float)$cotizacion->iva, 2);
+                    $show_tot_mail_header = ($calc_tot_mail_header > 0 || (float)$cotizacion->total == 0) ? $calc_tot_mail_header : (float)$cotizacion->total;
+                @endphp
+                <li><strong>Monto Total:</strong> <span class="highlight">${{ number_format($show_tot_mail_header, 2) }}</span></li>
             </ul>
 
 
@@ -164,13 +168,23 @@
                         <td colspan="3" style="text-align: right;">Subtotal:</td>
                         <td>${{ number_format($cotizacion->subtotal, 2) }}</td>
                     </tr>
+                    @if($cotizacion->envio > 0)
+                    <tr>
+                        <td colspan="3" style="text-align: right;">Envío:</td>
+                        <td>+${{ number_format($cotizacion->envio, 2) }}</td>
+                    </tr>
+                    @endif
                     <tr>
                         <td colspan="3" style="text-align: right;">IVA (si aplica):</td>
                         <td>${{ number_format($cotizacion->iva, 2) }}</td>
                     </tr>
+                    @php
+                        $calc_tot_mail = round(max(0, (float)$cotizacion->subtotal - (float)$cotizacion->descuento_aplicado) + (float)$cotizacion->envio + (float)$cotizacion->iva, 2);
+                        $show_tot_mail = ($calc_tot_mail > 0 || (float)$cotizacion->total == 0) ? $calc_tot_mail : (float)$cotizacion->total;
+                    @endphp
                     <tr style="font-weight: bold; background-color: #f2f2f2;">
                         <td colspan="3" style="text-align: right;">TOTAL:</td>
-                        <td>${{ number_format($cotizacion->total, 2) }}</td>
+                        <td>${{ number_format($show_tot_mail, 2) }}</td>
                     </tr>
                 </tfoot>
             </table>

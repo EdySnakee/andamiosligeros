@@ -186,23 +186,36 @@ use App\Productos;
 							    </td>
 							    <td class="contenedor-totales" colspan="2">
 							    	<table class="table">
+										@php
+											$subtotal_coti = (float)$cotizacionesRedes->subtotal;
+											$desc_coti = (float)($cotizacionesRedes->descuento_aplicado ?? 0);
+											$envio_coti = (float)($cotizacionesRedes->envio ?? 0);
+											$iva_coti = (float)($cotizacionesRedes->iva ?? 0);
+											$total_coti = round(max(0, $subtotal_coti - $desc_coti) + $envio_coti + $iva_coti, 2);
+										@endphp
+								    	<tr class="fila-sin-bordes">
+										    <td class="txt-medium text-left con-bordes">SUBTOTAL</td>
+										    <td class="txt-medium text-center con-bordes"><?php echo "$".number_format($cotizacionesRedes->subtotal, 2, '.', ',') ?></td>
+										</tr>
 										@if($cotizacionesRedes->descuento_aplicado != 0)
 								    	<tr>
 									    	<td class="txt-medium text-left con-bordes">DESCUENTO</td>
 									    	<td class="txt-medium text-center con-bordes"><?php echo "-$".number_format($cotizacionesRedes->descuento_aplicado, 2, '.', ',') ?></td>
 								    	</tr>
 										@endif
+										@if(!empty($cotizacionesRedes->envio) && $cotizacionesRedes->envio > 0)
 								    	<tr class="fila-sin-bordes">
-										    <td class="txt-medium text-left con-bordes">SUBTOTAL</td>
-										    <td class="txt-medium text-center con-bordes"><?php echo "$".number_format($cotizacionesRedes->subtotal, 2, '.', ',') ?></td>
+										    <td class="txt-medium text-left con-bordes">ENVÍO</td>
+										    <td class="txt-medium text-center con-bordes"><?php echo "$".number_format($cotizacionesRedes->envio, 2, '.', ',') ?></td>
 										</tr>
+										@endif
 										<tr class="fila-sin-bordes">
 										    <td class="txt-medium text-left con-bordes">IMPUESTOS</td>
 										    <td class="txt-medium text-center con-bordes"><?php echo "$".number_format($cotizacionesRedes->iva, 2, '.', ',') ?></td>
 										</tr>
 										<tr class="fila-sin-bordes">
 										    <td class="txt-medium text-left con-bordes">TOTAL</td>
-										    <td class="txt-medium text-center con-bordes"><?php echo "$".number_format($cotizacionesRedes->total, 2, '.', ',') ?></td>
+										    <td class="txt-medium text-center con-bordes"><?php echo "$".number_format($total_coti, 2, '.', ',') ?></td>
 										</tr>
 							    	</table>
 							    </td>

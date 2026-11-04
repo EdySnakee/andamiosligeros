@@ -277,29 +277,38 @@ if (!$banner_producto) {
                 </td>
 
                 <td width="40%" style="vertical-align: top; margin-top: -2px">
+                    @php
+                        $subtotal_coti = (float)$cotizacionesRedes->subtotal;
+                        $desc_coti = (float)($cotizacionesRedes->descuento_aplicado ?? 0);
+                        $envio_coti = (float)($cotizacionesRedes->envio ?? 0);
+                        $iva_coti = (float)($cotizacionesRedes->iva ?? 0);
+                        $total_coti = round(max(0, $subtotal_coti - $desc_coti) + $envio_coti + $iva_coti, 2);
+                    @endphp
                     <div class="tabla-total-container">
                         <table class="tabla-total">
+                            <tr>
+                                <td class="text-left">SUBTOTAL</td>
+                                <td class="text-right">${{ number_format($cotizacionesRedes->subtotal, 2) }}</td>
+                            </tr>
                             @if ($cotizacionesRedes->descuento_aplicado > 0)
                             <tr>
                                 <td class="text-left">DESCUENTO</td>
                                 <td class="text-right">- ${{ number_format($cotizacionesRedes->descuento_aplicado, 2) }}</td>
                             </tr>
                             @endif
+                            @if ($cotizacionesRedes->envio > 0)
                             <tr>
                                 <td class="text-left">ENVÍO</td>
                                 <td class="text-right">${{ number_format($cotizacionesRedes->envio, 2) }}</td>
                             </tr>
-                            <tr>
-                                <td class="text-left">SUBTOTAL</td>
-                                <td class="text-right">${{ number_format($cotizacionesRedes->subtotal, 2) }}</td>
-                            </tr>
+                            @endif
                             <tr>
                                 <td class="text-left">IVA</td>
                                 <td class="text-right">${{ number_format($cotizacionesRedes->iva, 2) }}</td>
                             </tr>
                             <tr class="total-row">
                                 <td class="text-left">TOTAL</td>
-                                <td class="text-right">${{ number_format($cotizacionesRedes->total, 2) }}</td>
+                                <td class="text-right">${{ number_format($total_coti, 2) }}</td>
                             </tr>
                         </table>
                     </div>

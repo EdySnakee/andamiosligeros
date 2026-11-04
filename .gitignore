@@ -47,6 +47,7 @@ php.ini
 !/storage/framework/views/.gitignore
 /storage/logs/*
 !/storage/logs/.gitignore
+storage/fonts/*.afm.php
 
 # Backup files
 *.bak

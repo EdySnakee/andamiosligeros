@@ -1006,6 +1006,14 @@
                     </div>
 
                     <!-- Columna Derecha: Totales Financieros -->
+                    @php
+                        $subtotal_vta = (float)$ventasRedes->subtotal;
+                        $desc_vta = (float)($ventasRedes->descuento_aplicado ?? 0);
+                        $envio_vta = (float)($ventasRedes->envio ?? 0);
+                        $envio2_vta = (float)($ventasRedes->envio_2 ?? 0);
+                        $iva_vta = (float)($ventasRedes->iva ?? 0);
+                        $total_vta = round(max(0, $subtotal_vta - $desc_vta) + $envio_vta + $envio2_vta + $iva_vta, 2);
+                    @endphp
                     <div class="totals-card">
                         <table class="totals-table">
                             <tr>
@@ -1056,7 +1064,7 @@
                             </tr>
                             <tr class="totals-main-row">
                                 <td>TOTAL:</td>
-                                <td class="text-right">${{ number_format($ventasRedes->total, 2, '.', ',') }}</td>
+                                <td class="text-right">${{ number_format($total_vta, 2, '.', ',') }}</td>
                             </tr>
                         </table>
                         <div class="totals-currency-note">

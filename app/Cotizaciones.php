@@ -164,14 +164,19 @@ class Cotizaciones extends Model
         }
 
         $envio_val = (!empty($data_post->envio) ? (float)$data_post->envio : 0);
-        $subtotal_global = $subtotal_sin_descuento + $envio_val - $nuevo_descuento;
+        $base_imponible = max(0, (float)$subtotal_sin_descuento - (float)$nuevo_descuento);
         
-        if ($data_post->activa_iva == "true" or (isset($data_post->iva) and $data_post->iva != 0.0)) {
-            $impuestos = (float) $subtotal_global * 0.16;
-            $total = $impuestos + $subtotal_global;
+        $activa_iva_bool = (isset($data_post->activa_iva) && ($data_post->activa_iva === true || $data_post->activa_iva === "true" || $data_post->activa_iva === 1 || $data_post->activa_iva === "1"))
+            || (isset($data_post->iva) && (float)$data_post->iva > 0);
+
+        if ($activa_iva_bool) {
+            $impuestos = round($base_imponible * 0.16, 2);
         } else {
-            $total = $subtotal_global;
+            $impuestos = 0;
         }
+
+        $subtotal_global = (float) $subtotal_sin_descuento;
+        $total = round($base_imponible + $envio_val + $impuestos, 2);
         ?>
         <tr id="fila_totales_hidden" style="display: none !important;">
             <td colspan="6">
