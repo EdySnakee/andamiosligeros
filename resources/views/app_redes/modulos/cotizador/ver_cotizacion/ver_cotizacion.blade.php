@@ -355,6 +355,13 @@
                                 class="coti-qr">
                         </div>
 
+                        @php
+                            $subtotal_coti = (float)$cotizacionesRedes->subtotal;
+                            $desc_coti = (float)($cotizacionesRedes->descuento_aplicado ?? 0);
+                            $envio_coti = (float)($cotizacionesRedes->envio ?? 0);
+                            $iva_coti = (float)($cotizacionesRedes->iva ?? 0);
+                            $total_coti = round(max(0, $subtotal_coti - $desc_coti) + $envio_coti + $iva_coti, 2);
+                        @endphp
                         <div class="col-md-3 col-xs-12 tabla-total-container">
                             <div class="tabla-total">
                                 <table class="table table-condensed" style="margin-bottom: 0;">
@@ -379,7 +386,7 @@
                                     </tr>
                                     <tr style="font-size: 1.2em; color: #1a4189;">
                                         <td><b>TOTAL</b></td>
-                                        <td class="text-right"><b>${{ number_format($cotizacionesRedes->total, 2) }}</b>
+                                        <td class="text-right"><b>${{ number_format($total_coti, 2) }}</b>
                                         </td>
                                     </tr>
                                 </table>

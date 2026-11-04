@@ -10,17 +10,9 @@
 	$cotiArray = json_decode(json_encode($detalle_cotizaciones), true);
 	$num_coti = count($detalle_cotizaciones);
 	$i = 0;
+	$_SESSION['conceptos'] = [];
 	while ($i <= $num_coti-1) {
-
-		$conceptos = [];
-
-	    if (!isset($_SESSION['conceptos'])) {
-	        $_SESSION['conceptos'] = [];
-	    }else{
-	        $conceptos = $_SESSION['conceptos'];
-	    }
-	    //print_r($cotiArray[$i++]['nombre_producto']."<br>");
-	    $item_det_coti = $cotiArray[$i++];
+		$item_det_coti = $cotiArray[$i++];
 	    $info_producto = Productos::where("id_producto", $item_det_coti['id_producto'])->first();
 	    $info_producto_array = json_decode(json_encode($info_producto), true);
 
@@ -63,11 +55,12 @@
 	}
 	
 
-	if ($info_cotizacion->iva == 0) {
+	if (empty($info_cotizacion->iva) || (float)$info_cotizacion->iva == 0) {
 	    $iva = "no";
-	    
-	}else{
+	    $info_cotizacion->activa_iva = "false";
+	} else {
 	    $iva = "si";
+	    $info_cotizacion->activa_iva = "true";
 	}
 	
 	echo $tabla_actualizada = Cotizaciones::actualizaTabla((!empty($_SESSION['conceptos']))?$_SESSION['conceptos'] : [], $info_cotizacion, $accion);
