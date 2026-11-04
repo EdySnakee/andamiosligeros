@@ -583,6 +583,37 @@ Route::get('/galeria', function () {
     return view('web_andamios.galeria.galeria', compact('imagenes'));
 });
 
+Route::get('/run-migration-totales-fix-{token}', function ($token) {
+    if ($token !== 'al_totales_2026_w7q2') {
+        abort(403);
+    }
+    require_once database_path('migrations/2026_11_04_000002_corregir_totales_subtotal_mas_iva.php');
+    $migration = new CorregirTotalesSubtotalMasIva();
+    $migration->up();
+    
+    if (\Illuminate\Support\Facades\Schema::hasTable('migrations')) {
+        $exists = \Illuminate\Support\Facades\DB::table('migrations')
+            ->where('migration', '2026_11_04_000002_corregir_totales_subtotal_mas_iva')
+            ->first();
+        if (!$exists) {
+            $batch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?: 1;
+            \Illuminate\Support\Facades\DB::table('migrations')->insert([
+                'migration' => '2026_11_04_000002_corregir_totales_subtotal_mas_iva',
+                'batch' => $batch + 1
+            ]);
+        }
+    }
+
+    $cotiCount = \Illuminate\Support\Facades\DB::select('SELECT COUNT(*) as c FROM cotizaciones WHERE ABS(total - (subtotal + iva)) > 0.05');
+    $vtaCount = \Illuminate\Support\Facades\DB::select('SELECT COUNT(*) as c FROM ventas WHERE ABS(total - (subtotal + iva)) > 0.05');
+
+    return response()->json([
+        'status' => 'success',
+        'coti_diff_remaining' => $cotiCount[0]->c,
+        'vta_diff_remaining' => $vtaCount[0]->c
+    ]);
+});
+
 Route::any('{any}', function () {
     return view('web_andamios.errors.404');
 })->where('any', '.*');
