@@ -379,8 +379,8 @@
                                     @endif
                                     @if ($envio_coti > 0)
                                         <tr>
-                                            <td>COSTO DE ENVÍO</td>
-                                            <td class="text-right">+${{ number_format($envio_coti, 2) }}</td>
+                                            <td>ENVÍO</td>
+                                            <td class="text-right">${{ number_format($envio_coti, 2) }}</td>
                                         </tr>
                                     @endif
                                     <tr>

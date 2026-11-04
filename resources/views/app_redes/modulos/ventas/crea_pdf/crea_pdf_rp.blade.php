@@ -543,14 +543,14 @@
                         @endif
                         @if(!empty($ventasRedes->envio) && $ventasRedes->envio > 0)
                             <tr>
-                                <td>COSTO DE ENVÍO:</td>
-                                <td class="text-right">+${{ number_format($ventasRedes->envio, 2, '.', ',') }}</td>
+                                <td>ENVÍO:</td>
+                                <td class="text-right">${{ number_format($ventasRedes->envio, 2, '.', ',') }}</td>
                             </tr>
                         @endif
                         @if(!empty($ventasRedes->envio_2) && $ventasRedes->envio_2 > 0)
                             <tr>
                                 <td>ENVÍO ADICIONAL:</td>
-                                <td class="text-right">+${{ number_format($ventasRedes->envio_2, 2, '.', ',') }}</td>
+                                <td class="text-right">${{ number_format($ventasRedes->envio_2, 2, '.', ',') }}</td>
                             </tr>
                         @endif
                         <tr>

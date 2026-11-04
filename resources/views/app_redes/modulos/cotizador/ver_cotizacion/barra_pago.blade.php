@@ -77,7 +77,7 @@
 						@if($bp_envio > 0)
 						<tr class="fila-sin-bordes">
 							<td colspan="2" class="text-right"><small>ENVÍO</small></td>
-							<td class="text-right"><small><?php echo "+$" . number_format($bp_envio, 2, '.', ',') ?></small></td>
+							<td class="text-right"><small><?php echo "$" . number_format($bp_envio, 2, '.', ',') ?></small></td>
 						</tr>
 						@endif
 						@if($bp_iva != 0)

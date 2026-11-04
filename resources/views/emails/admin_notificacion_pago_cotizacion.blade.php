@@ -178,7 +178,7 @@
                     @if($envio_mail > 0)
                     <tr>
                         <td colspan="3" style="text-align: right;">Envío:</td>
-                        <td>+${{ number_format($envio_mail, 2) }}</td>
+                        <td>${{ number_format($envio_mail, 2) }}</td>
                     </tr>
                     @endif
                     <tr>

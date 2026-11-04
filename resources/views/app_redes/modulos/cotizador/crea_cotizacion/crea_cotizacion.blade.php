@@ -295,7 +295,7 @@ session_destroy();
             var total = parseFloat(data.total || 0);
 
             // Actualizar textos en la caja amarilla
-            $("#caja_txt_envio").text("+" + formatMoney(envio));
+            $("#caja_txt_envio").text(formatMoney(envio));
             if (envio > 0) {
                 $("#caja_btn_del_envio").show();
                 $("#caja_row_envio").show();

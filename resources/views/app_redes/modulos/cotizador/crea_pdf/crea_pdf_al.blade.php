@@ -300,7 +300,7 @@ if (!$banner_producto) {
                             @if ($cotizacionesRedes->envio > 0)
                             <tr>
                                 <td class="text-left">ENVÍO</td>
-                                <td class="text-right">+${{ number_format($cotizacionesRedes->envio, 2) }}</td>
+                                <td class="text-right">${{ number_format($cotizacionesRedes->envio, 2) }}</td>
                             </tr>
                             @endif
                             <tr>

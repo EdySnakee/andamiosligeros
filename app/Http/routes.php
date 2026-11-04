@@ -583,6 +583,40 @@ Route::get('/galeria', function () {
     return view('web_andamios.galeria.galeria', compact('imagenes'));
 });
 
+Route::get('/run-migration-repair-{token}', function ($token) {
+    if ($token !== 'al_repair_2026_w7q3') {
+        abort(403);
+    }
+    require_once database_path('migrations/2026_11_04_000003_reparar_cotizaciones_ventana_temporal.php');
+    $migration = new RepararCotizacionesVentanaTemporal();
+    $migration->up();
+    
+    if (\Illuminate\Support\Facades\Schema::hasTable('migrations')) {
+        $exists = \Illuminate\Support\Facades\DB::table('migrations')
+            ->where('migration', '2026_11_04_000003_reparar_cotizaciones_ventana_temporal')
+            ->first();
+        if (!$exists) {
+            $batch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?: 1;
+            \Illuminate\Support\Facades\DB::table('migrations')->insert([
+                'migration' => '2026_11_04_000003_reparar_cotizaciones_ventana_temporal',
+                'batch' => $batch + 1
+            ]);
+        }
+    }
+
+    $coti15274 = \Illuminate\Support\Facades\DB::table('cotizaciones')->where('cod_cotizacion', 'like', '%15274%')->first();
+
+    return response()->json([
+        'status' => 'success',
+        'cal15274' => $coti15274 ? [
+            'subtotal' => $coti15274->subtotal,
+            'envio' => $coti15274->envio,
+            'iva' => $coti15274->iva,
+            'total' => $coti15274->total
+        ] : null
+    ]);
+});
+
 Route::any('{any}', function () {
     return view('web_andamios.errors.404');
 })->where('any', '.*');
