@@ -426,8 +426,8 @@
             @else
                 @include('app_redes.modulos.cotizador.ver_cotizacion.detalle_productos')
             @endif
-            {{-- Barra de Pago de Mercado Pago Suspendida por fraude--}}
-            @if ($cotizacionesRedes->mp_status == 'si' and $cotizacionesRedes->status == 1)
+            {{-- Barra de Pago --}}
+            @if ($cotizacionesRedes->status == 1)
                 <div class="cont-pago">
                     @include('app_redes.modulos.cotizador.ver_cotizacion.barra_pago')
                 </div>

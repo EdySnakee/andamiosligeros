@@ -653,7 +653,10 @@ use App\Ventas;
                     <path d="M3.118 5.2201L2.64001 5.6522L4.14767 7L6.64001 4.39759L6.12631 4L4.10919 6.1062L3.118 5.2201Z" fill="#00A650"></path>
                 </svg></p>
         </div>
-        <div class="logo-mp">
+        <div style="display: inline-flex; align-items: center; gap: 8px; margin-left: 8px;">
+            <img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 18px; max-width: 85px; object-fit: contain; filter: brightness(0) invert(1);">
+            @if(!empty($cotizacionesRedes->mp_status) && $cotizacionesRedes->mp_status == 'si')
+            <div class="logo-mp" style="margin-left: 4px;">
             <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
                 width="92px" height="24px" viewBox="0 0 92 24" enable-background="new 0 0 92 24" xml:space="preserve">
                 <path fill="#00B1EA" d="M16.78,0.433c-9.094,0-16.467,4.715-16.467,10.534s7.374,10.99,16.467,10.99
@@ -808,6 +811,8 @@ use App\Ventas;
                         c0-0.724,0.148-1.279,0.448-1.671c0.296-0.391,0.725-0.584,1.276-0.584s0.975,0.193,1.271,0.584
                         c0.296,0.392,0.444,0.947,0.444,1.671C66.337,17.188,66.189,17.748,65.897,18.139z" />
             </svg>
+        </div>
+        @endif
         </div>
     </div>
     @if($cotizacionesRedes->status == 4)

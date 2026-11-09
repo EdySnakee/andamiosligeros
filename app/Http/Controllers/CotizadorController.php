@@ -532,7 +532,7 @@ class CotizadorController extends Controller
                         }
                         $datosCotizacion->total = round((float)$datosCotizacion->subtotal + (float)$datosCotizacion->iva, 2);
                         $datosCotizacion->status = 1;
-                        $datosCotizacion->mp_status = "si";
+                        $datosCotizacion->mp_status = "no";
                         $datosCotizacion->configuracion = $data_post->configuracion;
                         $datosCotizacion->id_sucursal = $data_post->id_sucursal;
                         $datosCotizacion->save();

@@ -31,7 +31,7 @@
 						c7.687,0.012,12.96,4.884,12.994,11.911c0.033,7.05-5.192,12.009-12.843,12.063C267.386,180.021,259.528,179.977,251.67,179.976z" />
 					</g>
 				</svg>
-				Paga con tu Tarjeta de Crédito
+				Paga con tu Tarjeta de Crédito o Débito
 			</p>
 			<br>
 			<p><small><b>RESUMEN DE COMPRA</b></small></p>
@@ -102,10 +102,33 @@
 			</div>
 		</div>
 		<div class="info-btn-pagos">
-			<div class="text-left">
-				<div class="group-flex" style="display: flex;">
-					<h2 id="" class="title-h2"><span>
-							<div class="logo-mp">
+			<!-- Opción Principal de Pago con Openpay Tarjetas -->
+			<div style="margin-top: 6px; width: 100%;">
+				<button type="button" id="btn-abrir-popup-openpay" onclick="abrirModalCotOpenpay(event)" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: #002f6c; color: #ffffff; border: none; border-radius: 8px; padding: 13px 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 3px 10px rgba(0,47,108,0.22); outline: none;">
+					<div style="display: flex; align-items: center; gap: 8px;">
+						<i class="fa fa-credit-card" style="font-size: 16px; color: #ffbb01;"></i>
+						<span>Pagar con Tarjeta</span>
+					</div>
+					<img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 18px; max-width: 85px; object-fit: contain; filter: brightness(0) invert(1);">
+				</button>
+				<div style="text-align: center; margin-top: 6px;">
+					<small style="color: #666; font-size: 11px;">Crédito o Débito directo (Openpay by BBVA)</small>
+				</div>
+			</div>
+
+			@if ($cotizacionesRedes->mp_status == 'si')
+			<!-- Opción Secundaria: Mercado Pago (habilitada desde el panel) -->
+			<div style="margin-top: 14px; width: 100%;">
+				<div style="display: flex; align-items: center; text-align: center; margin: 12px 0 10px 0;">
+					<div style="flex: 1; border-bottom: 1px solid #dcdcdc;"></div>
+					<span style="padding: 0 10px; color: #777; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">O también</span>
+					<div style="flex: 1; border-bottom: 1px solid #dcdcdc;"></div>
+				</div>
+
+				<div class="text-left">
+					<div class="group-flex" style="display: flex;">
+						<h2 id="" class="title-h2"><span>
+								<div class="logo-mp">
 								<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 									width="92px" height="24px" viewBox="0 0 92 24" enable-background="new 0 0 92 24" xml:space="preserve">
 									<path fill="#00B1EA" d="M16.78,0.433c-9.094,0-16.467,4.715-16.467,10.534s7.374,10.99,16.467,10.99
@@ -271,27 +294,9 @@
 				</div>
 				<p id="" class="text"><span>Si tu paquete no llega, te devolvemos tu dinero.</span></p>
 			</div>
-			<div class="cho-container" style="min-height: 48px;"></div>
-
-			<!-- Opción de Pago con Openpay Tarjetas -->
-			<div style="margin-top: 14px; width: 100%;">
-				<div style="display: flex; align-items: center; text-align: center; margin: 12px 0 10px 0;">
-					<div style="flex: 1; border-bottom: 1px solid #dcdcdc;"></div>
-					<span style="padding: 0 10px; color: #777; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">O también</span>
-					<div style="flex: 1; border-bottom: 1px solid #dcdcdc;"></div>
-				</div>
-
-				<button type="button" id="btn-abrir-popup-openpay" onclick="abrirModalCotOpenpay(event)" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: #002f6c; color: #ffffff; border: none; border-radius: 8px; padding: 12px 14px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 3px 10px rgba(0,47,108,0.22); outline: none;">
-					<div style="display: flex; align-items: center; gap: 8px;">
-						<i class="fa fa-credit-card" style="font-size: 16px; color: #ffbb01;"></i>
-						<span>Pagar con Tarjeta</span>
-					</div>
-					<img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 18px; max-width: 85px; object-fit: contain; filter: brightness(0) invert(1);">
-				</button>
-				<div style="text-align: center; margin-top: 6px;">
-					<small style="color: #666; font-size: 11px;">Crédito o Débito directo (Openpay by BBVA)</small>
-				</div>
+				<div class="cho-container" style="min-height: 48px;"></div>
 			</div>
+			@endif
 		</div>
 	</div>
 </div>
@@ -378,9 +383,9 @@
 }
 </style>
 
+@if($cotizacionesRedes->mp_status == 'si' && !empty($preference_id))
 <!-- 1. SDK de Mercado Pago -->
 <script src="https://sdk.mercadopago.com/js/v2"></script>
-@if(!empty($preference_id))
 <script>
 	(function() {
 		try {
@@ -394,7 +399,7 @@
 					},
 					render: {
 						container: '.cho-container',
-						label: 'Pagar'
+						label: 'Pagar con Mercado Pago'
 					}
 				});
 			}
