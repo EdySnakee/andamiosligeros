@@ -134,10 +134,10 @@
             </div>
             <div class="oferta-item" data-aos="fade-up" data-aos-duration="1000">
                 <div class="icono-oferta">
-                    <img src="{{ url('web/img/MercadoPago-Rosado.png') }}" alt="mercado-pago">
+                    <img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="max-height: 40px;">
                 </div>
-                <h3>Compra 100% segura, protegida por Mercado Pago.</h3>
-                <p>Garantía de Mercado Pago, compra con confianza, aceptamos todas las tarjetas de débito y crédito.</p>
+                <h3>Compra 100% segura con Openpay by BBVA.</h3>
+                <p>Pago directo y encriptado con respaldo BBVA, compra con confianza, aceptamos todas las tarjetas de débito y crédito.</p>
             </div>
             <div class="oferta-item" data-aos="fade-left" data-aos-duration="1000">
                 <div class="icono-oferta">

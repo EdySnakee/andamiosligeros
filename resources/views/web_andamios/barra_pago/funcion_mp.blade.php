@@ -1,99 +1,20 @@
 @php
-    // SDK de Mercado Pago
-    require base_path('vendor/autoload.php');
-    MercadoPago\SDK::setAccessToken(config('services.mercadopago.token'));
-
-    // Crea un objeto de preferencia
-    $preference = new MercadoPago\Preference();
-
-    $products = [];
-
-    // 1. Ítem del Producto de la promoción
-    $item = new MercadoPago\Item();
-    $item->title = $nombre_product;
-    $item->quantity = (int) $cantidad;
-    $item->unit_price = (float) $costo_item;
-    $products[] = $item;
-
-    // 2. Ítem de Costo de Envío
-    $costo_envio_total = (float) $envio * (int) $cantidad;
-    if ($costo_envio_total > 0) {
-        $item_envio = new MercadoPago\Item();
-        $item_envio->title = 'Costo de Envío';
-        $item_envio->quantity = 1;
-        $item_envio->unit_price = $costo_envio_total;
-        $products[] = $item_envio;
-    }
-
-    // 3. Ítem de IVA (si fue solicitado)
-    if (!empty($datos_orden->iva) && (float) $datos_orden->iva > 0) {
-        $item_iva = new MercadoPago\Item();
-        $item_iva->title = 'Impuesto IVA (16%)';
-        $item_iva->quantity = 1;
-        $item_iva->unit_price = (float) $datos_orden->iva;
-        $products[] = $item_iva;
-    }
-
-    $arrDatosOrden = [
-        'id_orden' => $datos_orden->id_orden,
-    ];
-
-    $prefijo_sitio = env('SITIO_PREFIJO', 'andamios');
-    $id_orden_con_prefijo = $prefijo_sitio . '-' . $datos_orden->id_orden;
-    $webhook_url = env('WEBHOOK_MP_URL', 'https://scoregol.com/mercadopago/webhook');
-
-    $preference->external_reference = $id_orden_con_prefijo;
-    $preference->notification_url = $webhook_url;
-
-    $preference->back_urls = array(
-        "success" => route('pago_tienda_online', $arrDatosOrden),
-        "failure" => route('pago_tienda_online', $arrDatosOrden),
-        "pending" => route('pago_tienda_online', $arrDatosOrden)
-    );
-
-    $preference->auto_return = "all";
-    $preference->items = $products;
-    $preference->save();
-
-    $clienteNombre = !empty($datos_cliente->nombrecl) ? $datos_cliente->nombrecl : '';
+    $clienteNombre = !empty($datos_cliente->nombrecl) ? strtoupper($datos_cliente->nombrecl) : '';
 @endphp
 
 <div class="info-btn-pagos" style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px; width: 100%;">
     <p style="font-weight: 700; font-size: 15px; color: #232323; margin-bottom: 12px; text-align: left;">
-        Selecciona tu método de pago:
+        Método de pago:
     </p>
 
-    <!-- Contenedor de opciones de pago -->
+    <input type="hidden" name="promo_metodo_pago" value="openpay">
+
+    <!-- Contenedor de pago Openpay BBVA -->
     <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
 
-        <!-- 1. Opción Mercado Pago -->
-        <label class="metodo-pago-promo-card" id="promo-card-mp" style="display: flex; align-items: center; justify-content: space-between; border: 2px solid #009ee3; background-color: #f7fbff; border-radius: 8px; padding: 12px 14px; margin-bottom: 0; cursor: pointer; transition: all 0.25s ease;">
+        <!-- Opción Openpay BBVA -->
+        <div class="metodo-pago-promo-card active" id="promo-card-openpay" style="display: flex; align-items: center; justify-content: space-between; border: 1.5px solid #002f6c; border-bottom: none; background-color: #f8faff; border-radius: 8px 8px 0 0; padding: 12px 14px; margin-bottom: 0;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <input type="radio" name="promo_metodo_pago" value="mercadopago" checked style="cursor: pointer; transform: scale(1.15);">
-                <div style="text-align: left;">
-                    <span style="display: block; font-weight: 700; font-size: 14px; color: #009ee3;">Mercado Pago</span>
-                    <small style="display: block; color: #666; font-size: 11px;">Tarjetas, Dinero en cuenta, SPEI, Efectivo</small>
-                </div>
-            </div>
-            <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.18.9/mercadopago/logo__small@2x.png" alt="Mercado Pago" style="height: 22px; max-width: 90px; object-fit: contain;">
-        </label>
-
-        <!-- Contenedor Botón Mercado Pago -->
-        <div id="promo-mp-container" style="background: #ffffff; border: 1.5px solid #009ee3; border-top: none; border-radius: 0 0 8px 8px; padding: 16px; margin-top: -11px; margin-bottom: 8px;">
-            <div class="text-left" style="margin-bottom: 12px;">
-                <div class="group-flex" style="display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-weight: 600; font-size: 13px; color: #333;">Paga seguro con tu cuenta o tarjeta</span>
-                    <div class="badgespan-seguro"><p class="andes-badge__content" style="margin: 0; font-size: 11px;">Compra Protegida <svg width="10" height="11" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.640015 3.0649C0.640015 6.71094 1.94452 9.03851 4.54271 9.96529L4.64001 10L4.73732 9.96529C7.33551 9.03851 8.64001 6.71094 8.64001 3.0649V2.73563H8.33232C7.17893 2.73563 6.01526 2.21963 4.83635 1.17412L4.64001 1L4.44368 1.17412C3.26477 2.21963 2.1011 2.73563 0.947707 2.73563H0.640015V3.0649Z" stroke="#00A650"></path><path d="M3.118 5.2201L2.64001 5.6522L4.14767 7L6.64001 4.39759L6.12631 4L4.10919 6.1062L3.118 5.2201Z" fill="#00A650"></path></svg></p></div>
-                </div>
-                <p class="text" style="margin: 4px 0 0 0; font-size: 12px; color: #666;"><span>Si tu paquete no llega, te devolvemos tu dinero.</span></p>
-            </div>
-            <div class="cho-container"></div>
-        </div>
-
-        <!-- 2. Opción Openpay BBVA -->
-        <label class="metodo-pago-promo-card" id="promo-card-openpay" style="display: flex; align-items: center; justify-content: space-between; border: 1.5px solid #dcdcdc; background-color: #ffffff; border-radius: 8px; padding: 12px 14px; margin-bottom: 0; cursor: pointer; transition: all 0.25s ease;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <input type="radio" name="promo_metodo_pago" value="openpay" style="cursor: pointer; transform: scale(1.15);">
                 <div style="text-align: left;">
                     <span style="display: block; font-weight: 700; font-size: 14px; color: #002f6c;">
                         Tarjeta de Crédito / Débito <span style="font-size: 11px; font-weight: 600; color: #004481; background: #e8f0fe; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">Openpay BBVA</span>
@@ -102,14 +23,14 @@
                 </div>
             </div>
             <img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 24px; max-width: 105px; object-fit: contain;">
-        </label>
+        </div>
 
         <!-- Formulario Tarjeta Openpay Embebido -->
-        <div id="promo-openpay-container" style="display: none; background: #fdfefe; border: 1.5px solid #002f6c; border-top: none; border-radius: 0 0 8px 8px; padding: 16px; margin-top: -11px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,47,108,0.06); text-align: left;">
+        <div id="promo-openpay-container" style="display: block; background: #fdfefe; border: 1.5px solid #002f6c; border-top: none; border-radius: 0 0 8px 8px; padding: 16px; margin-top: -11px; margin-bottom: 8px; box-shadow: 0 4px 12px rgba(0,47,108,0.06); text-align: left;">
             
             <div style="margin-bottom: 12px;">
                 <label for="promo_openpay_holder" style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 5px; display: block;">Nombre del titular como aparece en la tarjeta *</label>
-                <input class="form-control-cart" type="text" id="promo_openpay_holder" placeholder="Como aparece en la tarjeta" style="margin-bottom: 0; background: #fff; width: 100%; border: 1px solid #dadada; border-radius: 8px; padding: 8px 12px; font-size: 14px;">
+                <input class="form-control-cart" type="text" id="promo_openpay_holder" value="{{ $clienteNombre }}" placeholder="Como aparece en la tarjeta" style="margin-bottom: 0; background: #fff; width: 100%; border: 1px solid #dadada; border-radius: 8px; padding: 8px 12px; font-size: 14px;">
             </div>
 
             <div style="margin-bottom: 12px;">
@@ -150,26 +71,7 @@
 </div>
 
 <script>
-  // 1. Inicializar Mercado Pago
-  try {
-    const mp = new MercadoPago("{{config('services.mercadopago.key')}}", {
-      locale: 'es-AR'
-    });
-
-    mp.checkout({
-      preference: {
-        id: '{{$preference->id}}'
-      },
-      render: {
-        container: '.cho-container',
-        label: 'Pagar con Mercado Pago',
-      }
-    });
-  } catch(e) {
-    console.warn("Error inicializando MP:", e);
-  }
-
-  // 2. Inicializar Openpay (soporta carga bajo demanda si el script no estuviera)
+  // Inicializar Openpay (soporta carga bajo demanda si el script no estuviera)
   function setupPromoOpenPay() {
     try {
       OpenPay.setId("{{ config('services.openpay.merchant_id') }}");
@@ -191,22 +93,7 @@
     setupPromoOpenPay();
   }
 
-  // 3. Alternar visualmente entre métodos de pago
-  $(document).off('change', 'input[name="promo_metodo_pago"]').on('change', 'input[name="promo_metodo_pago"]', function() {
-    if ($(this).val() === 'mercadopago') {
-      $('#promo-card-mp').css({'border-color': '#009ee3', 'background-color': '#f7fbff'});
-      $('#promo-card-openpay').css({'border-color': '#dcdcdc', 'background-color': '#ffffff'});
-      $('#promo-mp-container').slideDown(200);
-      $('#promo-openpay-container').slideUp(200);
-    } else {
-      $('#promo-card-openpay').css({'border-color': '#002f6c', 'background-color': '#f8faff'});
-      $('#promo-card-mp').css({'border-color': '#dcdcdc', 'background-color': '#ffffff'});
-      $('#promo-openpay-container').slideDown(250);
-      $('#promo-mp-container').slideUp(200);
-    }
-  });
-
-  // 4. Formateo y detección de tarjeta Openpay
+  // Formateo y detección de tarjeta Openpay
   $(document).off('input', '#promo_openpay_card').on('input', '#promo_openpay_card', function() {
     var raw = $(this).val().replace(/\D/g, '');
     if (raw.length > 16) raw = raw.substring(0, 16);

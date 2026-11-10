@@ -162,38 +162,27 @@
                     <input type="hidden" value="{{ $gran_total }}" id="total_compra" name="total_compra">
                 </ul>
 
-                <!-- Selector de Método de Pago -->
+                <!-- Método de Pago (Openpay BBVA) -->
                 <div class="metodos-pago-wrapper" style="margin: 20px 0 15px 0;">
                     <label style="font-weight: 700; font-size: 14px; margin-bottom: 10px; display: block; color: #333;">
-                        Selecciona tu método de pago:
+                        Método de pago:
                     </label>
 
-                    <!-- Opción Mercado Pago -->
-                    <label class="metodo-pago-card active" id="card-mercadopago" style="display: flex; align-items: center; justify-content: space-between; border: 2px solid #009ee3; background-color: #f7fbff; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.25s ease;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="radio" name="metodo_pago" value="mercadopago" checked style="cursor: pointer; transform: scale(1.15);">
-                            <div>
-                                <span style="display: block; font-weight: 700; font-size: 14px; color: #009ee3;">Mercado Pago</span>
-                                <small style="display: block; color: #666; font-size: 11px;">Tarjetas, Dinero en cuenta, SPEI, Efectivo</small>
-                            </div>
-                        </div>
-                        <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.18.9/mercadopago/logo__small@2x.png" alt="Mercado Pago" style="height: 22px; max-width: 90px; object-fit: contain;">
-                    </label>
+                    <input type="hidden" name="metodo_pago" value="openpay">
 
                     <!-- Opción Openpay (BBVA) -->
-                    <label class="metodo-pago-card" id="card-openpay" style="display: flex; align-items: center; justify-content: space-between; border: 1.5px solid #dcdcdc; background-color: #ffffff; border-radius: 8px; padding: 12px 14px; margin-bottom: 0px; cursor: pointer; transition: all 0.25s ease;">
+                    <div class="metodo-pago-card active" id="card-openpay" style="display: flex; align-items: center; justify-content: space-between; border: 1.5px solid #002f6c; border-bottom: none; background-color: #f8faff; border-radius: 8px 8px 0 0; padding: 12px 14px; margin-bottom: 0px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="radio" name="metodo_pago" value="openpay" style="cursor: pointer; transform: scale(1.15);">
                             <div>
                                 <span style="display: block; font-weight: 700; font-size: 14px; color: #002f6c;">Tarjeta de Crédito / Débito <span style="font-size: 11px; font-weight: 600; color: #004481; background: #e8f0fe; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">Openpay BBVA</span></span>
                                 <small style="display: block; color: #666; font-size: 11px;">Pago directo y seguro sin salir de la tienda</small>
                             </div>
                         </div>
                         <img src="{{ url('web/img/logo-openpay.svg') }}" alt="Openpay by BBVA" style="height: 25px; max-width: 105px; object-fit: contain;">
-                    </label>
+                    </div>
 
                     <!-- Formulario de Tarjeta Incrustado (openpay.js) -->
-                    <div id="openpay-card-form" style="display: none; border: 1.5px solid #002f6c; border-top: none; background: #fdfefe; border-radius: 0 0 8px 8px; padding: 16px; margin-top: -1px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,47,108,0.06);">
+                    <div id="openpay-card-form" style="display: block; border: 1.5px solid #002f6c; border-top: none; background: #fdfefe; border-radius: 0 0 8px 8px; padding: 16px; margin-top: -1px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,47,108,0.06);">
                         <div style="margin-bottom: 12px;">
                             <label for="openpay_holder_name" style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 5px; display: block;">Nombre del titular como aparece en la tarjeta *</label>
                             <input class="form-control-cart" type="text" id="openpay_holder_name" placeholder="Como aparece en la tarjeta" style="margin-bottom: 0; background: #fff;">
@@ -236,7 +225,7 @@
 
 
                 <div class="cart-buttons">
-                    <button class="cart-confirmar" @if(empty($cart)) disabled style="opacity: 0.65; cursor: not-allowed;" title="Tu carrito está vacío" @endif>CONFIRMAR PEDIDO</button>
+                    <button class="cart-confirmar" @if(empty($cart)) disabled style="opacity: 0.65; cursor: not-allowed;" title="Tu carrito está vacío" @endif>PAGAR CON TARJETA</button>
                     <a href="{{ url('/tienda-de-andamios-ligeros-galvanizados') }}"
                         class="continuar-compra">CONTINUAR COMPRANDO</a>
                 </div>

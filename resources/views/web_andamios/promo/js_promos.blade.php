@@ -1,4 +1,3 @@
-<script src="https://sdk.mercadopago.com/js/v2"></script>
 <script type="text/javascript" src="https://js.openpay.mx/openpay.v1.min.js"></script>
 <script type="text/javascript" src="https://js.openpay.mx/openpay-data.v1.min.js"></script>
 <script>

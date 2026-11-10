@@ -10,9 +10,6 @@ namespace App\Http\Controllers;
     use App\Clientes;
     use App\OrdenesWeb;
     use App\OrdenesDetalle;
-    use MercadoPago\SDK;
-    use MercadoPago\Preference;
-    use MercadoPago\Item;
     use App\OpenpayService;
 
     class CartWebController extends Controller
@@ -357,11 +354,8 @@ namespace App\Http\Controllers;
             $envia_eventos = new FacebookApi();
             $respuesta_fb = $envia_eventos->FacebookApiModel($evento, $url_actual, $em, $ph, $content_name, $value);
 
-            // 5. EVALUAR MÉTODO DE PAGO SELECCIONADO
-            $metodo_pago = $request->input('metodo_pago', 'mercadopago');
-
-            if ($metodo_pago === 'openpay') {
-                $openpayService = new OpenpayService();
+            // 5. PROCESAR PAGO EXCLUSIVAMENTE CON OPENPAY
+            $openpayService = new OpenpayService();
                 $descripcionOrden = "Orden #" . $id_orden_numerico . " - Tienda Andamios Ligeros";
 
                 // Si viene tokenizado desde openpay.js (Checkout transparente)
@@ -508,68 +502,9 @@ namespace App\Http\Controllers;
                     return redirect($resCheckout['data']['checkout_link']);
                 } else {
                     \Log::error('Fallo al crear checkout Openpay: ', $resCheckout);
-                    $errorMsg = $resCheckout['description'] ?? 'No fue posible iniciar el pago con Openpay. Intenta con otro método.';
+                    $errorMsg = $resCheckout['description'] ?? 'No fue posible iniciar el pago con Openpay. Por favor intenta nuevamente.';
                     return redirect()->route('ver_carrito')->with('error', $errorMsg);
                 }
-            }
-
-
-            // 6. FLUJO MERCADO PAGO (POR DEFECTO)
-            SDK::setAccessToken(config('services.mercadopago.token'));
-
-            $prefijo_sitio = env('SITIO_PREFIJO', 'vallas'); // Debe ser 'vallas' en este sitio
-            $id_orden_con_prefijo = $prefijo_sitio . '-' . $id_orden_numerico;
-            $webhook_url = env('WEBHOOK_MP_URL', 'https://scoregol.com/mercadopago/webhook'); // URL CENTRALIZADA
-
-            $preference = new Preference();
-
-            $items = [];
-            $total_items_precio = 0;
-
-            foreach ($cart as $item) {
-                $mp_item = new Item();
-                $mp_item->title = $item['titulo'];
-                $mp_item->unit_price = (float)$item['precio'];
-                $mp_item->quantity = (int)$item['cantidad'];
-                $items[] = $mp_item;
-                $total_items_precio += (float)$item['precio'] * (int)$item['cantidad'];
-            }
-
-            // Agregar el IVA como un ítem separado si aplica
-            if ($iva > 0) {
-                $mp_item_iva = new Item();
-                $mp_item_iva->title = "Impuesto IVA (16%)";
-                $mp_item_iva->unit_price = (float)$iva;
-                $mp_item_iva->quantity = 1;
-                $items[] = $mp_item_iva;
-                $total_items_precio += (float)$iva;
-            }
-
-            // Agregar el costo de envío como un ítem separado si aplica
-            if ($envio > 0) {
-                $mp_item_envio = new Item();
-                $mp_item_envio->title = "Costo de Envío";
-                $mp_item_envio->unit_price = (float)$envio;
-                $mp_item_envio->quantity = 1;
-                $items[] = $mp_item_envio;
-                $total_items_precio += (float)$envio;
-            }
-
-            $preference->items = $items;
-            $preference->external_reference = $id_orden_con_prefijo;
-            $preference->notification_url = $webhook_url;
-
-            $preference->back_urls = [
-                "success" => route('pago_tienda_online', ['id_orden' => $id_orden_numerico]),
-                "pending" => route('pago_tienda_online', ['id_orden' => $id_orden_numerico]),
-                "failure" => route('pago_tienda_online', ['id_orden' => $id_orden_numerico])
-            ];
-
-            $preference->auto_return = "all";
-            $preference->save();
-
-            // Redirección a Mercado Pago
-            return redirect($preference->init_point);
         }
 
 

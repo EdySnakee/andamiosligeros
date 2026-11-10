@@ -331,31 +331,16 @@
                 $(this).val($(this).val().replace(/\D/g, ''));
             });
 
-            // Manejo de cambio visual de método de pago
-            $(document).on('change', 'input[name="metodo_pago"]', function() {
-                if ($(this).val() === 'mercadopago') {
-                    $('#card-mercadopago').css({'border-color': '#009ee3', 'background-color': '#f7fbff'});
-                    $('#card-openpay').css({'border-color': '#dcdcdc', 'border-bottom': '1.5px solid #dcdcdc', 'border-radius': '8px', 'background-color': '#ffffff'});
-                    $('#openpay-card-form').slideUp(200);
-                    $('.cart-confirmar').text('CONFIRMAR PEDIDO');
-                } else {
-                    $('#card-openpay').css({'border-color': '#002f6c', 'border-bottom': 'none', 'border-radius': '8px 8px 0 0', 'background-color': '#f8faff'});
-                    $('#card-mercadopago').css({'border-color': '#dcdcdc', 'background-color': '#ffffff'});
-                    $('#openpay-card-form').slideDown(250);
+            // Pre-llenar nombre del titular si el nombre del cliente ya está presente
+            if (!$('#openpay_holder_name').val() && $('#nombre_c').val()) {
+                $('#openpay_holder_name').val($('#nombre_c').val().toUpperCase());
+            }
 
-                    // Si no tiene nombre el titular, heredar del nombre de cliente
-                    if (!$('#openpay_holder_name').val() && $('#nombre_c').val()) {
-                        $('#openpay_holder_name').val($('#nombre_c').val().toUpperCase());
-                    }
-                    $('.cart-confirmar').text('PAGAR CON TARJETA');
-                }
-            });
-
-            // Intercepción del formulario de checkout
+            // Intercepción del formulario de checkout (Openpay)
             $('#checkout-form').on('submit', function(e) {
-                var metodo = $('input[name="metodo_pago"]:checked').val();
+                var metodo = $('input[name="metodo_pago"]').val() || 'openpay';
 
-                // Si seleccionó Openpay y aún no se ha generado el token
+                // Flujo Openpay y tokenización de tarjeta
                 if (metodo === 'openpay') {
                     if ($('#token_id').val()) {
                         return true; // Ya tiene token, permitir envío
