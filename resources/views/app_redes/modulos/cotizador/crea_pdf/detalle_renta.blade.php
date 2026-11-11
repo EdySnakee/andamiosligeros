@@ -64,15 +64,10 @@
                 <img style="padding-bottom: 50px;" src="{{url('storage/qrs_cotizaciones/')}}/{{$cotizacionesRedes->id_cotizacion}}.png" alt="">
             </td>
             <td class="col-md-6 text-center footer-info"  style="width: 50%">
-                <img width="150px" src="{{url('cotizaciones/img/logo-bbva.png')}}" alt="">
-                {{--
-                <p class="txt-medium separacion-5px">LUIS ÁNGEL CORAL LÓPEZ</p>
-                <p class="txt-medium separacion-5px">CUENTA: 2943604209</p>
-                <p class="txt-medium separacion-5px">CLABE: 012910029436042092</p>
-                --}}
-                <p class="txt-medium separacion-5px">REDES ANTICAIDAS SA DE CV</p>
+                <img width="150px" src="{{url('cotizaciones/img/logo-bbva.png')}}" alt="BBVA">
+                <p class="txt-medium separacion-5px">REDES ANTICAÍDAS</p>
                 <p class="txt-medium separacion-5px">CUENTA: 012 059 1289</p>
-                <p class="txt-medium separacion-5px">CLABE: 012910001205912892</p>
+                <p class="txt-medium separacion-5px">CLABE: 012 91000120591289 2</p>
             </td>
         </tr>
     </table>

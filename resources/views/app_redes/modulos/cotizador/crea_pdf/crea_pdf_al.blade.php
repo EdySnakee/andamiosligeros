@@ -258,17 +258,17 @@ if (!$banner_producto) {
 
         <table style="width: 100%;">
             <tr>
-                <td width="38%" style="vertical-align: middle;">
-                    @if($logo_bbva) <img src="{{ $logo_bbva }}" style="width: 80px; display: block; margin-bottom: 5px;"> @endif
-                    <div style="font-size: 9px; color: #333;">
-                        <b style="color: {{ $color_azul }}; text-transform: uppercase;">Luis Ángel Coral López</b><br>
-                        CUENTA: 2943604209<br>
-                        CLABE: 012910029436042092
-                    </div>
+                <td width="42%" style="vertical-align: middle;">
+                    @include('app_redes.modulos.cotizador.crea_pdf.datos_pago_bbva_pdf', [
+                        'bbva_td_width' => '70px',
+                        'bbva_img_width' => '64px',
+                        'tit_font_size' => '10px',
+                        'txt_font_size' => '8.4px',
+                    ])
                 </td>
 
-                <td width="22%" style="vertical-align: middle; text-align: center;">
-                    @if($qr_andamios) <img src="{{ $qr_andamios }}" style="width: 100px;"> @endif
+                <td width="18%" style="vertical-align: middle; text-align: center;">
+                    @if($qr_andamios) <img src="{{ $qr_andamios }}" style="width: 90px;"> @endif
                 </td>
 
                 <td width="40%" style="vertical-align: top; margin-top: -2px">
@@ -384,16 +384,17 @@ if (!$banner_producto) {
             </div>
 
             <div class="bottom-section" style="position: absolute; bottom: 0;">
-                <table>
-                    <tr>
-                        <td class="text-left" style="vertical-align: bottom;">
-                             @if($logo_bbva) <img src="{{ $logo_bbva }}" style="width: 70px;"> @endif
-                        </td>
-                        <td class="text-right" style="vertical-align: bottom;">
-                            @if($cinta_footer) <img src="{{ $cinta_footer }}" style="width: 100%;"> @endif
-                        </td>
-                    </tr>
-                </table>
+                <div style="width: 310px; margin: 0 auto;">
+                    @include('app_redes.modulos.cotizador.crea_pdf.datos_pago_bbva_pdf', [
+                        'bbva_td_width' => '88px',
+                        'bbva_img_width' => '80px',
+                        'tit_font_size' => '11px',
+                        'txt_font_size' => '9.5px',
+                    ])
+                </div>
+                <div style="margin-top: 10px;">
+                    @if($cinta_footer) <img src="{{ $cinta_footer }}" style="width: 100%;"> @endif
+                </div>
              </div>
          </div>
     @else
@@ -461,20 +462,14 @@ if (!$banner_producto) {
                 </div>
 
                 <div class="bottom-section">
-                    <table style="width: 100%;">
-                        <tr>
-                            <td width="15%" style="vertical-align: middle;">
-                                @if($logo_bbva) <img src="{{ $logo_bbva }}" style="width: 80px; display: block; margin-bottom: 5px;"> @endif
-                            </td>
-                            <td width="85%" style="vertical-align: middle;">
-                                <div style="font-size: 9px; color: #333;">
-                                    <b style="color: {{ $color_azul }}; text-transform: uppercase;">Luis Ángel Coral López</b><br>
-                                    CUENTA: 2943604209<br>
-                                    CLABE: 012910029436042092
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                    <div style="width: 310px; margin: 0 auto;">
+                        @include('app_redes.modulos.cotizador.crea_pdf.datos_pago_bbva_pdf', [
+                            'bbva_td_width' => '88px',
+                            'bbva_img_width' => '80px',
+                            'tit_font_size' => '11px',
+                            'txt_font_size' => '9.5px',
+                        ])
+                    </div>
 
                     <div style="margin-top: 10px;">
                         @if($cinta_footer) <img src="{{ $cinta_footer }}" style="width: 100%;"> @endif

@@ -68,13 +68,10 @@
             </div>
         </div>
 
-        <div class="row footer-content" style="margin-top: 30px;">
-            <div class="col-md-6 hidden-xs"></div>
-            <div class="col-md-6 col-xs-12 text-center">
-                <img width="150px" src="{{url('cotizaciones/img/logo-bbva.png')}}" alt="">
-                <p style="margin: 5px 0 0; font-weight: bold;">LUIS ÁNGEL CORAL LÓPEZ</p>
-                <p style="margin: 0;">CUENTA: 2943604209</p>
-                <p style="margin: 0;">CLABE: 012910029436042092</p>
+        <div class="row footer-content" style="margin-top: 30px; padding-bottom: 20px;">
+            <div class="col-md-12 col-xs-12" style="display: flex; align-items: center; justify-content: center; gap: 22px; flex-wrap: wrap;">
+                <img src="{{url('cotizaciones/img/logo-bbva.png')}}" alt="BBVA" class="coti-bbva" style="margin-top: 6px; width: min(100%, 140px);">
+                @include('app_redes.modulos.cotizador.ver_cotizacion.footer_datos_pago_bbva')
             </div>
         </div>
     </div>
