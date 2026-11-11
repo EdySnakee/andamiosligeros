@@ -103,6 +103,10 @@
                             <p class="tit-sub-footer"><a href="{{ url('/politicas-cambios') }}">Políticas de cambios</a>
                             </p>
                         </li>
+                        <li>
+                            <p class="tit-sub-footer"><a href="{{ url('/cuentas-oficiales') }}">Cuentas oficiales</a>
+                            </p>
+                        </li>
                     </ul>
                 </div>
                 <div class="footer-paquetexpress">
