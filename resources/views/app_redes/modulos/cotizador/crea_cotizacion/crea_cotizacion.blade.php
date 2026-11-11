@@ -175,14 +175,6 @@ session_destroy();
             color: #333;
         }
 
-        .coti-mp {
-            max-width: 80px;
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
         .coti-qr {
             max-width: 65px;
             width: 100%;

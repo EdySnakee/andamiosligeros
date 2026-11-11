@@ -87,16 +87,6 @@
 								<p>Tarjeta: 4815 1630 2105 0672</p>
                             </ul>
                             <hr>
-                            <ul class="list-cuentas">
-                                <img style="width: 200px; margin:20px 0" src="{{ url('script/mercado-pago-logo.png') }}">
-                                <li>
-                                    <p>Tarjeta: 5428 7801 8418 7359</p>
-                                </li>
-                                <li>
-                                    <p>Cuenta CLABE: 722969010201851441</p>
-                                </li>
-                            </ul>
-                            <hr>
 							<ul class="list-cuentas">
                                 <img style="width: 200px;" src="https://redesanticaidas.mx/script/Santander-Logo.png"
                                     alt="">

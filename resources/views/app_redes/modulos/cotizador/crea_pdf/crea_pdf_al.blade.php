@@ -32,7 +32,6 @@ $banner_path  = obtenerBannerCotizacionBase64('cotizaciones/img/version-pdf/Bann
 $cinta_header = obtenerImagenBase64('cotizaciones/img/version-pdf/Header-Cinta-de-Seguridad.jpg');
 $cinta_footer = obtenerImagenBase64('cotizaciones/img/version-pdf/COTIZACION-Cinta-Seguridad-Hecho-En-Mexico.jpg');
 $logo_bbva    = obtenerImagenBase64('cotizaciones/img/version-pdf/logo-bbva.jpg');
-$logo_mp      = obtenerImagenBase64('cotizaciones/img/version-pdf/mercadopago-logo.jpg');
 
 // QR Dinámico
 $qr_andamios  = obtenerImagenBase64('storage/qrs_cotizaciones/' . $cotizacionesRedes->id_cotizacion . '.png');
@@ -259,7 +258,7 @@ if (!$banner_producto) {
 
         <table style="width: 100%;">
             <tr>
-                <td width="25%" style="vertical-align: middle;">
+                <td width="38%" style="vertical-align: middle;">
                     @if($logo_bbva) <img src="{{ $logo_bbva }}" style="width: 80px; display: block; margin-bottom: 5px;"> @endif
                     <div style="font-size: 9px; color: #333;">
                         <b style="color: {{ $color_azul }}; text-transform: uppercase;">Luis Ángel Coral López</b><br>
@@ -267,12 +266,8 @@ if (!$banner_producto) {
                         CLABE: 012910029436042092
                     </div>
                 </td>
-                
-                <td width="20%" style="vertical-align: middle; text-align: center;">
-                    @if($logo_mp) <img src="{{ $logo_mp }}" style="width: 100px;"> @endif
-                </td>
 
-                <td width="15%" style="vertical-align: middle; text-align: center;">
+                <td width="22%" style="vertical-align: middle; text-align: center;">
                     @if($qr_andamios) <img src="{{ $qr_andamios }}" style="width: 100px;"> @endif
                 </td>
 
@@ -471,16 +466,12 @@ if (!$banner_producto) {
                             <td width="15%" style="vertical-align: middle;">
                                 @if($logo_bbva) <img src="{{ $logo_bbva }}" style="width: 80px; display: block; margin-bottom: 5px;"> @endif
                             </td>
-                            <td width="25%" style="vertical-align: middle;">
+                            <td width="85%" style="vertical-align: middle;">
                                 <div style="font-size: 9px; color: #333;">
                                     <b style="color: {{ $color_azul }}; text-transform: uppercase;">Luis Ángel Coral López</b><br>
                                     CUENTA: 2943604209<br>
                                     CLABE: 012910029436042092
                                 </div>
-                            </td>
-
-                            <td width="60%" style="vertical-align: middle;">
-                                @if($logo_mp) <img src="{{ $logo_mp }}" style="width: 100px;"> @endif
                             </td>
                         </tr>
                     </table>

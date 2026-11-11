@@ -72,16 +72,13 @@ $infoProducto = $objProductos
         </div>
 
         <div class="row footer-content" style="">
-            <div class="col-md-3 col-xs-4 text-right">
+            <div class="col-md-6 col-xs-4 text-right">
                 <img src="{{url('cotizaciones/img/logo-bbva.png')}}" alt="BBVA" class="coti-bbva">
             </div>
-            <div class="col-md-3 col-xs-8 text-left" style="padding-left: 10px">
+            <div class="col-md-6 col-xs-8 text-left" style="padding-left: 10px">
                 <p style="margin: 0; font-weight: bold;">LUIS ÁNGEL CORAL LÓPEZ</p>
                 <p style="margin: 0;">CUENTA: 2943604209</p>
                 <p style="margin: 0;">CLABE: 012910029436042092</p>
-            </div>
-            <div class="col-md-6 col-xs-12">
-                <img src="{{ url('cotizaciones/img/mercadopago-logo.png') }}" alt="Mercado Pago" class="coti-mp" style="margin-right: 5px; margin-left: 0px">
             </div>
             <img class="footer-img" src="{{ url('cotizaciones/img/COTIZACION-Cinta-Seguridad-Hecho-En-Mexico.png') }}">
         </div>

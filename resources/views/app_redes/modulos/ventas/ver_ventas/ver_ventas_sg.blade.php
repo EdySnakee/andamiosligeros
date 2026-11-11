@@ -505,11 +505,6 @@
             width: auto;
         }
 
-        .bank-mp-img {
-            max-height: 24px;
-            width: auto;
-        }
-
         .bank-qr-img {
             max-height: 65px;
             width: auto;
@@ -989,7 +984,6 @@
                         <div>
                             <div class="bank-logos-header">
                                 <img src="{{ url('cotizaciones/img/logo-bbva.png') }}" alt="BBVA" class="bank-bbva-img">
-                                <img src="{{ url('cotizaciones/img/mercadopago-logo.png') }}" alt="Mercado Pago" class="bank-mp-img">
                                 <img src="{{ url('cotizaciones/img/QR-Andamios.png') }}" alt="QR Autenticidad" class="bank-qr-img">
                             </div>
                             <div class="bank-info-content">

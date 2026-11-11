@@ -306,7 +306,7 @@
                             <img src="{{ url('cotizaciones/img/logo-bbva.png') }}" alt="BBVA" class="coti-bbva"
                                 style="margin-top: 10px; width:min(100%, 140px);">
                         </div>
-                     <div class="col-md-3 col-xs-8">
+                     <div class="col-md-5 col-xs-8">
     <div style="
         font-family: Arial, Helvetica, sans-serif;
         margin-top: 8px;
@@ -346,11 +346,7 @@
         </p>
     </div>
 </div>
-                        <div class="col-md-2 col-xs-6" style="padding:0;">
-                            <img src="{{ url('cotizaciones/img/mercadopago-logo.png') }}" alt="Mercado Pago"
-                                class="coti-mp">
-                        </div>
-                        <div class="col-md-2 col-xs-6 text-right">
+                        <div class="col-md-2 col-xs-12 text-right res-center">
                             <img src="{{ url('cotizaciones/img/QR-Andamios.png') }}" alt="QR Andamios Ligeros"
                                 class="coti-qr">
                         </div>

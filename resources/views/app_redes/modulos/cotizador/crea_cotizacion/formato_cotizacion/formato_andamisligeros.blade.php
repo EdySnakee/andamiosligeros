@@ -89,8 +89,6 @@
                 <p class="coti-banco-txt"><strong>CLABE:</strong> <span>012 91000120591289 2</span></p>
             </div>
 
-            <img src="{{ url('cotizaciones/img/mercadopago-logo.png') }}" alt="Mercado Pago" class="coti-mp">
-
             <img src="{{ url('cotizaciones/img/QR-Andamios.png') }}" alt="QR Andamios Ligeros" class="coti-qr">
         </div>
 

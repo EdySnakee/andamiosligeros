@@ -537,7 +537,7 @@ use App\Ventas;
             margin-top: -10px;
         }
 
-        .coti-mp, .coti-bbva {
+        .coti-bbva {
             width: min(100%, 150px);
             margin-top: 5px;
         }
@@ -621,15 +621,8 @@ use App\Ventas;
                 border-radius: 16px;
             }
 
-            .coti-mp {
-                margin-left: 15px;
-            }
-
             .coti-qr {
                 max-width: 100px;
-            }
-
-            .coti-qr, .coti-mp {
                 margin-top: 10px;
                 margin-right: 0;
             }
@@ -648,7 +641,7 @@ use App\Ventas;
     <div class="nav-top text-center flex-content">
         <div class="txt-top">¡COMPRA SEGURA! ACEPTAMOS TARJETAS DE CREDITO/DEBITO.</div>
         <div class="badgespan-seguro bg-white">
-            <p class="andes-badge__content">Compra Protegida <svg width="10" height="11" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <p class="andes-badge__content">Pago Seguro <svg width="10" height="11" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M0.640015 3.0649C0.640015 6.71094 1.94452 9.03851 4.54271 9.96529L4.64001 10L4.73732 9.96529C7.33551 9.03851 8.64001 6.71094 8.64001 3.0649V2.73563H8.33232C7.17893 2.73563 6.01526 2.21963 4.83635 1.17412L4.64001 1L4.44368 1.17412C3.26477 2.21963 2.1011 2.73563 0.947707 2.73563H0.640015V3.0649Z" stroke="#00A650"></path>
                     <path d="M3.118 5.2201L2.64001 5.6522L4.14767 7L6.64001 4.39759L6.12631 4L4.10919 6.1062L3.118 5.2201Z" fill="#00A650"></path>
                 </svg></p>

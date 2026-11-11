@@ -16,7 +16,6 @@
     $cinta_header = \App\Utilidades::obtenerImagenBase64('cotizaciones/img/version-pdf/Header-Cinta-de-Seguridad.jpg');
     $cinta_footer = \App\Utilidades::obtenerImagenBase64('cotizaciones/img/version-pdf/COTIZACION-Cinta-Seguridad-Hecho-En-Mexico.jpg');
     $logo_bbva    = \App\Utilidades::obtenerImagenBase64('cotizaciones/img/version-pdf/logo-bbva.jpg');
-    $logo_mp      = \App\Utilidades::obtenerImagenBase64('cotizaciones/img/version-pdf/mercadopago-logo.jpg');
 
     $qr_venta = "";
     if (!empty($ventasRedes->id_venta)) {
@@ -252,7 +251,6 @@
         }
         .bank-logos-table { width: 100%; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 5px; }
         .bank-bbva-img { max-height: 22px; max-width: 76px; }
-        .bank-mp-img { max-height: 19px; max-width: 76px; }
         .bank-qr-img { width: 44px; height: 44px; border: 1px solid #cbd5e1; padding: 1px; background: #fff; border-radius: 3px; }
         .bank-info-content { font-size: 9.2px; line-height: 1.45; color: #334155; }
         .bank-info-content strong { color: #0f172a; }
@@ -484,13 +482,10 @@
                 <div class="bank-details-card">
                     <table class="bank-logos-table">
                         <tr>
-                            <td style="vertical-align: middle; width: 35%;">
+                            <td style="vertical-align: middle; width: 50%;">
                                 @if($logo_bbva) <img src="{{ $logo_bbva }}" class="bank-bbva-img"> @endif
                             </td>
-                            <td style="vertical-align: middle; width: 35%; text-align: center;">
-                                @if($logo_mp) <img src="{{ $logo_mp }}" class="bank-mp-img"> @endif
-                            </td>
-                            <td style="vertical-align: middle; width: 30%; text-align: right;">
+                            <td style="vertical-align: middle; width: 50%; text-align: right;">
                                 @if($qr_venta) <img src="{{ $qr_venta }}" class="bank-qr-img"> @endif
                             </td>
                         </tr>

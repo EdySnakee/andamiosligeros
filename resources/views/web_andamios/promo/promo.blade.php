@@ -33,7 +33,7 @@
             <p class="text-white">COMPRA FACIL Y SEGURO CON TU TARJETA DE DEBITO O CREDITO.</p>
         </div>
         <div class="badgespan-seguro bg-white">
-            <p class="andes-badge__content">Compra Protegida <svg width="10" height="11" viewBox="0 0 10 11"
+            <p class="andes-badge__content">Pago Seguro <svg width="10" height="11" viewBox="0 0 10 11"
                     fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M0.640015 3.0649C0.640015 6.71094 1.94452 9.03851 4.54271 9.96529L4.64001 10L4.73732 9.96529C7.33551 9.03851 8.64001 6.71094 8.64001 3.0649V2.73563H8.33232C7.17893 2.73563 6.01526 2.21963 4.83635 1.17412L4.64001 1L4.44368 1.17412C3.26477 2.21963 2.1011 2.73563 0.947707 2.73563H0.640015V3.0649Z"
@@ -337,7 +337,7 @@
             <p class="text-white">COMPRA FACIL Y SEGURO CON TU TARJETA DE DEBITO O CREDITO.</p>
         </div>
         <div class="badgespan-seguro bg-white">
-            <p class="andes-badge__content">Compra Protegida <svg width="10" height="11" viewBox="0 0 10 11"
+            <p class="andes-badge__content">Pago Seguro <svg width="10" height="11" viewBox="0 0 10 11"
                     fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M0.640015 3.0649C0.640015 6.71094 1.94452 9.03851 4.54271 9.96529L4.64001 10L4.73732 9.96529C7.33551 9.03851 8.64001 6.71094 8.64001 3.0649V2.73563H8.33232C7.17893 2.73563 6.01526 2.21963 4.83635 1.17412L4.64001 1L4.44368 1.17412C3.26477 2.21963 2.1011 2.73563 0.947707 2.73563H0.640015V3.0649Z"
