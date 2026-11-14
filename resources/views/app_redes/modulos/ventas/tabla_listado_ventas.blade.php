@@ -259,6 +259,22 @@ use App\SeguimientoBitacora;
                             </a>
                         </li>
 
+                        {{-- Formatos internos --}}
+                        <li>
+                            <a class="btn col-md-12 btn-dropdown-fix"
+                                style="background-color: #1a4189; border-color: #1a4189; color: #fff !important; text-align: left; padding: 6px 12px; font-weight: 500;"
+                                href="{{ route('app_formatos_entrega', $result_vta->id_cotizacion) }}">
+                                <i class="fas fa-truck mr-1"></i> Formato de Entrega
+                            </a>
+                        </li>
+                        <li>
+                            <a class="btn col-md-12 btn-dropdown-fix"
+                                style="background-color: #0f766e; border-color: #0f766e; color: #fff !important; text-align: left; padding: 6px 12px; font-weight: 500;"
+                                href="{{ route('app_formatos_cambio', $result_vta->id_cotizacion) }}">
+                                <i class="fas fa-exchange-alt mr-1"></i> Formato de Cambio
+                            </a>
+                        </li>
+
                         @if ($result_vta->status == 2 or $result_vta->status == 3 or $result_vta->status == 4 or $result_vta->status == 5)
                             <li>
                                 @if ($result_vta->giro_empresa == 'ra')

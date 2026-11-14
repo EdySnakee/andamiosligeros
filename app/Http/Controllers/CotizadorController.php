@@ -85,9 +85,11 @@ class CotizadorController extends Controller
                         <li><input type="submit" name="confirm_desactiva_cliente" id="confirm_desactiva_cliente" data-id-coti="'.$info_cotizaciones->id_cotizacion.'" value="Desactivar" class="btn btn-warning col-md-12 btn-dropdown-fix"></li>
                     ';
                 }
-                if($info_cotizaciones->status == 3){//ACEPTADA
+                if($info_cotizaciones->status == 3 || $info_cotizaciones->status == 6){//ACEPTADA O FACTURADA
                     $btns_st = '
                         <li><a class="btn col-md-12 btn-dropdown-fix" href="'.url("/sb-admin/seguimineto/".$info_cotizaciones->id_cotizacion).'"> Realizar seguimiento</a></li>
+                        <li><a class="btn col-md-12 btn-dropdown-fix" style="background-color: #1a4189; border-color: #1a4189; color: #ffffff;" href="'.url("/sb-admin/formatos/entrega/".$info_cotizaciones->id_cotizacion).'"><i class="fas fa-truck"></i> Formato de Entrega</a></li>
+                        <li><a class="btn col-md-12 btn-dropdown-fix" style="background-color: #0f766e; border-color: #0f766e; color: #ffffff;" href="'.url("/sb-admin/formatos/cambio-producto/".$info_cotizaciones->id_cotizacion).'"><i class="fas fa-exchange-alt"></i> Formato de Cambio</a></li>
                         '.$btn_editar.'
                     ';
                 }
@@ -980,9 +982,11 @@ class CotizadorController extends Controller
                                     <li><input type="submit" name="confirm_desactiva_cliente" id="confirm_desactiva_cliente" data-id-coti="'.$item_coti->id_cotizacion.'" value="Desactivar" class="btn btn-warning col-md-12 btn-dropdown-fix"></li>
                                 ';
                             }
-                            if($item_coti->status == 3){//ACEPTADA
+                            if($item_coti->status == 3 || $item_coti->status == 6){//ACEPTADA O FACTURADA
                                 $btns_st = '
                                     <li><a class="btn col-md-12 btn-dropdown-fix" href="'.url("/sb-admin/seguimineto/".$item_coti->id_cotizacion).'"> Realizar seguimiento</a></li>
+                                    <li><a class="btn col-md-12 btn-dropdown-fix" style="background-color: #1a4189; border-color: #1a4189; color: #ffffff;" href="'.url("/sb-admin/formatos/entrega/".$item_coti->id_cotizacion).'"><i class="fas fa-truck"></i> Formato de Entrega</a></li>
+                                    <li><a class="btn col-md-12 btn-dropdown-fix" style="background-color: #0f766e; border-color: #0f766e; color: #ffffff;" href="'.url("/sb-admin/formatos/cambio-producto/".$item_coti->id_cotizacion).'"><i class="fas fa-exchange-alt"></i> Formato de Cambio</a></li>
                                     '.$btn_editar.'
                                 ';
                             }

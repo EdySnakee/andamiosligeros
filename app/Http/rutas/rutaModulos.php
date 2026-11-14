@@ -355,6 +355,72 @@ Route::group(['middleware' => ['auth', 'role:admin,vendedor,taller']], function 
         'uses' => 'TallerController@confirmarEnvio',
         'as'   => 'app_confirmar_envio_taller',
     ]);
+
+    /* FORMATOS (ENTREGA Y CAMBIO DE PRODUCTO) */
+    Route::get('sb-admin/formatos/buscar-cotizacion', [
+        'uses' => 'FormatosEntregaController@buscarCotizacion',
+        'as'   => 'app_formatos_buscar_cotizacion',
+    ]);
+    Route::get('sb-admin/formatos/buscar-productos', [
+        'uses' => 'FormatosEntregaController@buscarProductos',
+        'as'   => 'app_formatos_buscar_productos',
+    ]);
+    Route::get('sb-admin/formatos/buscar-clientes', [
+        'uses' => 'FormatosEntregaController@buscarClientes',
+        'as'   => 'app_formatos_buscar_clientes',
+    ]);
+
+    /* FORMATO DE ENTREGA */
+    Route::post('sb-admin/formatos/entrega/guardar', [
+        'uses' => 'FormatosEntregaController@guardar',
+        'as'   => 'app_formatos_entrega_guardar',
+    ]);
+    Route::post('sb-admin/formatos/entrega/{id_formato}/actualizar', [
+        'uses' => 'FormatosEntregaController@actualizar',
+        'as'   => 'app_formatos_entrega_actualizar',
+    ])->where('id_formato', '[0-9]+');
+    Route::get('sb-admin/formatos/entrega/{id_formato}/ver', [
+        'uses' => 'FormatosEntregaController@ver',
+        'as'   => 'app_formatos_entrega_ver',
+    ])->where('id_formato', '[0-9]+');
+    Route::get('sb-admin/formatos/entrega/{id_formato}/pdf', [
+        'uses' => 'FormatosEntregaController@pdf',
+        'as'   => 'app_formatos_entrega_pdf',
+    ])->where('id_formato', '[0-9]+');
+    Route::delete('sb-admin/formatos/entrega/{id_formato}/eliminar', [
+        'uses' => 'FormatosEntregaController@eliminar',
+        'as'   => 'app_formatos_entrega_eliminar',
+    ])->where('id_formato', '[0-9]+');
+    Route::get('sb-admin/formatos/entrega/{id_cotizacion?}', [
+        'uses' => 'FormatosEntregaController@index',
+        'as'   => 'app_formatos_entrega',
+    ])->where('id_cotizacion', '[0-9]+');
+
+    /* FORMATO DE CAMBIO DE PRODUCTO */
+    Route::post('sb-admin/formatos/cambio-producto/guardar', [
+        'uses' => 'FormatosCambioController@guardar',
+        'as'   => 'app_formatos_cambio_guardar',
+    ]);
+    Route::post('sb-admin/formatos/cambio-producto/{id_formato}/actualizar', [
+        'uses' => 'FormatosCambioController@actualizar',
+        'as'   => 'app_formatos_cambio_actualizar',
+    ])->where('id_formato', '[0-9]+');
+    Route::get('sb-admin/formatos/cambio-producto/{id_formato}/ver', [
+        'uses' => 'FormatosCambioController@ver',
+        'as'   => 'app_formatos_cambio_ver',
+    ])->where('id_formato', '[0-9]+');
+    Route::get('sb-admin/formatos/cambio-producto/{id_formato}/pdf', [
+        'uses' => 'FormatosCambioController@pdf',
+        'as'   => 'app_formatos_cambio_pdf',
+    ])->where('id_formato', '[0-9]+');
+    Route::delete('sb-admin/formatos/cambio-producto/{id_formato}/eliminar', [
+        'uses' => 'FormatosCambioController@eliminar',
+        'as'   => 'app_formatos_cambio_eliminar',
+    ])->where('id_formato', '[0-9]+');
+    Route::get('sb-admin/formatos/cambio-producto/{id_cotizacion?}', [
+        'uses' => 'FormatosCambioController@index',
+        'as'   => 'app_formatos_cambio',
+    ])->where('id_cotizacion', '[0-9]+');
 });
 
 /*

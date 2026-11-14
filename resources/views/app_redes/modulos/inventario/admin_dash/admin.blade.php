@@ -1,6 +1,4 @@
 @extends('layouts.app_redes')
-@include('app_redes.modulos.modales.modales')
-
 
 @section('css')
     <style>
@@ -163,6 +161,7 @@
 
 @section('content')
     @include('app_redes.modulos.inventario.admin_dash.contenido_admin')
+    @include('app_redes.modulos.modales.modales')
 @stop
 
 @section('js')

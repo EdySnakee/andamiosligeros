@@ -4,8 +4,8 @@
 
 @section('content')
     @include('app_redes.modulos.clientes_web.contenido_clientes_web')
+    @include('app_redes.modulos.modales.modales')
 @stop
-	@include('app_redes.modulos.modales.modales')
 @section('js')
 	@include('app_redes.includes.script_clientes')
 	<script>

@@ -155,11 +155,23 @@ $objDetCotizacion = new DetalleCotizaciones();
                                 <li><a id="genera_qr" class="btn btn-info col-md-12 btn-dropdown-fix" href="#"
                                         data-id-coti="{{ $result_coti->id_cotizacion }}">Generar QR</a></li>
                             @endif
-                        @elseif($result_coti->status == 3)
+                        @elseif($result_coti->status == 3 || $result_coti->status == 6)
                             <li>
                                 <a class="btn col-md-12 btn-dropdown-fix"
                                     href="{{ url('sb-admin/seguimineto') }}/{{ $result_coti->id_cotizacion }}">
                                     Realizar seguimiento</a>
+                            </li>
+                            <li>
+                                <a class="btn col-md-12 btn-dropdown-fix"
+                                    style="background-color: #1a4189; border-color: #1a4189; color: #fff !important;"
+                                    href="{{ route('app_formatos_entrega', $result_coti->id_cotizacion) }}">
+                                    <i class="fas fa-truck mr-1"></i> Formato de Entrega</a>
+                            </li>
+                            <li>
+                                <a class="btn col-md-12 btn-dropdown-fix"
+                                    style="background-color: #0f766e; border-color: #0f766e; color: #fff !important;"
+                                    href="{{ route('app_formatos_cambio', $result_coti->id_cotizacion) }}">
+                                    <i class="fas fa-exchange-alt mr-1"></i> Formato de Cambio</a>
                             </li>
                         @endif
 

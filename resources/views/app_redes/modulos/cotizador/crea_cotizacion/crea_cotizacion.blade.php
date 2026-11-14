@@ -257,8 +257,8 @@ session_destroy();
 @stop
 @section('content')
     @include('app_redes.modulos.cotizador.crea_cotizacion.contenido_crea_cotizacion')
+    @include('app_redes.modulos.modales.modales')
 @stop
-@include('app_redes.modulos.modales.modales')
 @section('js')
     @include('app_redes.includes.script_clientes')
     <script src="{{ url('select2/dist/js/select2.js') }}"></script>
