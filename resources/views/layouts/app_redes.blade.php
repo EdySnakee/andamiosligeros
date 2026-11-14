@@ -293,8 +293,8 @@
         transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
     }
     .pin-badge-rapido:hover {
-        background-color: rgba(0, 0, 0, 0.28);
-        color: #ffe082 !important;
+        background-color: rgba(220, 53, 69, 0.32);
+        color: #ff8a8a !important;
         transform: scale(1.18);
     }
     /* Submenús con botón de fijar (Pin) */
@@ -543,19 +543,31 @@
           $('#formato_cambio_menu').addClass('active');
       }
 
-      // 3. Sistema de Accesos Rápidos (Opciones por defecto del rol + Fijados manuales hasta arriba, sin reacomodo automático)
+      // 3. Sistema de Accesos Rápidos vinculados a la cuenta (0..4 elementos, sin rellenar al quitar)
       var userId = $sidebar.attr('data-user-id') || '0';
       var storageKey = 'al_quick_access_v3_' + userId;
+      var urlGuardarAccesos = $sidebar.attr('data-url-guardar-accesos') || '';
+      var csrfToken = $('meta[name="csrf-token"]').attr('content') || '';
       var catalogo = [];
       var defaultsRol = [];
+      var serverSaved = null;
       var maxItems = 4;
+      var xhrAccesos = null;
 
       try {
           catalogo = JSON.parse($sidebar.attr('data-catalogo-accesos') || '[]');
           defaultsRol = JSON.parse($sidebar.attr('data-defaults-accesos') || '[]');
+          var rawSavedAttr = $sidebar.attr('data-saved-accesos');
+          if (typeof rawSavedAttr === 'string' && rawSavedAttr !== '') {
+              var parsedSaved = JSON.parse(rawSavedAttr);
+              if (Array.isArray(parsedSaved)) {
+                  serverSaved = parsedSaved;
+              }
+          }
       } catch (e) {
           catalogo = [];
           defaultsRol = [];
+          serverSaved = null;
       }
 
       var mapaCatalogo = {};
@@ -572,96 +584,135 @@
           }
       }
 
-      function leerEstadoAccesos() {
-          var base = { pinned: [] };
+      function filtrarListaClaves(lista) {
+          if (!Array.isArray(lista)) return [];
+          var vistos = {};
+          var limpias = [];
+          for (var idx = 0; idx < lista.length && limpias.length < maxItems; idx++) {
+              var k = lista[idx];
+              if (typeof k === 'string' && mapaCatalogo[k] && !vistos[k]) {
+                  limpias.push(k);
+                  vistos[k] = true;
+              }
+          }
+          return limpias;
+      }
+
+      function leerLegacyLocalStorage() {
           try {
               var raw = localStorage.getItem(storageKey);
-              if (raw) {
-                  var parsed = JSON.parse(raw);
-                  if (parsed && typeof parsed === 'object' && Array.isArray(parsed.pinned)) {
-                      var vistos = {};
-                      var limpios = [];
-                      for (var i = 0; i < parsed.pinned.length && limpios.length < maxItems; i++) {
-                          var k = parsed.pinned[i];
-                          if (mapaCatalogo[k] && !vistos[k]) {
-                              limpios.push(k);
-                              vistos[k] = true;
-                          }
-                      }
-                      base.pinned = limpios;
+              if (!raw) return [];
+              var parsed = JSON.parse(raw);
+              if (parsed && typeof parsed === 'object' && Array.isArray(parsed.pinned)) {
+                  return filtrarListaClaves(parsed.pinned);
+              }
+          } catch (e) {}
+          return [];
+      }
+
+      function limpiarLegacyLocalStorage() {
+          try {
+              localStorage.removeItem(storageKey);
+          } catch (e) {}
+      }
+
+      function mostrarAvisoAccesos(titulo, mensaje, icono) {
+          if (typeof swal === 'function') {
+              swal({
+                  title: titulo,
+                  text: mensaje,
+                  icon: icono || 'warning',
+                  button: 'Entendido'
+              });
+          } else {
+              alert(mensaje);
+          }
+      }
+
+      var clavesActuales = [];
+      var debeMigrarLegacy = false;
+
+      if (serverSaved !== null) {
+          clavesActuales = filtrarListaClaves(serverSaved);
+          limpiarLegacyLocalStorage();
+      } else {
+          var legacyPinned = leerLegacyLocalStorage();
+          if (legacyPinned.length > 0) {
+              clavesActuales = legacyPinned.slice();
+              for (var d = 0; d < defaultsRol.length && clavesActuales.length < maxItems; d++) {
+                  var kDef = defaultsRol[d];
+                  if (mapaCatalogo[kDef] && clavesActuales.indexOf(kDef) === -1) {
+                      clavesActuales.push(kDef);
                   }
               }
-          } catch (e) {}
-          return base;
+              clavesActuales = filtrarListaClaves(clavesActuales);
+              debeMigrarLegacy = true;
+          } else {
+              clavesActuales = filtrarListaClaves(defaultsRol);
+          }
       }
 
-      function guardarEstadoAccesos(state) {
-          try {
-              localStorage.setItem(storageKey, JSON.stringify(state));
-          } catch (e) {}
-      }
-
-      function obtenerTopAccesosRapidos(state) {
-          var seleccionados = [];
-          var usados = {};
-
-          // A) Primero los fijados manualmente por el usuario (el último fijado queda hasta arriba en posición #1)
-          for (var p = 0; p < state.pinned.length && seleccionados.length < maxItems; p++) {
-              var kPin = state.pinned[p];
-              if (mapaCatalogo[kPin] && !usados[kPin]) {
-                  seleccionados.push({
-                      item: mapaCatalogo[kPin],
-                      pinned: true
-                  });
-                  usados[kPin] = true;
-              }
+      function sincronizarAccesosConCuenta(nuevasClaves, clavesPrevias, esMigracion) {
+          if (!urlGuardarAccesos) return;
+          if (xhrAccesos && xhrAccesos.readyState !== 4) {
+              xhrAccesos.abort();
           }
 
-          // B) Rellenar los lugares restantes con las opciones por defecto del rol en su orden fijo
-          for (var d = 0; d < defaultsRol.length && seleccionados.length < maxItems; d++) {
-              var kDef = defaultsRol[d];
-              if (mapaCatalogo[kDef] && !usados[kDef]) {
-                  seleccionados.push({
-                      item: mapaCatalogo[kDef],
-                      pinned: false
-                  });
-                  usados[kDef] = true;
-              }
-          }
+          xhrAccesos = $.ajax({
+              url: urlGuardarAccesos,
+              type: 'POST',
+              dataType: 'json',
+              headers: csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {},
+              data: {
+                  _token: csrfToken,
+                  accesos_json: JSON.stringify(nuevasClaves)
+              },
+              success: function(resp) {
+                  limpiarLegacyLocalStorage();
+                  if (resp && Array.isArray(resp.accesos)) {
+                      clavesActuales = filtrarListaClaves(resp.accesos);
+                      renderizarAccesosRapidos();
+                  }
+              },
+              error: function(jqXHR, textStatus) {
+                  if (textStatus === 'abort') return;
+                  if (esMigracion) return;
 
-          // C) Respaldo en caso de que el rol tenga menos de 4 defaults definidos
-          for (var c = 0; c < catalogo.length && seleccionados.length < maxItems; c++) {
-              var kCat = catalogo[c].key;
-              if (!usados[kCat]) {
-                  seleccionados.push({
-                      item: catalogo[c],
-                      pinned: false
-                  });
-                  usados[kCat] = true;
-              }
-          }
+                  if (Array.isArray(clavesPrevias)) {
+                      clavesActuales = filtrarListaClaves(clavesPrevias);
+                      renderizarAccesosRapidos();
+                  }
 
-          return seleccionados;
+                  var msg = (jqXHR.responseJSON && jqXHR.responseJSON.message) ? jqXHR.responseJSON.message : '';
+                  if (jqXHR.status === 401 || jqXHR.status === 419) {
+                      mostrarAvisoAccesos('Sesión expirada', 'Recarga la página e inicia sesión para guardar tus frecuentes.', 'warning');
+                  } else if (jqXHR.status === 422 && msg) {
+                      mostrarAvisoAccesos('Límite alcanzado', msg, 'warning');
+                  } else {
+                      mostrarAvisoAccesos('No se pudo guardar', msg || 'Ocurrió un error al guardar tus frecuentes en tu cuenta.', 'error');
+                  }
+              }
+          });
       }
 
       function renderizarAccesosRapidos() {
-          var state = leerEstadoAccesos();
-          var topItems = obtenerTopAccesosRapidos(state);
+          clavesActuales = filtrarListaClaves(clavesActuales);
+          var sinFrecuentes = (clavesActuales.length === 0);
+          $('.grupo-frecuentes-sidebar').toggleClass('d-none', sinFrecuentes);
+
           var $contenedor = $('#contenedor-accesos-rapidos-sidebar');
           var esCompacto = $sidebar.hasClass('toggled');
           var html = '';
 
-          for (var k = 0; k < topItems.length; k++) {
-              var entry = topItems[k];
-              var it = entry.item;
+          for (var k = 0; k < clavesActuales.length; k++) {
+              var it = mapaCatalogo[clavesActuales[k]];
+              if (!it) continue;
               var esActivo = (claveVistaActual === it.key) ? 'active' : '';
               var textoMostrar = esCompacto ? it.label : it.full;
-              var pinBadge = entry.pinned
-                  ? '<i class="fas fa-thumbtack pin-badge-rapido" data-key="' + it.key + '" title="Clic para desfijar"></i>'
-                  : '';
+              var pinBadge = '<i class="fas fa-thumbtack pin-badge-rapido" data-key="' + it.key + '" title="Quitar de frecuentes"></i>';
 
               html += '<li class="nav-item nav-item-rapido ' + esActivo + '">' +
-                        '<a class="nav-link nav-link-directo" href="' + it.url + '" title="' + it.full + (entry.pinned ? ' (Fijado)' : '') + '">' +
+                        '<a class="nav-link nav-link-directo" href="' + it.url + '" title="' + it.full + '">' +
                           pinBadge +
                           '<i class="' + it.icon + '"></i>' +
                           '<span>' + textoMostrar + '</span>' +
@@ -674,8 +725,8 @@
           // Actualizar estado visual de los pines dentro de los submenús
           $('.btn-pin-acceso').each(function() {
               var kBtn = $(this).attr('data-key');
-              if (state.pinned.indexOf(kBtn) !== -1) {
-                  $(this).addClass('fijado').attr('title', 'Quitar de fijados');
+              if (clavesActuales.indexOf(kBtn) !== -1) {
+                  $(this).addClass('fijado').attr('title', 'Quitar de frecuentes');
               } else {
                   $(this).removeClass('fijado').attr('title', 'Fijar hasta arriba en Frecuentes');
               }
@@ -684,27 +735,32 @@
 
       renderizarAccesosRapidos();
 
-      // Fijar (se coloca hasta arriba en posición #1) o desfijar (desde el submenú o directo desde el pin del botón rápido)
+      if (debeMigrarLegacy) {
+          sincronizarAccesosConCuenta(clavesActuales.slice(), null, true);
+      }
+
+      // Fijar (se coloca hasta arriba en posición #1) o quitar (hasta quedar en 0; máximo 4 sin reemplazo automático)
       $(document).on('click', '.btn-pin-acceso, .pin-badge-rapido', function(e) {
           e.preventDefault();
           e.stopPropagation();
           var key = $(this).attr('data-key');
-          if (!key) return;
+          if (!key || !mapaCatalogo[key]) return;
 
-          var state = leerEstadoAccesos();
-          var idxPin = state.pinned.indexOf(key);
+          var previas = clavesActuales.slice();
+          var idxPin = clavesActuales.indexOf(key);
+
           if (idxPin !== -1) {
-              // Desfijar vista
-              state.pinned.splice(idxPin, 1);
+              clavesActuales.splice(idxPin, 1);
           } else {
-              // Fijar vista hasta arriba (posición #1), desplazando las previas un lugar hacia abajo
-              state.pinned.unshift(key);
-              if (state.pinned.length > maxItems) {
-                  state.pinned = state.pinned.slice(0, maxItems);
+              if (clavesActuales.length >= maxItems) {
+                  mostrarAvisoAccesos('Límite alcanzado', 'Ya tienes 4 frecuentes. Quita uno para agregar otro.', 'warning');
+                  return;
               }
+              clavesActuales.unshift(key);
           }
-          guardarEstadoAccesos(state);
+
           renderizarAccesosRapidos();
+          sincronizarAccesosConCuenta(clavesActuales.slice(), previas, false);
       });
 
       // 4. Al hacer clic en una categoría con submenú mientras el sidebar está compacto, desplegar el sidebar automáticamente

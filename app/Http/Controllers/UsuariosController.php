@@ -279,5 +279,52 @@ class UsuariosController extends Controller
                 return response()->json(['success' => false, 'message' => 'Acción no reconocida.'], 400);
         }
     }
+
+    /**
+     * Guarda en la cuenta del usuario autenticado (Admin, Vendedor, Taller o Sucursal)
+     * sus accesos rápidos fijados en la sidebar (entre 0 y 4 elementos).
+     */
+    public function guardarAccesosRapidos(Request $request)
+    {
+        $user = \Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Sesión no válida.'], 401);
+        }
+
+        if (!$user->hasAccesosRapidosColumn()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La columna accesos_rapidos aún no existe en la base de datos.',
+            ], 503);
+        }
+
+        // Aceptar cadena JSON explícita (para preservar []) o arreglo tradicional
+        if ($request->has('accesos_json')) {
+            $claves = json_decode((string) $request->input('accesos_json'), true);
+        } else {
+            $claves = $request->input('accesos', []);
+        }
+
+        if (!is_array($claves)) {
+            return response()->json(['success' => false, 'message' => 'Formato de accesos inválido.'], 422);
+        }
+
+        $filtradas = $user->filtrarClavesAccesosRapidos($claves);
+        if (count($filtradas) > 4) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ya tienes 4 frecuentes. Quita uno para agregar otro.',
+            ], 422);
+        }
+
+        $user->accesos_rapidos = json_encode(array_values($filtradas));
+        $user->save();
+
+        return response()->json([
+            'success'        => true,
+            'accesos'        => array_values($filtradas),
+            'personalizados' => true,
+        ]);
+    }
 }
 

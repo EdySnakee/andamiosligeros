@@ -3,232 +3,22 @@
     $esAdminMenu = $usrMenu && $usrMenu->isAdmin();
     $esVendedorMenu = $usrMenu && $usrMenu->isVendedor();
     $esTallerMenu = $usrMenu && $usrMenu->isTaller();
-    $esSucursalMenu = $usrMenu && ($usrMenu->tipo_usuario == 'g1' || in_array($usrMenu->id, [16, 25, 26, 32]));
+    $esSucursalMenu = $usrMenu && $usrMenu->isSucursal();
 
-    // Catálogo de vistas disponibles para el bloque híbrido de Accesos Rápidos según permisos del usuario
-    $catalogoAccesosMenu = [];
-
-    if ($esAdminMenu || $esVendedorMenu || $esTallerMenu) {
-        $catalogoAccesosMenu[] = [
-            'key'   => 'cotizar',
-            'label' => 'Cotizar',
-            'full'  => 'Cotizar',
-            'url'   => url('sb-admin/genera-cotizacion'),
-            'match' => '/sb-admin/genera-cotizacion',
-            'icon'  => 'fas fa-plus-circle',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'cotizaciones',
-            'label' => 'Cotizaciones',
-            'full'  => 'Listado de Cotizaciones',
-            'url'   => url('sb-admin/cotizaciones'),
-            'match' => '/sb-admin/cotizaciones',
-            'icon'  => 'fas fa-file-invoice-dollar',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'ventas',
-            'label' => 'Ventas',
-            'full'  => 'Listado de Ventas',
-            'url'   => url('sb-admin/ventas'),
-            'match' => '/sb-admin/ventas',
-            'icon'  => 'fas fa-dollar-sign',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'formato_entrega',
-            'label' => 'F. Entrega',
-            'full'  => 'Formato de Entrega',
-            'url'   => route('app_formatos_entrega'),
-            'match' => '/sb-admin/formatos/entrega',
-            'icon'  => 'fas fa-truck',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'formato_cambio',
-            'label' => 'F. Cambio',
-            'full'  => 'Cambio de Producto',
-            'url'   => route('app_formatos_cambio'),
-            'match' => '/sb-admin/formatos/cambio-producto',
-            'icon'  => 'fas fa-exchange-alt',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'ordenes_taller',
-            'label' => 'Taller',
-            'full'  => 'Órdenes de Taller',
-            'url'   => url('sb-admin/ordenes-taller'),
-            'match' => '/sb-admin/ordenes-taller',
-            'icon'  => 'fas fa-tools',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'rastreo_guias',
-            'label' => 'Guías',
-            'full'  => 'Rastreo de Guías',
-            'url'   => url('sb-admin/rastreo-guias'),
-            'match' => '/sb-admin/rastreo-guias',
-            'icon'  => 'fas fa-shipping-fast',
-        ];
-    }
-
-    if ($esAdminMenu || $esVendedorMenu) {
-        $catalogoAccesosMenu[] = [
-            'key'   => 'clientes',
-            'label' => 'Clientes',
-            'full'  => 'Todos los Clientes',
-            'url'   => url('sb-admin/clientes'),
-            'match' => '/sb-admin/clientes',
-            'icon'  => 'fas fa-users',
-        ];
-    }
-
-    if ($esAdminMenu || $esTallerMenu) {
-        $catalogoAccesosMenu[] = [
-            'key'   => 'inventario',
-            'label' => 'Inventario',
-            'full'  => 'Inventario General',
-            'url'   => url('sb-admin/inventario'),
-            'match' => '/sb-admin/inventario',
-            'icon'  => 'fas fa-boxes',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'embarques',
-            'label' => 'Embarques',
-            'full'  => 'Órdenes de Embarque',
-            'url'   => url('sb-admin/ordenes-embarque'),
-            'match' => '/sb-admin/ordenes-embarque',
-            'icon'  => 'fas fa-truck-loading',
-        ];
-    }
-
-    if ($esAdminMenu || $esSucursalMenu) {
-        $catalogoAccesosMenu[] = [
-            'key'   => 'inventario_suc',
-            'label' => 'Inv. Sucursal',
-            'full'  => 'Inventario Sucursal',
-            'url'   => url('sb-admin/inventarioSuc'),
-            'match' => '/sb-admin/inventarioSuc',
-            'icon'  => 'fas fa-warehouse',
-        ];
-    }
-
-    if ($esAdminMenu) {
-        $catalogoAccesosMenu[] = [
-            'key'   => 'productos',
-            'label' => 'Productos',
-            'full'  => 'Catálogo de Productos',
-            'url'   => url('sb-admin/productos'),
-            'match' => '/sb-admin/productos',
-            'icon'  => 'fas fa-cube',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'agregar_producto',
-            'label' => '+ Producto',
-            'full'  => 'Agregar Producto',
-            'url'   => url('sb-admin/agregar-producto'),
-            'match' => '/sb-admin/agregar-producto',
-            'icon'  => 'fas fa-plus-square',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'tienda',
-            'label' => 'Tienda Web',
-            'full'  => 'Tienda en Línea',
-            'url'   => url('sb-admin/productos-tienda'),
-            'match' => '/sb-admin/productos-tienda',
-            'icon'  => 'fas fa-store',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'ajustes_tienda',
-            'label' => 'Ajustes Tienda',
-            'full'  => 'Ajustes de Tienda',
-            'url'   => url('sb-admin/ajustes_tienda'),
-            'match' => '/sb-admin/ajustes_tienda',
-            'icon'  => 'fas fa-sliders-h',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'promociones',
-            'label' => 'Promociones',
-            'full'  => 'Promociones',
-            'url'   => url('sb-admin/all-promos'),
-            'match' => '/sb-admin/all-promos',
-            'icon'  => 'fas fa-percent',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'blog',
-            'label' => 'Blog',
-            'full'  => 'Artículos del Blog',
-            'url'   => url('sb-admin/articulos'),
-            'match' => '/sb-admin/articulos',
-            'icon'  => 'far fa-newspaper',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'agregar_blog',
-            'label' => '+ Artículo',
-            'full'  => 'Agregar Artículo',
-            'url'   => url('sb-admin/agregar-articulos'),
-            'match' => '/sb-admin/agregar-articulos',
-            'icon'  => 'fas fa-pen-nib',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'est_ventas',
-            'label' => 'Est. Ventas',
-            'full'  => 'Estadísticas de Ventas',
-            'url'   => url('sb-admin/est-ventas'),
-            'match' => '/sb-admin/est-ventas',
-            'icon'  => 'fas fa-chart-line',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'est_cotizaciones',
-            'label' => 'Est. Cotiz.',
-            'full'  => 'Estadísticas de Cotizaciones',
-            'url'   => url('sb-admin/est-cotizaciones'),
-            'match' => '/sb-admin/est-cotizaciones',
-            'icon'  => 'fas fa-chart-bar',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'caja_chica',
-            'label' => 'Caja Chica',
-            'full'  => 'Caja Chica',
-            'url'   => url('sb-admin/caja'),
-            'match' => '/sb-admin/caja',
-            'icon'  => 'fas fa-cash-register',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'usuarios',
-            'label' => 'Usuarios',
-            'full'  => 'Todos los Usuarios',
-            'url'   => url('sb-admin/usuarios'),
-            'match' => '/sb-admin/usuarios',
-            'icon'  => 'fas fa-users-cog',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'registros_usuarios',
-            'label' => 'Bitácora Usr.',
-            'full'  => 'Registros de Usuarios',
-            'url'   => url('sb-admin/registros-usuarios'),
-            'match' => '/sb-admin/registros-usuarios',
-            'icon'  => 'fas fa-user-clock',
-        ];
-        $catalogoAccesosMenu[] = [
-            'key'   => 'codificar',
-            'label' => 'Base64',
-            'full'  => 'Codificar Base64',
-            'url'   => url('sb-admin/codificar'),
-            'match' => '/sb-admin/codificar',
-            'icon'  => 'fas fa-code',
-        ];
-    }
-
-    // Semilla inicial por rol (4 vistas más frecuentes por perfil)
-    if ($esTallerMenu) {
-        $defaultsRolMenu = ['ordenes_taller', 'inventario', 'formato_entrega', 'embarques'];
-    } elseif ($esVendedorMenu || $esAdminMenu) {
-        $defaultsRolMenu = ['cotizar', 'cotizaciones', 'ventas', 'formato_entrega'];
-    } else {
-        $defaultsRolMenu = ['inventario_suc'];
-    }
+    $catalogoAccesosMenu = $usrMenu ? $usrMenu->getCatalogoAccesosRapidos() : [];
+    $defaultsRolMenu = $usrMenu ? $usrMenu->getDefaultsAccesosRapidos() : [];
+    $accesosPersonalizadosMenu = ($usrMenu && $usrMenu->hasAccesosRapidosPersonalizados())
+        ? $usrMenu->getAccesosRapidosResueltos()
+        : null;
+    $sinFrecuentesInicialMenu = is_array($accesosPersonalizadosMenu) && count($accesosPersonalizadosMenu) === 0;
 @endphp
 
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion toggled" id="accordionSidebar"
     data-user-id="{{ $usrMenu ? $usrMenu->id : 0 }}"
     data-catalogo-accesos="{{ json_encode($catalogoAccesosMenu) }}"
-    data-defaults-accesos="{{ json_encode($defaultsRolMenu) }}">
+    data-defaults-accesos="{{ json_encode($defaultsRolMenu) }}"
+    data-saved-accesos="{{ $accesosPersonalizadosMenu !== null ? json_encode($accesosPersonalizadosMenu) : 'null' }}"
+    data-url-guardar-accesos="{{ route('app_perfil_accesos_rapidos') }}">
 
     <!-- Sidebar - Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ $esTallerMenu ? url('sb-admin/ordenes-taller') : url('sb-admin/dashboard') }}">
@@ -254,13 +44,13 @@
         </li>
         @endif
 
-        {{-- 2. ACCESOS RÁPIDOS HÍBRIDOS (FRECUENTES + FIJADOS POR PIN, REDIRECCIÓN EN 1 CLIC SIN EXPANDIR) --}}
-        <hr class="sidebar-divider my-1">
-        <div class="sidebar-heading sidebar-heading-rapidos d-flex align-items-center justify-content-between" title="Tus vistas más frecuentes y fijadas (clic directo)">
+        {{-- 2. ACCESOS RÁPIDOS VINCULADOS A LA CUENTA (0 A 4 FIJADOS, OCULTA SI QUEDA EN 0) --}}
+        <hr class="sidebar-divider my-1 grupo-frecuentes-sidebar {{ $sinFrecuentesInicialMenu ? 'd-none' : '' }}">
+        <div class="sidebar-heading sidebar-heading-rapidos grupo-frecuentes-sidebar {{ $sinFrecuentesInicialMenu ? 'd-none' : '' }}" title="Accesos frecuentes fijados en tu cuenta (clic directo)">
             <span><i class="fas fa-bolt text-warning mr-1"></i>Frecuentes</span>
         </div>
-        <div id="contenedor-accesos-rapidos-sidebar">
-            {{-- Se hidrata instantáneamente vía JS al cargar según historial + pines del usuario --}}
+        <div id="contenedor-accesos-rapidos-sidebar" class="grupo-frecuentes-sidebar {{ $sinFrecuentesInicialMenu ? 'd-none' : '' }}">
+            {{-- Se hidrata instantáneamente vía JS según las preferencias de la cuenta --}}
         </div>
 
         <hr class="sidebar-divider my-1">

@@ -425,7 +425,7 @@ Route::group(['middleware' => ['auth', 'role:admin,vendedor,taller']], function 
 
 /*
 |--------------------------------------------------------------------------
-| 5. INVENTARIO SUCURSAL (Para sucursales / roles existentes)
+| 5. INVENTARIO SUCURSAL Y PREFERENCIAS DE PERFIL (Para todos los usuarios autenticados)
 |--------------------------------------------------------------------------
 */
 Route::group(['middleware' => ['auth']], function () {
@@ -436,5 +436,9 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('sb-admin/inventarioSuc', [
         'uses' => 'InventarioSucController@ajax_inventario',
         'as'   => 'ajax_inv_path',
+    ]);
+    Route::post('sb-admin/perfil/accesos-rapidos', [
+        'uses' => 'UsuariosController@guardarAccesosRapidos',
+        'as'   => 'app_perfil_accesos_rapidos',
     ]);
 });
