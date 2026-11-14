@@ -15,46 +15,74 @@ use Auth;
 trait FormatosHelperTrait
 {
     /**
-     * Busca cotizaciones/ventas activas o aceptadas para vincularlas a un formato.
+     * Obtiene las últimas cotizaciones/ventas (hasta 12) usando índice primario sin joins pesados.
      */
-    public function buscarCotizacion(Request $request)
+    protected function obtenerCotizacionesRecientes($limite = 12)
     {
-        $term = trim($request->input('term', $request->input('q', '')));
+        $cotizaciones = Cotizaciones::select(
+                'id_cotizacion',
+                'id_cliente',
+                'id_usuario_genera',
+                'cod_cotizacion',
+                'cod_venta',
+                'fecha',
+                'fecha_formato',
+                'status',
+                'giro_empresa'
+            )
+            ->where('giro_empresa', 'al')
+            ->orderBy('id_cotizacion', 'DESC')
+            ->limit($limite)
+            ->get();
 
-        $query = Cotizaciones::from('cotizaciones AS cot')
-            ->leftJoin('clientes AS cli', 'cli.idcl', '=', 'cot.id_cliente')
-            ->leftJoin('users AS us', 'us.id', '=', 'cot.id_usuario_genera')
-            ->leftJoin('ventas AS vta', 'vta.id_cotizacion', '=', 'cot.id_cotizacion')
-            ->select(
-                'cot.id_cotizacion',
-                'cot.cod_cotizacion',
-                'cot.cod_venta',
-                'cot.fecha',
-                'cot.fecha_formato',
-                'cot.status',
-                'cot.giro_empresa',
-                'cli.nombrecl',
-                'cli.telefonocl',
-                'cli.celularcl',
-                'us.name AS vendedor_nombre',
-                'vta.cod_venta AS venta_folio'
+        if ($cotizaciones->count() < $limite) {
+            $faltantes = $limite - $cotizaciones->count();
+            $idsExistentes = $cotizaciones->lists('id_cotizacion')->all();
+            $extraQuery = Cotizaciones::select(
+                'id_cotizacion',
+                'id_cliente',
+                'id_usuario_genera',
+                'cod_cotizacion',
+                'cod_venta',
+                'fecha',
+                'fecha_formato',
+                'status',
+                'giro_empresa'
             );
-
-        if ($term !== '') {
-            $query->where(function ($w) use ($term) {
-                $w->where('cot.id_cotizacion', 'LIKE', '%' . $term . '%')
-                  ->orWhere('cot.cod_cotizacion', 'LIKE', '%' . $term . '%')
-                  ->orWhere('cot.cod_venta', 'LIKE', '%' . $term . '%')
-                  ->orWhere('vta.cod_venta', 'LIKE', '%' . $term . '%')
-                  ->orWhere('cli.nombrecl', 'LIKE', '%' . $term . '%');
-            });
+            if (!empty($idsExistentes)) {
+                $extraQuery->whereNotIn('id_cotizacion', $idsExistentes);
+            }
+            $extras = $extraQuery->orderBy('id_cotizacion', 'DESC')->limit($faltantes)->get();
+            $cotizaciones = $cotizaciones->merge($extras);
         }
 
-        $cotizaciones = $query
-            ->orderByRaw("CASE WHEN cot.giro_empresa = 'al' THEN 0 ELSE 1 END ASC")
-            ->orderBy('cot.id_cotizacion', 'DESC')
-            ->limit(25)
-            ->get();
+        return $this->formatearCotizacionesBusqueda($cotizaciones);
+    }
+
+    /**
+     * Hidrata clientes, vendedores y folios de venta únicamente para las cotizaciones seleccionadas (máx. 12).
+     */
+    protected function formatearCotizacionesBusqueda($cotizaciones)
+    {
+        if ($cotizaciones->isEmpty()) {
+            return collect([]);
+        }
+
+        $idsCoti = $cotizaciones->lists('id_cotizacion')->filter()->unique()->values()->all();
+        $idsCli = $cotizaciones->lists('id_cliente')->filter()->unique()->values()->all();
+        $idsUsr = $cotizaciones->lists('id_usuario_genera')->filter()->unique()->values()->all();
+
+        $clientesMap = !empty($idsCli)
+            ? Clientes::select('idcl', 'nombrecl', 'telefonocl', 'celularcl')->whereIn('idcl', $idsCli)->get()->keyBy('idcl')
+            : collect([]);
+
+        $usuariosMap = !empty($idsUsr)
+            ? User::select('id', 'name')->whereIn('id', $idsUsr)->get()->keyBy('id')
+            : collect([]);
+
+        $ventasMap = !empty($idsCoti)
+            ? Ventas::select('id_cotizacion', 'cod_venta')->whereIn('id_cotizacion', $idsCoti)->get()->keyBy('id_cotizacion')
+            : collect([]);
 
         $estatusMap = [
             1 => 'Activo',
@@ -65,23 +93,120 @@ trait FormatosHelperTrait
             6 => 'Facturado',
         ];
 
-        $resultados = $cotizaciones->map(function ($c) use ($estatusMap) {
+        return $cotizaciones->map(function ($c) use ($clientesMap, $usuariosMap, $ventasMap, $estatusMap) {
+            $cli = isset($clientesMap[$c->id_cliente]) ? $clientesMap[$c->id_cliente] : null;
+            $usr = isset($usuariosMap[$c->id_usuario_genera]) ? $usuariosMap[$c->id_usuario_genera] : null;
+            $vta = isset($ventasMap[$c->id_cotizacion]) ? $ventasMap[$c->id_cotizacion] : null;
             $statusInt = (int) $c->status;
+
             return [
                 'id_cotizacion'  => $c->id_cotizacion,
                 'cod_cotizacion' => $c->cod_cotizacion ?: ('COT-' . $c->id_cotizacion),
-                'cod_venta'      => $c->venta_folio ?: ($c->cod_venta ?: ''),
-                'cliente'        => $c->nombrecl ?: 'Sin cliente',
-                'telefono'       => $c->telefonocl ?: ($c->celularcl ?: ''),
-                'vendedor'       => $c->vendedor_nombre ?: '',
+                'cod_venta'      => ($vta && $vta->cod_venta) ? $vta->cod_venta : ($c->cod_venta ?: ''),
+                'cliente'        => ($cli && $cli->nombrecl) ? $cli->nombrecl : 'Sin cliente',
+                'telefono'       => $cli ? ($cli->telefonocl ?: ($cli->celularcl ?: '')) : '',
+                'vendedor'       => $usr ? $usr->name : '',
                 'fecha_formato'  => $c->fecha_formato ?: $c->fecha,
                 'status'         => $statusInt,
                 'status_label'   => isset($estatusMap[$statusInt]) ? $estatusMap[$statusInt] : 'Otro',
                 'giro_empresa'   => $c->giro_empresa,
             ];
-        });
+        })->values();
+    }
 
-        return response()->json($resultados);
+    /**
+     * Busca cotizaciones/ventas activas o aceptadas para vincularlas a un formato (máximo 12 resultados, optimizada).
+     */
+    public function buscarCotizacion(Request $request)
+    {
+        $term = trim($request->input('term', $request->input('q', '')));
+        $limite = 12;
+
+        if ($term === '') {
+            return response()->json($this->obtenerCotizacionesRecientes($limite));
+        }
+
+        $idsPorVenta = [];
+        // Buscar coincidencia de folio en tabla ventas solo si el término parece folio de venta o alfanumérico corto
+        if (stripos($term, 'val') !== false || strlen($term) >= 3) {
+            $idsPorVenta = Ventas::where('cod_venta', 'LIKE', '%' . $term . '%')
+                ->orderBy('id_venta', 'DESC')
+                ->limit($limite)
+                ->lists('id_cotizacion')
+                ->filter()
+                ->all();
+        }
+
+        // Si el usuario buscó un ID numérico exacto, priorizar búsqueda por PK directa (< 1 ms)
+        $exacta = null;
+        $idNumericoExtraido = null;
+        if (ctype_digit($term)) {
+            $idNumericoExtraido = (int) $term;
+        } elseif (preg_match('/^(?:cal|cot)0*(\d+)$/i', $term, $m)) {
+            $idNumericoExtraido = (int) $m[1];
+        }
+
+        if ($idNumericoExtraido !== null && $idNumericoExtraido > 0) {
+            $exacta = Cotizaciones::select(
+                    'id_cotizacion',
+                    'id_cliente',
+                    'id_usuario_genera',
+                    'cod_cotizacion',
+                    'cod_venta',
+                    'fecha',
+                    'fecha_formato',
+                    'status',
+                    'giro_empresa'
+                )
+                ->where('id_cotizacion', $idNumericoExtraido)
+                ->first();
+        }
+
+        // Búsqueda principal escaneando por PK descendente y haciendo join 1-a-1 únicamente contra clientes (PK idcl)
+        $cotizaciones = Cotizaciones::from('cotizaciones AS cot')
+            ->leftJoin('clientes AS cli', 'cli.idcl', '=', 'cot.id_cliente')
+            ->select(
+                'cot.id_cotizacion',
+                'cot.id_cliente',
+                'cot.id_usuario_genera',
+                'cot.cod_cotizacion',
+                'cot.cod_venta',
+                'cot.fecha',
+                'cot.fecha_formato',
+                'cot.status',
+                'cot.giro_empresa'
+            )
+            ->where(function ($w) use ($term, $idsPorVenta, $idNumericoExtraido) {
+                if ($idNumericoExtraido !== null && $idNumericoExtraido > 0) {
+                    $w->orWhere('cot.id_cotizacion', $idNumericoExtraido);
+                }
+                if (!empty($idsPorVenta)) {
+                    $w->orWhereIn('cot.id_cotizacion', $idsPorVenta);
+                }
+                $w->orWhere('cot.cod_cotizacion', 'LIKE', '%' . $term . '%')
+                  ->orWhere('cot.cod_venta', 'LIKE', '%' . $term . '%')
+                  ->orWhere('cli.nombrecl', 'LIKE', '%' . $term . '%');
+            })
+            ->orderBy('cot.id_cotizacion', 'DESC')
+            ->limit($limite)
+            ->get();
+
+        if ($exacta && !$cotizaciones->contains('id_cotizacion', $exacta->id_cotizacion)) {
+            $cotizaciones->prepend($exacta);
+            $cotizaciones = $cotizaciones->take($limite);
+        }
+
+        // Ordenar en PHP priorizando Andamios Ligeros ('al') y folio más reciente sin penalizar SQL con filesort
+        $ordenadas = $cotizaciones->sort(function ($a, $b) {
+            $pa = ($a->giro_empresa === 'al') ? 0 : 1;
+            $pb = ($b->giro_empresa === 'al') ? 0 : 1;
+            if ($pa !== $pb) {
+                return $pa - $pb;
+            }
+            return (int) $b->id_cotizacion - (int) $a->id_cotizacion;
+        })->values();
+
+        return response()->json($this->formatearCotizacionesBusqueda($ordenadas));
     }
 
     /**
@@ -288,11 +413,11 @@ trait FormatosHelperTrait
                   ->orWhere('celularcl', 'LIKE', '%' . $term . '%')
                   ->orWhere('rfccl', 'LIKE', '%' . $term . '%');
             })
-            ->orderByRaw('CASE WHEN nombrecl LIKE ? THEN 0 ELSE 1 END ASC', [$term . '%'])
             ->orderBy('idcl', 'DESC')
-            ->limit(20)
+            ->limit(15)
             ->get();
 
+        $termLower = mb_strtolower($term);
         $resultados = $clientes->map(function ($c) {
             $tel = trim((string) $c->telefonocl);
             $cel = trim((string) $c->celularcl);
@@ -306,6 +431,13 @@ trait FormatosHelperTrait
             ];
         })->filter(function ($c) {
             return $c['nombre'] !== '';
+        })->sort(function ($a, $b) use ($termLower) {
+            $pa = (mb_strpos(mb_strtolower($a['nombre']), $termLower) === 0) ? 0 : 1;
+            $pb = (mb_strpos(mb_strtolower($b['nombre']), $termLower) === 0) ? 0 : 1;
+            if ($pa !== $pb) {
+                return $pa - $pb;
+            }
+            return (int) $b['id'] - (int) $a['id'];
         })->values();
 
         return response()->json($resultados);

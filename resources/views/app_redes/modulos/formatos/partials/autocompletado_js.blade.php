@@ -3,6 +3,7 @@
 <script>
   var catalogoProductos = {!! isset($catalogoProductos) ? json_encode($catalogoProductos) : '[]' !!};
   var catalogoVendedores = {!! isset($catalogoVendedores) ? json_encode($catalogoVendedores) : '[]' !!};
+  var cacheCotizacionesRecientes = {!! isset($cotizacionesRecientes) ? json_encode($cotizacionesRecientes) : 'null' !!};
   var rutaBaseFormato = "{{ $rutaBaseFormato }}";
   var urlBuscarCotizacion = "{{ route('app_formatos_buscar_cotizacion') }}";
   var urlBuscarClientes = "{{ route('app_formatos_buscar_clientes') }}";
@@ -97,46 +98,76 @@
     }
   });
 
+  function htmlLoaderDropdown(texto) {
+    return '<div class="dropdown-coincidencias-cargando">' +
+             '<i class="fas fa-circle-notch fa-spin mr-2"></i>' +
+             '<span>' + escapeHtmlFormato(texto || 'Cargando resultados...') + '</span>' +
+           '</div>';
+  }
+
   /* =====================================================================
    * 2. BUSCADOR DE COTIZACIONES / VENTAS (BARRA SUPERIOR)
    * ===================================================================== */
   var timerBuscarCoti = null;
+  var xhrBuscarCotiTop = null;
+
+  function renderizarDropdownCotizacionesTop(items, term) {
+    var dropdown = $('#dropdown-cotizaciones-formato');
+    if (!items || items.length === 0) {
+      dropdown.html('<div class="dropdown-coincidencias-vacio">No se encontraron cotizaciones o ventas con ese criterio.</div>').show();
+      return;
+    }
+    var html = '<div class="dropdown-coincidencias-header d-flex justify-content-between align-items-center">' +
+                 '<span><i class="fas fa-file-invoice mr-1"></i> Cotizaciones / Ventas (' + items.length + ')</span>' +
+                 '<span style="font-weight:normal; font-size:9.5px;">Clic para vincular</span>' +
+               '</div>';
+    for (var i = 0; i < items.length; i++) {
+      var c = items[i];
+      var badgeVenta = c.cod_venta ? '<span class="badge badge-success ml-1" style="font-size:10px;">' + escapeHtmlFormato(c.cod_venta) + '</span>' : '';
+      html += '<div class="item-coincidencia item-opcion-navegable item-coti-opcion" data-id-coti="' + c.id_cotizacion + '">' +
+                '<div>' +
+                  '<div class="item-coincidencia-nombre">' +
+                    resaltarCoincidenciaTexto(c.cod_cotizacion, term) + badgeVenta +
+                    ' <span class="text-muted font-weight-normal">- ' + resaltarCoincidenciaTexto(c.cliente, term) + '</span>' +
+                  '</div>' +
+                  '<div class="small text-muted" style="font-size:10.5px;">' +
+                    escapeHtmlFormato(c.status_label) + (c.vendedor ? ' &bull; Vendedor: ' + escapeHtmlFormato(c.vendedor) : '') +
+                  '</div>' +
+                '</div>' +
+                '<div class="item-coincidencia-meta">' +
+                  '<span class="badge badge-light border text-primary">#' + c.id_cotizacion + '</span>' +
+                '</div>' +
+              '</div>';
+    }
+    dropdown.html(html).show();
+  }
 
   function ejecutarBusquedaCotizacion(term) {
     var dropdown = $('#dropdown-cotizaciones-formato');
-    $.ajax({
+    if (xhrBuscarCotiTop && xhrBuscarCotiTop.readyState !== 4) {
+      xhrBuscarCotiTop.abort();
+    }
+    if (term === '' && Array.isArray(cacheCotizacionesRecientes)) {
+      renderizarDropdownCotizacionesTop(cacheCotizacionesRecientes, '');
+      return;
+    }
+
+    dropdown.html(htmlLoaderDropdown('Buscando cotizaciones y ventas...')).show();
+    xhrBuscarCotiTop = $.ajax({
       url: urlBuscarCotizacion,
       type: 'GET',
       data: { term: term },
       dataType: 'json',
       success: function(items) {
-        if (!items || items.length === 0) {
-          dropdown.html('<div class="dropdown-coincidencias-vacio">No se encontraron cotizaciones o ventas con ese criterio.</div>').show();
-          return;
+        if (term === '' && Array.isArray(items)) {
+          cacheCotizacionesRecientes = items;
         }
-        var html = '<div class="dropdown-coincidencias-header d-flex justify-content-between align-items-center">' +
-                     '<span><i class="fas fa-file-invoice mr-1"></i> Cotizaciones / Ventas (' + items.length + ')</span>' +
-                     '<span style="font-weight:normal; font-size:9.5px;">Clic para vincular</span>' +
-                   '</div>';
-        for (var i = 0; i < items.length; i++) {
-          var c = items[i];
-          var badgeVenta = c.cod_venta ? '<span class="badge badge-success ml-1" style="font-size:10px;">' + escapeHtmlFormato(c.cod_venta) + '</span>' : '';
-          html += '<div class="item-coincidencia item-opcion-navegable item-coti-opcion" data-id-coti="' + c.id_cotizacion + '">' +
-                    '<div>' +
-                      '<div class="item-coincidencia-nombre">' +
-                        resaltarCoincidenciaTexto(c.cod_cotizacion, term) + badgeVenta +
-                        ' <span class="text-muted font-weight-normal">- ' + resaltarCoincidenciaTexto(c.cliente, term) + '</span>' +
-                      '</div>' +
-                      '<div class="small text-muted" style="font-size:10.5px;">' +
-                        escapeHtmlFormato(c.status_label) + (c.vendedor ? ' &bull; Vendedor: ' + escapeHtmlFormato(c.vendedor) : '') +
-                      '</div>' +
-                    '</div>' +
-                    '<div class="item-coincidencia-meta">' +
-                      '<span class="badge badge-light border text-primary">#' + c.id_cotizacion + '</span>' +
-                    '</div>' +
-                  '</div>';
+        renderizarDropdownCotizacionesTop(items, term);
+      },
+      error: function(xhr, status) {
+        if (status !== 'abort') {
+          dropdown.html('<div class="dropdown-coincidencias-vacio">No se pudieron cargar las cotizaciones. Intenta de nuevo.</div>').show();
         }
-        dropdown.html(html).show();
       }
     });
   }
@@ -149,9 +180,12 @@
   $(document).on('input', '#input-buscar-cotizacion-formato', function() {
     var val = $(this).val().trim();
     clearTimeout(timerBuscarCoti);
+    if (val !== '') {
+      $('#dropdown-cotizaciones-formato').html(htmlLoaderDropdown('Buscando "' + val + '"...')).show();
+    }
     timerBuscarCoti = setTimeout(function() {
       ejecutarBusquedaCotizacion(val);
-    }, 220);
+    }, 200);
   });
 
   $(document).on('click', '.item-coti-opcion', function(e) {
@@ -166,17 +200,22 @@
    * 3. AUTOCOMPLETADO DE CLIENTE / EMPRESA Y TELÉFONO (BASE DE DATOS)
    * ===================================================================== */
   var timerBuscarCliente = null;
+  var xhrBuscarCliente = null;
 
   function ejecutarBusquedaClienteCampo(input, modoCampo) {
     var term = $(input).val().trim();
     var dropdown = $(input).siblings('.dropdown-coincidencias');
 
+    if (xhrBuscarCliente && xhrBuscarCliente.readyState !== 4) {
+      xhrBuscarCliente.abort();
+    }
     if (term.length < 2) {
       dropdown.hide();
       return;
     }
 
-    $.ajax({
+    dropdown.html(htmlLoaderDropdown('Buscando clientes...')).show();
+    xhrBuscarCliente = $.ajax({
       url: urlBuscarClientes,
       type: 'GET',
       data: { term: term },
@@ -207,6 +246,11 @@
                   '</div>';
         }
         dropdown.html(html).show();
+      },
+      error: function(xhr, status) {
+        if (status !== 'abort') {
+          dropdown.hide();
+        }
       }
     });
   }
@@ -214,8 +258,15 @@
   $(document).on('focus input', '.input-busqueda-cliente, .input-busqueda-telefono', function() {
     var self = this;
     var esTel = $(self).hasClass('input-busqueda-telefono');
-    $('.dropdown-coincidencias').not($(self).siblings('.dropdown-coincidencias')).hide();
+    var dropdown = $(self).siblings('.dropdown-coincidencias');
+    var val = $(self).val().trim();
+    $('.dropdown-coincidencias').not(dropdown).hide();
     clearTimeout(timerBuscarCliente);
+    if (val.length >= 2) {
+      dropdown.html(htmlLoaderDropdown('Buscando clientes...')).show();
+    } else {
+      dropdown.hide();
+    }
     timerBuscarCliente = setTimeout(function() {
       ejecutarBusquedaClienteCampo(self, esTel ? 'telefono' : 'cliente');
     }, 180);
@@ -240,57 +291,86 @@
    * 4. AUTOCOMPLETADO EN CAMPO COTIZACIÓN / PEDIDO / FACTURA (DENTRO DE HOJA)
    * ===================================================================== */
   var timerBuscarCotiCampo = null;
+  var xhrBuscarCotiCampo = null;
+
+  function renderizarDropdownCotizacionesCampo(dropdown, items, term) {
+    if (!items || items.length === 0) {
+      dropdown.html('<div class="dropdown-coincidencias-vacio">Sin coincidencias de cotizaciones o ventas.</div>').show();
+      return;
+    }
+    var html = '<div class="dropdown-coincidencias-header d-flex justify-content-between align-items-center">' +
+                 '<span><i class="fas fa-file-invoice-dollar mr-1"></i> Cotizaciones / Ventas (' + items.length + ')</span>' +
+                 '<span style="font-weight:normal; font-size:9.5px;">Clic para rellenar datos</span>' +
+               '</div>';
+    for (var i = 0; i < items.length; i++) {
+      var c = items[i];
+      var badgeVenta = c.cod_venta ? '<span class="badge badge-success ml-1" style="font-size:10px;">' + escapeHtmlFormato(c.cod_venta) + '</span>' : '';
+      html += '<div class="item-coincidencia item-opcion-navegable item-coti-campo-opcion" ' +
+              'data-id-coti="' + c.id_cotizacion + '" ' +
+              'data-folio="' + escapeHtmlFormato(c.cod_cotizacion) + '" ' +
+              'data-cliente="' + escapeHtmlFormato(c.cliente || '') + '" ' +
+              'data-telefono="' + escapeHtmlFormato(c.telefono || '') + '" ' +
+              'data-vendedor="' + escapeHtmlFormato(c.vendedor || '') + '">' +
+                '<div>' +
+                  '<div class="item-coincidencia-nombre">' +
+                    resaltarCoincidenciaTexto(c.cod_cotizacion, term) + badgeVenta +
+                    ' <span class="text-muted font-weight-normal">- ' + resaltarCoincidenciaTexto(c.cliente, term) + '</span>' +
+                  '</div>' +
+                  '<div class="small text-muted" style="font-size:10.5px;">' +
+                    escapeHtmlFormato(c.status_label) + (c.vendedor ? ' &bull; ' + escapeHtmlFormato(c.vendedor) : '') +
+                  '</div>' +
+                '</div>' +
+                '<div class="item-coincidencia-meta">' +
+                  '<span class="badge badge-primary btn-vincular-coti-directo" data-id-coti="' + c.id_cotizacion + '" title="Cargar también las partidas de esta cotización" style="font-size:10px;">Cargar partidas #' + c.id_cotizacion + '</span>' +
+                '</div>' +
+              '</div>';
+    }
+    dropdown.html(html).show();
+  }
 
   function ejecutarBusquedaCotizacionEnCampo(input) {
     var term = $(input).val().trim();
     var dropdown = $(input).siblings('.dropdown-coincidencias');
 
-    $.ajax({
+    if (xhrBuscarCotiCampo && xhrBuscarCotiCampo.readyState !== 4) {
+      xhrBuscarCotiCampo.abort();
+    }
+    if (term === '' && Array.isArray(cacheCotizacionesRecientes)) {
+      renderizarDropdownCotizacionesCampo(dropdown, cacheCotizacionesRecientes, '');
+      return;
+    }
+
+    dropdown.html(htmlLoaderDropdown('Buscando cotizaciones y ventas...')).show();
+    xhrBuscarCotiCampo = $.ajax({
       url: urlBuscarCotizacion,
       type: 'GET',
       data: { term: term },
       dataType: 'json',
       success: function(items) {
-        if (!items || items.length === 0) {
-          dropdown.hide();
-          return;
+        if (term === '' && Array.isArray(items)) {
+          cacheCotizacionesRecientes = items;
         }
-        var html = '<div class="dropdown-coincidencias-header d-flex justify-content-between align-items-center">' +
-                     '<span><i class="fas fa-file-invoice-dollar mr-1"></i> Cotizaciones / Ventas (' + items.length + ')</span>' +
-                     '<span style="font-weight:normal; font-size:9.5px;">Clic para rellenar datos</span>' +
-                   '</div>';
-        for (var i = 0; i < items.length; i++) {
-          var c = items[i];
-          var badgeVenta = c.cod_venta ? '<span class="badge badge-success ml-1" style="font-size:10px;">' + escapeHtmlFormato(c.cod_venta) + '</span>' : '';
-          html += '<div class="item-coincidencia item-opcion-navegable item-coti-campo-opcion" ' +
-                  'data-id-coti="' + c.id_cotizacion + '" ' +
-                  'data-folio="' + escapeHtmlFormato(c.cod_cotizacion) + '" ' +
-                  'data-cliente="' + escapeHtmlFormato(c.cliente || '') + '" ' +
-                  'data-telefono="' + escapeHtmlFormato(c.telefono || '') + '" ' +
-                  'data-vendedor="' + escapeHtmlFormato(c.vendedor || '') + '">' +
-                    '<div>' +
-                      '<div class="item-coincidencia-nombre">' +
-                        resaltarCoincidenciaTexto(c.cod_cotizacion, term) + badgeVenta +
-                        ' <span class="text-muted font-weight-normal">- ' + resaltarCoincidenciaTexto(c.cliente, term) + '</span>' +
-                      '</div>' +
-                      '<div class="small text-muted" style="font-size:10.5px;">' +
-                        escapeHtmlFormato(c.status_label) + (c.vendedor ? ' &bull; ' + escapeHtmlFormato(c.vendedor) : '') +
-                      '</div>' +
-                    '</div>' +
-                    '<div class="item-coincidencia-meta">' +
-                      '<span class="badge badge-primary btn-vincular-coti-directo" data-id-coti="' + c.id_cotizacion + '" title="Cargar también las partidas de esta cotización" style="font-size:10px;">Cargar partidas #' + c.id_cotizacion + '</span>' +
-                    '</div>' +
-                  '</div>';
+        renderizarDropdownCotizacionesCampo(dropdown, items, term);
+      },
+      error: function(xhr, status) {
+        if (status !== 'abort') {
+          dropdown.html('<div class="dropdown-coincidencias-vacio">Error al consultar cotizaciones.</div>').show();
         }
-        dropdown.html(html).show();
       }
     });
   }
 
   $(document).on('focus input', '.input-busqueda-cotizacion-campo', function() {
     var self = this;
-    $('.dropdown-coincidencias').not($(self).siblings('.dropdown-coincidencias')).hide();
+    var dropdown = $(self).siblings('.dropdown-coincidencias');
+    var val = $(self).val().trim();
+    $('.dropdown-coincidencias').not(dropdown).hide();
     clearTimeout(timerBuscarCotiCampo);
+    if (val === '' && Array.isArray(cacheCotizacionesRecientes)) {
+      renderizarDropdownCotizacionesCampo(dropdown, cacheCotizacionesRecientes, '');
+      return;
+    }
+    dropdown.html(htmlLoaderDropdown(val ? 'Buscando "' + val + '"...' : 'Cargando cotizaciones...')).show();
     timerBuscarCotiCampo = setTimeout(function() {
       ejecutarBusquedaCotizacionEnCampo(self);
     }, 200);

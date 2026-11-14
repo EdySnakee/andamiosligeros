@@ -332,6 +332,15 @@
     color: #777777;
     font-style: italic;
   }
+  .dropdown-coincidencias-cargando {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #1a4189;
+    font-weight: 600;
+    background: #f8fafe;
+  }
 
   /* RESUMEN DE CAMBIO */
   .resumen-cambio-bar {

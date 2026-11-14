@@ -205,6 +205,7 @@ class FormatosEntregaController extends Controller
         $cintaBase64 = $assets['cintaBase64'];
         $catalogoProductos = $this->obtenerCatalogoProductos();
         $catalogoVendedores = $this->obtenerCatalogoVendedores();
+        $cotizacionesRecientes = $this->obtenerCotizacionesRecientes(12);
 
         return view('app_redes.modulos.formatos.entrega.index', compact(
             'cotizacion',
@@ -228,7 +229,8 @@ class FormatosEntregaController extends Controller
             'logoBase64',
             'cintaBase64',
             'catalogoProductos',
-            'catalogoVendedores'
+            'catalogoVendedores',
+            'cotizacionesRecientes'
         ));
     }
 
