@@ -4,6 +4,18 @@
 @include('web_andamios.includes.header.css_header_loco')
 @include('web_andamios.includes.header.js_header')
 <header class="andamios-header" id="navbar">
+    {{-- CINTILLA FIJA DE PROMOCIÓN ENVÍO GRATIS --}}
+    <a href="https://api.whatsapp.com/send/?phone=525519484708&text=Hola,+vengo+de+la+p%C3%A1gina+web+de+Andamios+Ligeros+y+me+interesa+la+promoci%C3%B3n+de+env%C3%ADo+gratis.&app_absent=0"
+       target="_blank" rel="noopener" class="al-promo-topbar" aria-label="Solicitar promoción de envío gratis por WhatsApp">
+        <span class="al-promo-topbar__inner">
+            <span class="al-promo-topbar__badge">&#128666; PROMOCIÓN</span>
+            <span class="al-promo-topbar__text">¡Tenemos <strong>ENVÍO GRATIS</strong> por tiempo limitado!</span>
+            <span class="al-promo-topbar__cta">
+                <i class="fa fa-whatsapp" aria-hidden="true"></i> Solicítalo por WhatsApp &rarr;
+            </span>
+        </span>
+    </a>
+
     {{-- NAVBAR --}}
     <nav class="andamios-nav">
         {{-- LOGO --}}

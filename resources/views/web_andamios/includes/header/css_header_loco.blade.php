@@ -6,9 +6,98 @@
         width: 100%;
         z-index: 99;
         background: none;
-        padding: 10px 0;
+        padding: 0 0 8px 0;
         transition: background-color 0.3s ease;
         display: flex;
+        flex-direction: column;
+    }
+
+    /* CINTILLA SUPERIOR FIJA DE ENVÍO GRATIS */
+    .al-promo-topbar {
+        width: 100%;
+        background: linear-gradient(90deg, #0b2e6b 0%, #0052cc 55%, #0b2e6b 100%);
+        color: #ffffff !important;
+        text-decoration: none !important;
+        font-family: "Poppins", sans-serif;
+        font-size: 13px;
+        line-height: 1.25;
+        padding: 6px 12px;
+        box-sizing: border-box;
+        border-bottom: 2px solid #ffbb01;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+        display: block;
+        transition: filter 0.2s ease;
+    }
+
+    .al-promo-topbar:hover {
+        filter: brightness(1.08);
+        color: #ffffff !important;
+        text-decoration: none !important;
+    }
+
+    .al-promo-topbar__inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        text-align: center;
+    }
+
+    .al-promo-topbar__badge {
+        background: #ffbb01;
+        color: #111827;
+        font-weight: 800;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .al-promo-topbar__text {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .al-promo-topbar__text strong {
+        color: #ffdd57;
+        font-weight: 800;
+    }
+
+    .al-promo-topbar__cta {
+        background: #25d366;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 599px) {
+        .al-promo-topbar {
+            font-size: 11.5px;
+            padding: 5px 8px;
+        }
+        .al-promo-topbar__inner {
+            gap: 4px 6px;
+        }
+        .al-promo-topbar__badge {
+            font-size: 10px;
+            padding: 2px 6px;
+        }
+        .al-promo-topbar__cta {
+            font-size: 11px;
+            padding: 2px 8px;
+        }
     }
 
     .andamios-header.scrolled {
@@ -431,14 +520,17 @@
         /* ESTILOS GENERALES */
         .andamios-header {
             position: fixed;
-            padding: 0px 25px;
-            min-height: 100px;
-            max-height: 100px;
+            padding: 0;
+            min-height: 106px;
+            max-height: 106px;
         }
 
         .andamios-nav {
             display: flex;
-            max-height: 120px;
+            min-height: 70px;
+            max-height: 70px;
+            padding: 0 25px;
+            box-sizing: border-box;
             align-items: center;
             justify-content: space-between;
             position: relative;
@@ -513,7 +605,7 @@
         .nav-opciones-supermenu {
             position: absolute;
             right: -120%;
-            top: 90px;
+            top: 70px;
             background-color: white;
             padding: 20px;
             transition: 200ms ease-in;
