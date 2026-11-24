@@ -175,6 +175,14 @@
         </li>
         @endif
 
+        {{-- HORAS EXTRA (Acceso para todos los roles autenticados) --}}
+        <li id="horas_extra_m" class="nav-item">
+            <a class="nav-link nav-link-directo" href="{{ route('app_horas_extra') }}">
+                <i class="fas fa-fw fa-business-time"></i>
+                <span>Horas extra</span>
+            </a>
+        </li>
+
         {{-- GRUPO 4: CATÁLOGO Y SITIO WEB (Productos, Tienda en Línea, Promociones, Blog) --}}
         @if ($esAdminMenu)
         <li id="productos_m" class="nav-item nav-item-grupo">

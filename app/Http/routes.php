@@ -216,7 +216,7 @@ Route::post(
 
 
 
-Route::group(['middleware' => ['web']], function () {
+Route::group([], function () {
     Route::auth();
     Route::get('/inicio', 'HomeController@index');
     Route::get('/register', function () {

@@ -809,6 +809,8 @@
   </script>
   @endif
 
+  @include('app_redes.modulos.horas_extra.partials.widget_sesion')
+
   @yield('js')
 
 

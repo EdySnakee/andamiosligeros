@@ -38,6 +38,7 @@ IGNORED_PATTERNS = [
     ".DS_Store",
     "storage/framework",
     "storage/logs",
+    "storage/app/horas_extra",
     "Homestead",
     ".valetphprc",
     "error_log",

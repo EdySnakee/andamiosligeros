@@ -335,6 +335,15 @@ class User extends Authenticatable
             ];
         }
 
+        $catalogo[] = [
+            'key'   => 'horas_extra',
+            'label' => 'H. Extra',
+            'full'  => 'Horas Extra',
+            'url'   => route('app_horas_extra'),
+            'match' => '/sb-admin/horas-extra',
+            'icon'  => 'fas fa-business-time',
+        ];
+
         return $catalogo;
     }
 

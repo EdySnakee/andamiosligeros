@@ -161,6 +161,16 @@ Route::group(['middleware' => ['auth', 'role:admin']], function () {
         'as'   => 'ajax_usuarios_path',
     ]);
 
+    /* HORAS EXTRA — ACCIONES EXCLUSIVAS DE ADMIN */
+    Route::post('sb-admin/horas-extra/{id}/validar', [
+        'uses' => 'HorasExtraController@validar',
+        'as'   => 'app_horas_extra_validar',
+    ])->where('id', '[0-9]+');
+    Route::post('sb-admin/horas-extra/{id}/cerrar', [
+        'uses' => 'HorasExtraController@cerrar',
+        'as'   => 'app_horas_extra_cerrar',
+    ])->where('id', '[0-9]+');
+
     /* HERRAMIENTAS */
     Route::get('sb-admin/codificar', [
         'uses' => 'HerramientasController@verCodificar',
@@ -441,4 +451,42 @@ Route::group(['middleware' => ['auth']], function () {
         'uses' => 'UsuariosController@guardarAccesosRapidos',
         'as'   => 'app_perfil_accesos_rapidos',
     ]);
+
+    /* MÓDULO HORAS EXTRA (Para todos los usuarios autenticados) */
+    Route::get('sb-admin/horas-extra', [
+        'uses' => 'HorasExtraController@index',
+        'as'   => 'app_horas_extra',
+    ]);
+    Route::post('sb-admin/horas-extra/guardar', [
+        'uses' => 'HorasExtraController@guardar',
+        'as'   => 'app_horas_extra_guardar',
+    ]);
+    Route::post('sb-admin/horas-extra/latido', [
+        'uses' => 'HorasExtraController@latido',
+        'as'   => 'app_horas_extra_latido',
+    ]);
+    Route::get('sb-admin/horas-extra/reporte/pdf', [
+        'uses' => 'HorasExtraController@pdf',
+        'as'   => 'app_horas_extra_pdf',
+    ]);
+    Route::get('sb-admin/horas-extra/{id}/ver', [
+        'uses' => 'HorasExtraController@ver',
+        'as'   => 'app_horas_extra_ver',
+    ])->where('id', '[0-9]+');
+    Route::post('sb-admin/horas-extra/{id}/cancelar', [
+        'uses' => 'HorasExtraController@cancelar',
+        'as'   => 'app_horas_extra_cancelar',
+    ])->where('id', '[0-9]+');
+    Route::post('sb-admin/horas-extra/{id}/iniciar', [
+        'uses' => 'HorasExtraController@iniciar',
+        'as'   => 'app_horas_extra_iniciar',
+    ])->where('id', '[0-9]+');
+    Route::post('sb-admin/horas-extra/{id}/finalizar', [
+        'uses' => 'HorasExtraController@finalizar',
+        'as'   => 'app_horas_extra_finalizar',
+    ])->where('id', '[0-9]+');
+    Route::get('sb-admin/horas-extra/{id}/evidencia/{idx}', [
+        'uses' => 'HorasExtraController@evidencia',
+        'as'   => 'app_horas_extra_evidencia',
+    ])->where(['id' => '[0-9]+', 'idx' => '[0-9]+']);
 });
