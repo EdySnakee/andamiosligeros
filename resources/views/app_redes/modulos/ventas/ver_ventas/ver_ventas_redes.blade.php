@@ -997,7 +997,7 @@
                         $envio_vta = (float)($ventasRedes->envio ?? 0);
                         $envio2_vta = (float)($ventasRedes->envio_2 ?? 0);
                         $iva_vta = (float)($ventasRedes->iva ?? 0);
-                        $prod_subtotal_vta = max(0, $subtotal_vta - $envio_vta - $envio2_vta);
+                        $prod_subtotal_vta = max(0, $subtotal_vta - $envio_vta - $envio2_vta + $desc_vta);
                         $total_vta = round($subtotal_vta + $iva_vta, 2);
                     @endphp
                     <div class="totals-card">

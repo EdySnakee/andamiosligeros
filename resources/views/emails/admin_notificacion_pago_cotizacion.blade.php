@@ -162,7 +162,7 @@
                         $desc_mail = (float)($cotizacion->descuento_aplicado ?? 0);
                         $envio_mail = (float)($cotizacion->envio ?? 0);
                         $iva_mail = (float)($cotizacion->iva ?? 0);
-                        $prod_subtotal_mail = max(0, $subtotal_mail - $envio_mail);
+                        $prod_subtotal_mail = max(0, $subtotal_mail - $envio_mail + $desc_mail);
                         $total_mail = round($subtotal_mail + $iva_mail, 2);
                     @endphp
                     <tr>

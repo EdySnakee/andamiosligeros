@@ -256,20 +256,20 @@ $objDetCotizacion = new DetalleCotizaciones();
                                     @endforeach
                                 @endif
 
-                                @if ($result_coti->descuento_aplicado != 0)
-                                    <tr>
-                                        <td colspan="3" class="text-right font-weight-bold text-muted">Descuento</td>
-                                        <td class="text-right text-danger font-weight-bold">- $ {{ number_format($result_coti->descuento_aplicado, 2, '.', ',') }}</td>
-                                    </tr>
-                                @endif
-
                                 @php
-                                    $prod_sub_accordion = max(0, (float)$result_coti->subtotal - (float)$result_coti->envio);
+                                    $prod_sub_accordion = max(0, (float)$result_coti->subtotal - (float)$result_coti->envio + (float)($result_coti->descuento_aplicado ?? 0));
                                 @endphp
                                 @if ($prod_sub_accordion != 0)
                                     <tr>
                                         <td colspan="3" class="text-right font-weight-bold text-muted">Subtotal</td>
                                         <td class="text-right font-weight-bold">$ {{ number_format($prod_sub_accordion, 2, '.', ',') }}</td>
+                                    </tr>
+                                @endif
+
+                                @if ($result_coti->descuento_aplicado != 0)
+                                    <tr>
+                                        <td colspan="3" class="text-right font-weight-bold text-muted">Descuento</td>
+                                        <td class="text-right text-danger font-weight-bold">- $ {{ number_format($result_coti->descuento_aplicado, 2, '.', ',') }}</td>
                                     </tr>
                                 @endif
 

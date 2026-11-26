@@ -277,7 +277,7 @@ if (!$banner_producto) {
                         $desc_coti = (float)($cotizacionesRedes->descuento_aplicado ?? 0);
                         $envio_coti = (float)($cotizacionesRedes->envio ?? 0);
                         $iva_coti = (float)($cotizacionesRedes->iva ?? 0);
-                        $prod_subtotal_coti = max(0, $subtotal_coti - $envio_coti);
+                        $prod_subtotal_coti = max(0, $subtotal_coti - $envio_coti + $desc_coti);
                         $total_coti = round($subtotal_coti + $iva_coti, 2);
                     @endphp
                     <div class="tabla-total-container">

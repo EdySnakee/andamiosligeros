@@ -194,7 +194,7 @@ class Cotizaciones extends Model
             actualizarCajaTotales({
                 envio: <?php echo json_encode($envio_val); ?>,
                 subtotal: <?php echo json_encode($subtotal_global); ?>,
-                subtotal_productos: <?php echo json_encode($base_productos); ?>,
+                subtotal_productos: <?php echo json_encode($subtotal_sin_descuento); ?>,
                 subtotal_sin_descuento: <?php echo json_encode($subtotal_sin_descuento); ?>,
                 descuento: <?php echo json_encode($nuevo_descuento); ?>,
                 iva: <?php echo json_encode($impuestos); ?>,

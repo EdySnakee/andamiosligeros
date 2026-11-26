@@ -281,8 +281,12 @@ session_destroy();
 
             var envio = parseFloat(data.envio || 0);
             var subtotal = parseFloat(data.subtotal || 0);
-            var subtotalProd = (data.subtotal_productos !== undefined) ? parseFloat(data.subtotal_productos) : (parseFloat(data.subtotal_sin_descuento || 0) > 0 ? parseFloat(data.subtotal_sin_descuento) : Math.max(0, subtotal - envio));
             var descuento = parseFloat(data.descuento || 0);
+            var subtotalProd = (data.subtotal_sin_descuento !== undefined)
+                ? parseFloat(data.subtotal_sin_descuento || 0)
+                : ((data.subtotal_productos !== undefined)
+                    ? parseFloat(data.subtotal_productos)
+                    : Math.max(0, subtotal - envio + descuento));
             var iva = parseFloat(data.iva || 0);
             var total = parseFloat(data.total || 0);
 
@@ -340,7 +344,7 @@ session_destroy();
                 actualizarCajaTotales({
                     envio: envioVal,
                     subtotal: baseGravable,
-                    subtotal_productos: baseProd,
+                    subtotal_productos: subtotalSinDesc,
                     subtotal_sin_descuento: subtotalSinDesc,
                     descuento: descVal,
                     iva: ivaVal,

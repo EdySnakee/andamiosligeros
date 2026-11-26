@@ -59,9 +59,10 @@
 						@endforeach
 						@php
 							$bp_subtotal = (float)$cotizacionesRedes->subtotal;
+							$bp_desc = (float)($cotizacionesRedes->descuento_aplicado ?? 0);
 							$bp_envio = (float)($cotizacionesRedes->envio ?? 0);
 							$bp_iva = (float)($cotizacionesRedes->iva ?? 0);
-							$bp_prod_subtotal = max(0, $bp_subtotal - $bp_envio);
+							$bp_prod_subtotal = max(0, $bp_subtotal - $bp_envio + $bp_desc);
 							$bp_total = round($bp_subtotal + $bp_iva, 2);
 						@endphp
 						<tr class="fila-sin-bordes">
