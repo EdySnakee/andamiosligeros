@@ -543,8 +543,12 @@ Route::get('/catalogo-virtual-andamios-ligeros', function () {
     return view('web_andamios.catalogo.catalogo');
 });
 
-Route::get('/catalogo-virtual-andamios-ligeros-2025', function () {
+Route::get('/catalogo-virtual-andamios-ligeros-2026', function () {
     return view('web_andamios.catalogo_sep_2024.catalogo_sep_2024');
+});
+
+Route::get('/catalogo-virtual-andamios-ligeros-2025', function () {
+    return redirect('/catalogo-virtual-andamios-ligeros-2026', 301);
 });
 
 /*POLITICAS*/

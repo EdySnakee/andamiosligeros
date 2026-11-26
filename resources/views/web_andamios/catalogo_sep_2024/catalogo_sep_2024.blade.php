@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>CATÁLOGO VIRTUAL ANDAMIOS LIGEROS | 2025</title>
+    <title>CATÁLOGO VIRTUAL ANDAMIOS LIGEROS | 2026</title>
     <meta name="description"
-        content="Descubre nuestro catálogo virtual de andamios ligeros actualizado 2025, una manera más fácil de visualizar nuestros andamios." />
+        content="Descubre nuestro catálogo virtual de andamios ligeros actualizado 2026, una manera más fácil de visualizar nuestros andamios." />
     <link rel="shortcut icon" href="{{ url('web/img/icono2.ico') }}" type="image/x-icon">
     <style>
         *,
