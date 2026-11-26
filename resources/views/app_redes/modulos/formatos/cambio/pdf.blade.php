@@ -249,17 +249,15 @@
   <table class="productos-table">
     <thead>
       <tr>
-        <th style="width: 8%;">N.°</th>
-        <th style="width: 38%;">PRODUCTO / DESCRIPCIÓN</th>
+        <th style="width: 46%;">PRODUCTO / DESCRIPCIÓN</th>
         <th style="width: 14%;">CANTIDAD</th>
         <th style="width: 18%;">VALOR RECONOCIDO</th>
         <th style="width: 22%;">ESTADO / OBSERVACIONES</th>
       </tr>
     </thead>
     <tbody>
-      @forelse($formato->detallesEntregados as $idx => $det)
+      @forelse($formato->detallesEntregados as $det)
       <tr>
-        <td style="text-align: center;">{{ $idx + 1 }}</td>
         <td>{{ $det->nombre_producto }}</td>
         <td style="text-align: center;">{{ \App\Http\Controllers\Traits\FormatosHelperTrait::formatearCantidad($det->cantidad) }}</td>
         <td style="text-align: center;">$ {{ $det->precio_unitario > 0 ? number_format($det->precio_unitario, 2) : '_____________' }}</td>
@@ -267,7 +265,6 @@
       </tr>
       @empty
       <tr>
-        <td style="text-align: center;">1</td>
         <td>&nbsp;</td>
         <td style="text-align: center;">________</td>
         <td style="text-align: center;">$ _____________</td>
@@ -282,17 +279,15 @@
   <table class="productos-table">
     <thead>
       <tr>
-        <th style="width: 8%;">N.°</th>
-        <th style="width: 40%;">PRODUCTO / DESCRIPCIÓN</th>
+        <th style="width: 48%;">PRODUCTO / DESCRIPCIÓN</th>
         <th style="width: 14%;">CANTIDAD</th>
         <th style="width: 19%;">PRECIO UNITARIO</th>
         <th style="width: 19%;">IMPORTE</th>
       </tr>
     </thead>
     <tbody>
-      @forelse($formato->detallesSustitucion as $idx => $det)
+      @forelse($formato->detallesSustitucion as $det)
       <tr>
-        <td style="text-align: center;">{{ $idx + 1 }}</td>
         <td>{{ $det->nombre_producto }}</td>
         <td style="text-align: center;">{{ \App\Http\Controllers\Traits\FormatosHelperTrait::formatearCantidad($det->cantidad) }}</td>
         <td style="text-align: center;">$ {{ $det->precio_unitario > 0 ? number_format($det->precio_unitario, 2) : '_____________' }}</td>
@@ -300,7 +295,6 @@
       </tr>
       @empty
       <tr>
-        <td style="text-align: center;">1</td>
         <td>&nbsp;</td>
         <td style="text-align: center;">________</td>
         <td style="text-align: center;">$ _____________</td>

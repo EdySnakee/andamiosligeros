@@ -213,8 +213,7 @@
               <table class="tabla-productos" id="tabla-productos-entrega">
                 <thead>
                   <tr>
-                    <th style="width: 10%; text-align: center;">N.°</th>
-                    <th style="width: 67%; text-align: center;">PRODUCTO / DESCRIPCIÓN</th>
+                    <th style="width: 77%; text-align: center;">PRODUCTO / DESCRIPCIÓN</th>
                     <th style="width: 17%; text-align: center;">CANTIDAD</th>
                     <th style="width: 6%; text-align: center;" class="no-print"></th>
                   </tr>
@@ -227,7 +226,6 @@
                       $esCotizado = !empty($fila['id_det_cotizacion']);
                     @endphp
                     <tr class="fila-producto {{ $esCotizado ? '' : 'fila-producto-manual' }}" id="{{ $esCotizado ? 'fila-prod-' . $fila['id_det_cotizacion'] : 'fila-prod-manual-' . $contadorRow }}">
-                      <td class="text-center col-numero-fila font-weight-bold">{{ $contadorRow }}</td>
                       <td>
                         <input type="hidden" name="productos[{{ $contadorRow }}][id_det_cotizacion]" value="{{ $fila['id_det_cotizacion'] ?: '' }}">
                         <input type="hidden" name="productos[{{ $contadorRow }}][id_producto]" class="input-id-producto" value="{{ $fila['id_producto'] ?: '' }}">
@@ -269,7 +267,6 @@
                     @if(!$cotizacion)
                       @php $contadorRow = 1; @endphp
                       <tr class="fila-producto fila-producto-manual" id="fila-prod-manual-1">
-                        <td class="text-center col-numero-fila font-weight-bold">1</td>
                         <td>
                           <input type="hidden" name="productos[1][id_det_cotizacion]" value="">
                           <input type="hidden" name="productos[1][id_producto]" class="input-id-producto" value="">
@@ -290,7 +287,7 @@
                       </tr>
                     @else
                       <tr id="fila-sin-productos">
-                        <td colspan="4" class="text-center py-3 text-muted">
+                        <td colspan="3" class="text-center py-3 text-muted">
                           <em>No hay productos pendientes en este formato. Usa <strong>"Añadir producto"</strong> o <strong>"Añadir de cotización"</strong> arriba para agregar partidas.</em>
                         </td>
                       </tr>
@@ -502,14 +499,6 @@
     tr.find('.input-cantidad-prod').focus().select();
   };
 
-  function renumerarFilasEntrega() {
-    var num = 1;
-    $('#tbody-productos-entrega tr.fila-producto').each(function() {
-      $(this).find('.col-numero-fila').text(num);
-      num++;
-    });
-  }
-
   function validarMaximoEntrega(input) {
     var val = parseFloat(input.value);
     var maxAttr = input.getAttribute('data-max');
@@ -535,12 +524,11 @@
 
   function quitarFilaEntrega(btn) {
     $(btn).closest('tr').remove();
-    renumerarFilasEntrega();
 
     if ($('#tbody-productos-entrega tr.fila-producto').length === 0) {
       if ($('#fila-sin-productos').length === 0) {
         $('#tbody-productos-entrega').append(
-          '<tr id="fila-sin-productos"><td colspan="4" class="text-center py-3 text-muted"><em>No hay productos en este formato. Usa "Añadir producto" arriba para agregar partidas.</em></td></tr>'
+          '<tr id="fila-sin-productos"><td colspan="3" class="text-center py-3 text-muted"><em>No hay productos en este formato. Usa "Añadir producto" arriba para agregar partidas.</em></td></tr>'
         );
       }
     }
@@ -579,12 +567,10 @@
 
     $('#fila-sin-productos').remove();
     contadorRows++;
-    var numActual = $('#tbody-productos-entrega tr.fila-producto').length + 1;
     var cantFmt = (restante == parseInt(restante, 10)) ? parseInt(restante, 10) : restante;
 
     var htmlRow = `
       <tr class="fila-producto" id="fila-prod-${idDet}">
-        <td class="text-center col-numero-fila font-weight-bold">${numActual}</td>
         <td>
           <input type="hidden" name="productos[${contadorRows}][id_det_cotizacion]" value="${idDet}">
           <input type="hidden" name="productos[${contadorRows}][id_producto]" class="input-id-producto" value="">
@@ -617,7 +603,6 @@
     `;
 
     $('#tbody-productos-entrega').append(htmlRow);
-    renumerarFilasEntrega();
   });
 
   // Añadir producto adicional / catálogo
@@ -625,11 +610,9 @@
     e.preventDefault();
     $('#fila-sin-productos').remove();
     contadorRows++;
-    var numActual = $('#tbody-productos-entrega tr.fila-producto').length + 1;
 
     var htmlRow = `
       <tr class="fila-producto fila-producto-manual" id="fila-prod-manual-${contadorRows}">
-        <td class="text-center col-numero-fila font-weight-bold">${numActual}</td>
         <td>
           <input type="hidden" name="productos[${contadorRows}][id_det_cotizacion]" value="">
           <input type="hidden" name="productos[${contadorRows}][id_producto]" class="input-id-producto" value="">
@@ -665,7 +648,6 @@
     `;
 
     $('#tbody-productos-entrega').append(htmlRow);
-    renumerarFilasEntrega();
     var nuevoInput = $('#fila-prod-manual-' + contadorRows).find('.input-busqueda-producto');
     nuevoInput.focus();
   });

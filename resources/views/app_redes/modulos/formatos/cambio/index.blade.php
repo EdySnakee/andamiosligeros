@@ -223,8 +223,7 @@
               <table class="tabla-productos" id="tabla-entregados">
                 <thead>
                   <tr>
-                    <th style="width: 7%; text-align: center;">N.°</th>
-                    <th style="width: 38%; text-align: center;">PRODUCTO / DESCRIPCIÓN</th>
+                    <th style="width: 45%; text-align: center;">PRODUCTO / DESCRIPCIÓN</th>
                     <th style="width: 12%; text-align: center;">CANTIDAD</th>
                     <th style="width: 17%; text-align: center;">VALOR RECONOCIDO</th>
                     <th style="width: 21%; text-align: center;">ESTADO / OBSERVACIONES</th>
@@ -236,7 +235,6 @@
                   @foreach($filasEntregados as $idx => $fEnt)
                     @php $contEnt++; @endphp
                     <tr class="fila-entregado">
-                      <td class="text-center col-num-ent font-weight-bold">{{ $contEnt }}</td>
                       <td>
                         <input type="hidden" name="entregados[{{ $contEnt }}][id_producto]" class="input-id-producto" value="{{ $fEnt['id_producto'] ?: '' }}">
                         <div class="contenedor-autocompletado">
@@ -303,8 +301,7 @@
               <table class="tabla-productos" id="tabla-sustitucion">
                 <thead>
                   <tr>
-                    <th style="width: 7%; text-align: center;">N.°</th>
-                    <th style="width: 40%; text-align: center;">PRODUCTO / DESCRIPCIÓN</th>
+                    <th style="width: 47%; text-align: center;">PRODUCTO / DESCRIPCIÓN</th>
                     <th style="width: 12%; text-align: center;">CANTIDAD</th>
                     <th style="width: 18%; text-align: center;">PRECIO UNITARIO</th>
                     <th style="width: 18%; text-align: center;">IMPORTE</th>
@@ -316,7 +313,6 @@
                   @foreach($filasSustitucion as $idx => $fSust)
                     @php $contSust++; @endphp
                     <tr class="fila-sustitucion">
-                      <td class="text-center col-num-sust font-weight-bold">{{ $contSust }}</td>
                       <td>
                         <input type="hidden" name="sustituciones[{{ $contSust }}][id_producto]" class="input-id-producto" value="{{ $fSust['id_producto'] ?: '' }}">
                         <div class="contenedor-autocompletado">
@@ -651,14 +647,6 @@
     recalcularResumenCambio();
   }
 
-  function renumerarTablaCambio(selectorFila, selectorCol) {
-    var num = 1;
-    $(selectorFila).each(function() {
-      $(this).find(selectorCol).text(num);
-      num++;
-    });
-  }
-
   function recalcularFilaSustitucion(el) {
     var tr = $(el).closest('tr');
     var cant = parseFloat(tr.find('.input-cant-sust').val()) || 0;
@@ -708,7 +696,6 @@
     var precioUnitAttr = (data.precio_unitario !== undefined && data.precio_unitario !== '') ? data.precio_unitario : '';
     return `
       <tr class="fila-entregado" data-precio-unitario="${escapeHtmlFormato(precioUnitAttr)}">
-        <td class="text-center col-num-ent font-weight-bold">${idx}</td>
         <td>
           <input type="hidden" name="entregados[${idx}][id_producto]" class="input-id-producto" value="${escapeHtmlFormato(data.id_producto || '')}">
           <div class="contenedor-autocompletado">
@@ -764,7 +751,6 @@
   function crearHtmlFilaSustitucion(idx) {
     return `
       <tr class="fila-sustitucion">
-        <td class="text-center col-num-sust font-weight-bold">${idx}</td>
         <td>
           <input type="hidden" name="sustituciones[${idx}][id_producto]" class="input-id-producto" value="">
           <div class="contenedor-autocompletado">
@@ -825,7 +811,6 @@
       contEnt++;
       $('#tbody-entregados').append(crearHtmlFilaEntregado(contEnt));
     }
-    renumerarTablaCambio('#tbody-entregados tr.fila-entregado', '.col-num-ent');
     recalcularResumenCambio();
   }
 
@@ -835,14 +820,12 @@
       contSust++;
       $('#tbody-sustitucion').append(crearHtmlFilaSustitucion(contSust));
     }
-    renumerarTablaCambio('#tbody-sustitucion tr.fila-sustitucion', '.col-num-sust');
     recalcularResumenCambio();
   }
 
   $('#btn-agregar-entregado').on('click', function() {
     contEnt++;
     $('#tbody-entregados').append(crearHtmlFilaEntregado(contEnt));
-    renumerarTablaCambio('#tbody-entregados tr.fila-entregado', '.col-num-ent');
     $('#tbody-entregados tr.fila-entregado').last().find('.input-busqueda-producto').focus();
   });
 
@@ -872,14 +855,12 @@
       contEnt++;
       $('#tbody-entregados').append(crearHtmlFilaEntregado(contEnt, data));
     }
-    renumerarTablaCambio('#tbody-entregados tr.fila-entregado', '.col-num-ent');
     recalcularResumenCambio();
   });
 
   $('#btn-agregar-sustitucion').on('click', function() {
     contSust++;
     $('#tbody-sustitucion').append(crearHtmlFilaSustitucion(contSust));
-    renumerarTablaCambio('#tbody-sustitucion tr.fila-sustitucion', '.col-num-sust');
     $('#tbody-sustitucion tr.fila-sustitucion').last().find('.input-busqueda-producto').focus();
   });
 

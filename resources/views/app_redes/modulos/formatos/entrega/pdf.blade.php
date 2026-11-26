@@ -242,21 +242,19 @@
   <table class="productos-table">
     <thead>
       <tr>
-        <th style="width: 10%;">N.°</th>
-        <th style="width: 72%;">PRODUCTO / DESCRIPCIÓN</th>
+        <th style="width: 82%;">PRODUCTO / DESCRIPCIÓN</th>
         <th style="width: 18%;">CANTIDAD</th>
       </tr>
     </thead>
     <tbody>
-      @forelse($formato->detalles as $idx => $det)
+      @forelse($formato->detalles as $det)
       <tr>
-        <td style="text-align: center;">{{ $idx + 1 }}</td>
         <td>{{ $det->nombre_producto }}</td>
         <td style="text-align: center;">{{ \App\Http\Controllers\Traits\FormatosHelperTrait::formatearCantidad($det->cantidad) }}</td>
       </tr>
       @empty
       <tr>
-        <td colspan="3" style="text-align: center; color: #777;">Sin detalles de productos registrados.</td>
+        <td colspan="2" style="text-align: center; color: #777;">Sin detalles de productos registrados.</td>
       </tr>
       @endforelse
     </tbody>
