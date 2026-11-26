@@ -49,9 +49,7 @@
                 <i class="fas fa-business-time text-primary mr-2"></i>Horas Extra
             </h1>
             <p class="mb-0 text-muted small">
-                <i class="fas fa-shield-alt mr-1 text-info"></i>
-                La actividad solo se registra dentro del sistema mientras tu sesión de horas extra está activa.
-                <a href="#" data-toggle="modal" data-target="#modalAvisoPrivacidad" class="ml-1 font-weight-bold">Ver aviso de privacidad</a>
+                Registra tu solicitud, inicia tu sesión al comenzar y adjunta tu resumen y evidencias al finalizar.
             </p>
         </div>
 
@@ -517,28 +515,6 @@
         </div>
     </div>
 
-    {{-- MODAL: AVISO DE PRIVACIDAD --}}
-    <div class="modal fade" id="modalAvisoPrivacidad" tabindex="-1" role="dialog" aria-labelledby="modalAvisoPrivacidadLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAvisoPrivacidadLabel">
-                        <i class="fas fa-user-shield text-primary mr-1"></i> Aviso de Privacidad — Horas Extra
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    @include('app_redes.modulos.horas_extra.partials.aviso_privacidad')
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     @include('app_redes.modulos.horas_extra.partials.modal_inicio')
     @include('app_redes.modulos.horas_extra.partials.modal_fin')
 
@@ -596,17 +572,12 @@
         $('#he-ini-horas').text($btn.data('horas'));
         $('#he-ini-modalidad').text($btn.data('modalidad'));
         $('#he-ini-motivo').text($btn.data('motivo'));
-        $('#chkAceptaAviso').prop('checked', false);
         $('#estadoGeoInicio').addClass('d-none');
         $('#btnConfirmarInicio').prop('disabled', false);
         $('#modalInicioHorasExtra').modal('show');
     });
 
     $('#btnConfirmarInicio').on('click', function() {
-        if (!$('#chkAceptaAviso').is(':checked')) {
-            swal('Consentimiento requerido', 'Debes aceptar el aviso de privacidad antes de iniciar la sesión.', 'warning');
-            return;
-        }
         var $btn = $(this);
         $btn.prop('disabled', true);
         $('#estadoGeoInicio').removeClass('d-none');
@@ -617,7 +588,6 @@
                 type: 'POST',
                 data: {
                     _token: csrfToken,
-                    acepta_aviso: 1,
                     ubicacion_estado: geo.ubicacion_estado,
                     latitud: geo.latitud,
                     longitud: geo.longitud,

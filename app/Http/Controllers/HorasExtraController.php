@@ -430,7 +430,6 @@ class HorasExtraController extends Controller
         }
 
         $rules = [
-            'acepta_aviso'     => 'required|accepted',
             'ubicacion_estado' => 'required|in:concedida,denegada,no_disponible',
         ];
         if ($request->input('ubicacion_estado') === HoraExtraEvento::UBICACION_CONCEDIDA) {
@@ -440,8 +439,6 @@ class HorasExtraController extends Controller
         }
 
         $this->validate($request, $rules, [
-            'acepta_aviso.required'     => 'Debes aceptar el aviso de privacidad para iniciar.',
-            'acepta_aviso.accepted'     => 'Debes aceptar el aviso de privacidad para iniciar.',
             'ubicacion_estado.required' => 'No se recibió el estado de ubicación.',
         ]);
 
@@ -451,9 +448,6 @@ class HorasExtraController extends Controller
         DB::transaction(function () use ($solicitud, $request, $ahora, $ubicacionEstado) {
             $solicitud->estatus = HoraExtraSolicitud::ESTATUS_EN_CURSO;
             $solicitud->inicio_at = $ahora;
-            $solicitud->acepta_aviso = true;
-            $solicitud->aviso_version = config('horas_extra.aviso_version', '2026-11');
-            $solicitud->aviso_aceptado_at = $ahora;
             $solicitud->save();
 
             HoraExtraEvento::registrar($solicitud, HoraExtraEvento::TIPO_INICIO, $request, [

@@ -200,16 +200,6 @@
                         <td>{{ $solicitud->motivo }}</td>
                     </tr>
                     <tr>
-                        <th>Consentimiento aviso:</th>
-                        <td>
-                            @if ($solicitud->acepta_aviso)
-                                Aceptado (v{{ $solicitud->aviso_version }}) el {{ $solicitud->aviso_aceptado_at ? $solicitud->aviso_aceptado_at->format('d/m/Y H:i') : '' }}
-                            @else
-                                <span class="text-muted">No iniciado aún</span>
-                            @endif
-                        </td>
-                    </tr>
-                    <tr>
                         <th>Validación final:</th>
                         <td>
                             @if ($solicitud->validador)
